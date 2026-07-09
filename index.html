@@ -168,12 +168,13 @@
   .page-label { font-size:13px; color:var(--text2); font-family:var(--mono); }
   main { padding:1.5rem; max-width:1600px; margin:0 auto; width:100%; }
 
-  /* MOBILE */
+  /* MOBILE / TABLET */
   @media (max-width:768px) {
-    header { padding:0 1rem; }
-    main { padding:1rem; }
+    header { padding:0 0.75rem; gap:8px; }
+    .header-actions { gap:8px; }
+    main { padding:1rem 0.85rem 3rem; }
     .tabs { width:100%; justify-content:stretch; }
-    .tab { flex:1; text-align:center; padding:8px 10px; font-size:12px; }
+    .tab { flex:1; text-align:center; padding:10px 8px; font-size:12px; }
     .summary-grid { grid-template-columns:repeat(2,1fr); }
     .cat-grid { grid-template-columns:1fr; }
     #tab-dashboard > div[style*="grid"] { display:flex !important; flex-direction:column; }
@@ -181,8 +182,29 @@
     .search-input { max-width:100%; }
     .form-row { grid-template-columns:1fr; }
     table { font-size:12px; }
-    th, td { padding:8px 10px; }
-    .modal { padding:1.25rem; }
+    th, td { padding:9px 10px; }
+    /* iOS: inputs a 16px para que Safari no haga zoom al enfocar */
+    .form-input, .search-input, select.filter-select { font-size:16px; }
+    /* botones más grandes para el dedo */
+    .link-btn, .action-btn { padding:7px 12px; font-size:12px; }
+    .toggle-pub-btn { padding:8px 14px; font-size:12px; }
+    .status-pend, .status-pub { padding:6px 12px; }
+    /* modal tipo hoja inferior (estilo app nativa) */
+    .modal-overlay { padding:0; align-items:flex-end; }
+    .modal { max-width:100%; max-height:88dvh; border-radius:var(--radius-lg) var(--radius-lg) 0 0; padding:1.25rem 1.1rem calc(1.5rem + env(safe-area-inset-bottom)); animation:sheetUp 0.28s cubic-bezier(0.34,1.3,0.64,1); }
+    .toast { left:1rem; right:1rem; bottom:1rem; text-align:center; }
+  }
+  @keyframes sheetUp { from { transform:translateY(40%); opacity:0.4; } to { transform:translateY(0); opacity:1; } }
+
+  /* IPHONE */
+  @media (max-width:480px) {
+    .app-subtitle { display:none; }
+    .page-label { display:none; }
+    #sync-label { display:none; }
+    .btn-primary { padding:8px 12px !important; }
+    .tabs { display:grid; grid-template-columns:1fr 1fr; gap:4px; }
+    .tab { padding:11px 6px; }
+    .stat-value { font-size:24px; }
   }
 </style>
 </head>
@@ -990,7 +1012,7 @@ function openDetailModal(id) {
     </div>
     <div class="form-group">
       <label class="form-label" style="display:flex;justify-content:space-between;align-items:center">Descripción TikTok 📝
-        <button type="button" onclick="copyDescripcion()" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--text2);font-size:10px;font-family:var(--mono);padding:3px 10px;cursor:pointer">⧉ Copiar</button>
+        <button type="button" onclick="pegarDescripcion()" style="background:var(--accent-dim);border:1px solid rgba(200,255,0,0.3);border-radius:6px;color:var(--accent);font-size:10px;font-family:var(--mono);padding:5px 12px;cursor:pointer">📋 Pegar descripción</button>
       </label>
       <textarea class="form-input" id="ed-descripcion" rows="3" placeholder="Caption para TikTok / IG: texto, hashtags...">${v.descripcion||''}</textarea>
     </div>
@@ -1040,13 +1062,17 @@ function copyDescFromTable(id) {
   );
 }
 
-function copyDescripcion() {
-  const txt = document.getElementById('ed-descripcion').value;
-  if (!txt) { showToast('No hay descripción que copiar'); return; }
-  navigator.clipboard.writeText(txt).then(
-    () => showToast('📋 Descripción copiada ✓', true),
-    () => showToast('⚠ No se pudo copiar')
-  );
+async function pegarDescripcion() {
+  const ta = document.getElementById('ed-descripcion');
+  try {
+    const txt = await navigator.clipboard.readText();
+    if (!txt) { showToast('No hay nada copiado en el portapapeles'); return; }
+    ta.value = txt;
+    showToast('📋 Descripción pegada ✓ — recuerda Guardar cambios', true);
+  } catch(e) {
+    ta.focus();
+    showToast('Mantén presionado el campo y elige Pegar');
+  }
 }
 
 async function deleteVideo(id) {
