@@ -255,7 +255,7 @@
               <th onclick="sortBy(&#39;fecha&#39;)">Fecha ↕</th>
               <th onclick="sortBy(&#39;estado&#39;)">Estado ↕</th>
               <th onclick="sortBy(&#39;creador&#39;)">Creador ↕</th>
-              <th>Link</th>
+              <th>Descripción</th>
               <th onclick="sortBy(&#39;vistas&#39;)">Vistas ↕</th>
               <th></th>
             </tr>
@@ -881,7 +881,7 @@ function renderTable() {
         : `<span class="status-pub" onclick="toggleStatus('${v.id}')" title="Click para marcar como pendiente" style="cursor:pointer"><span class="status-dot"></span>Publicado</span>`
       }</td>
       <td style="color:var(--text2);font-size:12px">${v.creador||'—'}</td>
-      <td>${v.link ? `<a class="has-link" href="${v.link}" target="_blank">🔗 ver video</a>` : `<button class="link-btn" onclick="openLinkModal('${v.id}')">+ link</button>`}</td>
+      <td>${v.descripcion ? `<button class="link-btn" style="border-color:rgba(0,230,118,.4);color:var(--green)" onclick="copyDescFromTable('${v.id}')" title="${v.descripcion.replace(/"/g,'&quot;').slice(0,120)}">📝 copiar</button>` : `<button class="link-btn" onclick="openDetailModal('${v.id}')">+ descripción</button>`}</td>
       <td>${v.vistas ? `<span style="font-family:var(--mono);font-size:12px;color:var(--amber)">👁 ${parseInt(v.vistas).toLocaleString()}</span>` : '<span style="color:var(--text3);font-size:11px">—</span>'}</td>
       <td><button class="action-btn" onclick="openDetailModal('${v.id}')">✎ editar</button></td>
     </tr>
@@ -1029,6 +1029,15 @@ async function saveEdit(id) {
   showToast('Guardado ✓', true);
   renderDashboard();
   renderTable();
+}
+
+function copyDescFromTable(id) {
+  const v = videos.find(x=>x.id===id);
+  if (!v || !v.descripcion) return;
+  navigator.clipboard.writeText(v.descripcion).then(
+    () => showToast('📋 Descripción de ' + v.nombre + ' copiada ✓', true),
+    () => showToast('⚠ No se pudo copiar')
+  );
 }
 
 function copyDescripcion() {
