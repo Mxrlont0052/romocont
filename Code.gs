@@ -39,7 +39,12 @@ function doGet() {
     for (let r = 1; r < data.length; r++) {
       if (!data[r][0]) continue; // sin ID = fila vacía
       const v = {};
-      FIELDS.forEach((f, i) => v[f] = String(data[r][i] == null ? '' : data[r][i]));
+      FIELDS.forEach((f, i) => {
+        let val = data[r][i];
+        // El Sheet convierte fechas a Date: devolver como YYYY-MM-DD
+        if (val instanceof Date) val = Utilities.formatDate(val, 'America/Guayaquil', 'yyyy-MM-dd');
+        v[f] = String(val == null ? '' : val);
+      });
       videos.push(v);
     }
     return jsonOut(videos);
