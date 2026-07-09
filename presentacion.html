@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Content Team ROMO — Cómo funciona</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400..800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0a0a0a; --surface:#141414; --surface2:#1c1c1c; --surface3:#242424;
+    --border:rgba(255,255,255,0.07); --border2:rgba(255,255,255,0.15);
+    --text:#f0f0f0; --text2:#888; --text3:#444;
+    --accent:#c8ff00; --accent-dim:rgba(200,255,0,0.12);
+    --red:#ff4d4d; --red-dim:rgba(255,77,77,0.1);
+    --green:#00e676; --green-dim:rgba(0,230,118,0.1);
+    --amber:#ffab00; --blue:#448aff; --pink:#ff4081;
+    --radius:10px; --radius-lg:16px;
+    --font:'Syne',sans-serif; --mono:'DM Mono',monospace;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { height:100%; overflow:hidden; background:var(--bg); color:var(--text); font-family:var(--font); }
+
+  .slide {
+    position:absolute; top:0; left:0; right:0; bottom:76px;
+    display:flex; flex-direction:column;
+    align-items:center; text-align:center;
+    padding:4vh 8vw 3vh; opacity:0; pointer-events:none;
+    transform:translateX(40px); transition:opacity .45s ease, transform .45s ease;
+    overflow-y:auto;
+  }
+  /* Centra vertical cuando cabe, permite scroll desde arriba cuando no */
+  .slide::before, .slide::after { content:''; margin:auto; flex-shrink:0; }
+  .slide::after { min-height:10px; }
+  .slide.active { opacity:1; pointer-events:auto; transform:translateX(0); }
+
+  .kicker { font-family:var(--mono); font-size:clamp(10px,1.4vw,13px); letter-spacing:3px; color:var(--accent); text-transform:uppercase; margin-bottom:18px; }
+  h1 { font-size:clamp(30px,6vw,64px); font-weight:800; line-height:1.05; letter-spacing:-1px; }
+  h2 { font-size:clamp(24px,4.2vw,44px); font-weight:800; line-height:1.1; margin-bottom:10px; }
+  .sub { color:var(--text2); font-size:clamp(14px,1.8vw,18px); max-width:640px; margin-top:14px; line-height:1.6; }
+
+  .logo { font-weight:800; font-size:clamp(13px,1.6vw,16px); letter-spacing:4px; }
+  .logo b { color:var(--accent); }
+
+  .cards { display:flex; gap:16px; flex-wrap:wrap; justify-content:center; margin-top:36px; max-width:1000px; }
+  .card {
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg);
+    padding:26px 24px; width:min(290px,84vw); text-align:left;
+  }
+  .card .ico { font-size:28px; margin-bottom:12px; }
+  .card h3 { font-size:17px; margin-bottom:8px; }
+  .card p { color:var(--text2); font-size:13.5px; line-height:1.6; }
+  .card .tag { display:inline-block; font-family:var(--mono); font-size:10px; letter-spacing:1.5px; padding:4px 10px; border-radius:20px; margin-bottom:12px; }
+
+  .steps { display:flex; flex-direction:column; gap:14px; margin-top:34px; max-width:680px; width:100%; }
+  .step {
+    display:flex; align-items:flex-start; gap:16px; text-align:left;
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:18px 20px;
+  }
+  .step .num {
+    font-family:var(--mono); font-weight:500; color:var(--bg); background:var(--accent);
+    min-width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px;
+  }
+  .step h4 { font-size:15.5px; margin-bottom:4px; }
+  .step p { color:var(--text2); font-size:13.5px; line-height:1.55; }
+
+  .badge { font-family:var(--mono); font-size:11px; padding:4px 12px; border-radius:20px; letter-spacing:1px; }
+  .badge-red { background:var(--red-dim); color:var(--red); border:1px solid rgba(255,77,77,.3); }
+  .badge-green { background:var(--green-dim); color:var(--green); border:1px solid rgba(0,230,118,.3); }
+  .mono { font-family:var(--mono); }
+  .hl { color:var(--accent); }
+
+  .people { display:flex; gap:10px; justify-content:center; margin-top:22px; flex-wrap:wrap; }
+  .person { font-family:var(--mono); font-size:12px; letter-spacing:1px; background:var(--surface2); border:1px solid var(--border2); border-radius:20px; padding:7px 16px; }
+  .person.ok { border-color:rgba(200,255,0,.4); color:var(--accent); }
+
+  .flowline { display:flex; align-items:center; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:34px; font-family:var(--mono); font-size:clamp(11px,1.5vw,14px); }
+  .flownode { background:var(--surface); border:1px solid var(--border2); border-radius:var(--radius); padding:14px 18px; }
+  .flownode small { display:block; color:var(--text2); font-size:10px; margin-top:4px; letter-spacing:1px; }
+  .arrow { color:var(--accent); font-size:20px; }
+
+  .estado-demo { display:flex; align-items:center; gap:14px; justify-content:center; margin:26px 0 8px; }
+  .estado-demo .arrow { font-size:26px; }
+
+  .cta {
+    display:inline-block; margin-top:30px; background:var(--accent); color:#0a0a0a; text-decoration:none;
+    font-weight:800; font-size:15px; padding:14px 30px; border-radius:var(--radius); letter-spacing:.5px;
+  }
+  .linkbox { font-family:var(--mono); font-size:clamp(11px,1.8vw,15px); color:var(--accent); background:var(--accent-dim); border:1px solid rgba(200,255,0,.3); padding:12px 20px; border-radius:var(--radius); margin-top:18px; word-break:break-all; }
+
+  /* Navegación */
+  .nav {
+    position:fixed; bottom:0; left:0; right:0; height:76px;
+    display:flex; align-items:center; justify-content:center;
+    gap:20px; background:rgba(10,10,10,.95); border-top:1px solid var(--border); z-index:10;
+  }
+  .nav button {
+    background:var(--surface2); color:var(--text); border:1px solid var(--border2); border-radius:var(--radius);
+    font-family:var(--mono); font-size:14px; padding:9px 20px; cursor:pointer;
+  }
+  .nav button:hover { border-color:var(--accent); color:var(--accent); }
+  .dots { display:flex; gap:7px; }
+  .dot { width:7px; height:7px; border-radius:50%; background:var(--text3); cursor:pointer; transition:.2s; }
+  .dot.on { background:var(--accent); transform:scale(1.3); }
+  .counter { font-family:var(--mono); font-size:11px; color:var(--text2); min-width:40px; }
+</style>
+</head>
+<body>
+
+<!-- 1 · PORTADA -->
+<section class="slide active">
+  <div class="logo" style="margin-bottom:40px">ROMO <b>DJ ACADEMY</b></div>
+  <div class="kicker">Content Team</div>
+  <h1>Así funciona nuestro<br>sistema de <span class="hl">videos</span></h1>
+  <p class="sub">Una página + una hoja de cálculo. Todo el contenido del equipo organizado, en tiempo real y sin perder ni un video.</p>
+</section>
+
+<!-- 2 · EL FLUJO -->
+<section class="slide">
+  <div class="kicker">El flujo completo</div>
+  <h2>De WhatsApp a TikTok, <span class="hl">con orden</span></h2>
+  <div class="flowline">
+    <div class="flownode">💬 GRUPO WHATSAPP<small>se envía el video</small></div>
+    <span class="arrow">→</span>
+    <div class="flownode">📱 PÁGINA<small>se registra con su código</small></div>
+    <span class="arrow">→</span>
+    <div class="flownode">🚀 LIZY PUBLICA<small>cambia estado + descripción</small></div>
+    <span class="arrow">→</span>
+    <div class="flownode" style="border-color:rgba(200,255,0,.4)">📊 HOJA DE CONTROL<small>data en tiempo real</small></div>
+  </div>
+  <p class="sub">Cada video que se manda al grupo se registra en la página. Así siempre sabemos qué se grabó, qué falta publicar y qué ya salió.</p>
+</section>
+
+<!-- 3 · LA HOJA DE CÁLCULO -->
+<section class="slide">
+  <div class="kicker">1 · El centro de control</div>
+  <h2>📊 La hoja de cálculo</h2>
+  <p class="sub">Es la <b style="color:var(--text)">base de datos maestra</b>. Todo lo que pasa en la página cae aquí al instante, y cualquier cambio hecho aquí se refleja en la página en menos de un minuto.</p>
+  <div class="people">
+    <span class="person ok">MARLONT</span>
+    <span class="person ok">KIKE</span>
+    <span class="person ok">PETER</span>
+    <span class="person" style="color:var(--text3)">🔒 nadie más tiene acceso</span>
+  </div>
+  <div class="cards">
+    <div class="card">
+      <div class="ico">⚡</div>
+      <h3>Tiempo real</h3>
+      <p>Ven toda la data en vivo: totales, pendientes, quién creó cada video y cuándo se envió.</p>
+    </div>
+    <div class="card">
+      <div class="ico">✏️</div>
+      <h3>Edición masiva</h3>
+      <p>Corregir nombres, cambiar estados o asignar creadores en lote es más rápido directo en la hoja.</p>
+    </div>
+    <div class="card">
+      <div class="ico">🛡️</div>
+      <h3>Dos reglas</h3>
+      <p>No tocar la <span class="mono hl">fila 1</span> (encabezados) ni la columna <span class="mono hl">ID</span>. Todo lo demás, libre.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 4 · SUBIR VIDEOS -->
+<section class="slide">
+  <div class="kicker">2 · Para los creadores</div>
+  <h2>📱 Registrar videos en la página</h2>
+  <p class="sub">Es súper fácil — el nombre del video es <b style="color:var(--text)">el mismo código que se envió al grupo de WhatsApp</b> (ES 147, RLL 085, DM 036...).</p>
+  <div class="steps">
+    <div class="step">
+      <div class="num">1</div>
+      <div><h4>Un video → botón <span class="hl">+ Agregar video</span></h4>
+      <p>Pones el código del video, la categoría, la fecha de envío y tu nombre como creador.</p></div>
+    </div>
+    <div class="step">
+      <div class="num">2</div>
+      <div><h4>Varios videos → pestaña <span class="hl">+ Tanda masiva</span></h4>
+      <p>Pegas la lista de códigos (uno por línea), eliges categoría, fecha y creador una sola vez, y se registran todos juntos.</p></div>
+    </div>
+    <div class="step">
+      <div class="num">3</div>
+      <div><h4>Listo — quedan como <span class="badge badge-red">PENDIENTE</span></h4>
+      <p>Se guardan al instante en la hoja de control y aparecen en la pestaña Pendientes, esperando su turno para publicarse.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 5 · LIZY PUBLICA -->
+<section class="slide">
+  <div class="kicker">3 · Al publicar — Lizy</div>
+  <h2>🚀 Cada video publicado se marca</h2>
+  <div class="estado-demo">
+    <span class="badge badge-red" style="font-size:14px;padding:8px 20px">PENDIENTE</span>
+    <span class="arrow">→</span>
+    <span class="badge badge-green" style="font-size:14px;padding:8px 20px">PUBLICADO</span>
+  </div>
+  <div class="steps">
+    <div class="step">
+      <div class="num">1</div>
+      <div><h4>Abrir la pestaña <span class="hl">Pendientes</span></h4>
+      <p>Ahí está la lista de todo lo que falta publicar, con su código y categoría.</p></div>
+    </div>
+    <div class="step">
+      <div class="num">2</div>
+      <div><h4>Publicar el video y marcarlo con el botón <span class="hl">✓</span></h4>
+      <p>Un solo click y pasa de PENDIENTE a PUBLICADO en todo el sistema.</p></div>
+    </div>
+    <div class="step">
+      <div class="num">3</div>
+      <div><h4>Pegar la <span class="hl">Descripción TikTok 📝</span></h4>
+      <p>En el detalle del video (✎) se pega el caption que se usó al publicarlo: texto y hashtags. Así queda registrado qué descripción lleva cada video y la data queda completa.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 6 · CIERRE -->
+<section class="slide">
+  <div class="kicker">Eso es todo</div>
+  <h2>Data completa = <span class="hl">mejores decisiones</span></h2>
+  <p class="sub">Con cada video registrado, marcado y con su descripción, sabemos qué categorías funcionan, qué creador produce más y qué contenido repetir.</p>
+  <div class="linkbox">mxrlont0052.github.io/romocont</div>
+  <a class="cta" href="https://mxrlont0052.github.io/romocont/" target="_blank">Abrir la página →</a>
+  <div class="logo" style="margin-top:50px">ROMO <b>DJ ACADEMY</b></div>
+</section>
+
+<div class="nav">
+  <button onclick="go(-1)">←</button>
+  <div class="dots" id="dots"></div>
+  <span class="counter" id="counter"></span>
+  <button onclick="go(1)">→</button>
+</div>
+
+<script>
+const slides = [...document.querySelectorAll('.slide')];
+const dotsEl = document.getElementById('dots');
+let cur = 0;
+slides.forEach((_, i) => {
+  const d = document.createElement('div');
+  d.className = 'dot' + (i===0?' on':'');
+  d.onclick = () => show(i);
+  dotsEl.appendChild(d);
+});
+function show(i) {
+  cur = Math.max(0, Math.min(slides.length-1, i));
+  slides.forEach((s, j) => s.classList.toggle('active', j===cur));
+  [...dotsEl.children].forEach((d, j) => d.classList.toggle('on', j===cur));
+  document.getElementById('counter').textContent = (cur+1) + ' / ' + slides.length;
+}
+function go(dir) { show(cur + dir); }
+document.addEventListener('keydown', e => {
+  if (e.key==='ArrowRight' || e.key===' ' || e.key==='Enter') go(1);
+  if (e.key==='ArrowLeft') go(-1);
+});
+let tx = null;
+document.addEventListener('touchstart', e => tx = e.touches[0].clientX);
+document.addEventListener('touchend', e => {
+  if (tx===null) return;
+  const dx = e.changedTouches[0].clientX - tx;
+  if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1);
+  tx = null;
+});
+show(0);
+</script>
+</body>
+</html>
