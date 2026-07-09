@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Content Team ROMO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400..800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  @keyframes fadeSlideIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes pulseGreen { 0%,100% { box-shadow:0 0 0 0 rgba(0,230,118,0); } 50% { box-shadow:0 0 0 6px rgba(0,230,118,0.15); } }
+  @keyframes shimmer { 0% { background-position:-200% 0; } 100% { background-position:200% 0; } }
+  @keyframes popIn { 0% { transform:scale(0.85); opacity:0; } 60% { transform:scale(1.06); } 100% { transform:scale(1); opacity:1; } }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+  :root {
+    --bg:#0a0a0a; --surface:#141414; --surface2:#1c1c1c; --surface3:#242424;
+    --border:rgba(255,255,255,0.07); --border2:rgba(255,255,255,0.15);
+    --text:#f0f0f0; --text2:#888; --text3:#444;
+    --accent:#c8ff00; --accent-dim:rgba(200,255,0,0.12); --accent-dark:#8fb200;
+    --red:#ff4d4d; --red-dim:rgba(255,77,77,0.1);
+    --green:#00e676; --green-dim:rgba(0,230,118,0.1);
+    --amber:#ffab00; --amber-dim:rgba(255,171,0,0.1);
+    --blue:#448aff; --blue-dim:rgba(68,138,255,0.1);
+    --pink:#ff4081; --teal:#1de9b6; --purple:#e040fb; --orange:#ff6d00;
+    --radius:10px; --radius-lg:16px;
+    --font:'Syne',sans-serif; --mono:'DM Mono',monospace;
+    --glow-green:0 0 20px rgba(0,230,118,0.25); --glow-accent:0 0 20px rgba(200,255,0,0.2);
+  }
+  body { background:var(--bg); color:var(--text); font-family:var(--font); min-height:100vh; }
+  #app { display:grid; grid-template-rows:auto 1fr; min-height:100vh; }
+
+  /* HEADER */
+  header { background:rgba(20,20,20,0.95); backdrop-filter:blur(12px); border-bottom:1px solid var(--border); padding:0 1.5rem; display:flex; align-items:center; justify-content:space-between; height:60px; position:sticky; top:0; z-index:100; }
+  .logo-wrap { display:flex; align-items:center; gap:12px; }
+  .app-subtitle { font-size:11px; font-weight:700; letter-spacing:0.2em; color:var(--accent); border-left:1px solid var(--border2); padding-left:12px; }
+  .header-actions { display:flex; gap:10px; align-items:center; }
+
+  /* TABS */
+  .tabs { display:flex; gap:3px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:4px; margin-bottom:2rem; width:fit-content; }
+  .tab { padding:8px 20px; border-radius:7px; font-family:var(--font); font-size:13px; font-weight:600; cursor:pointer; border:none; background:transparent; color:var(--text2); transition:all 0.2s cubic-bezier(0.34,1.56,0.64,1); letter-spacing:0.04em; }
+  .tab.active { background:var(--accent); color:#000; transform:scale(1.02); }
+  .tab:hover:not(.active) { background:var(--surface2); color:var(--text); transform:translateY(-1px); }
+
+  /* SUMMARY CARDS */
+  .summary-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:12px; margin-bottom:2rem; }
+  .stat-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:1rem; transition:all 0.2s; cursor:default; animation:fadeSlideIn 0.3s ease both; }
+  .stat-card:hover { border-color:var(--border2); transform:translateY(-2px); box-shadow:0 8px 32px rgba(0,0,0,0.4); }
+  .stat-label { font-size:10px; font-weight:700; letter-spacing:0.1em; color:var(--text2); text-transform:uppercase; margin-bottom:6px; }
+  .stat-value { font-size:28px; font-weight:800; color:var(--text); line-height:1; }
+  .stat-sub { font-size:11px; color:var(--text3); margin-top:4px; }
+
+  /* SECTION TITLE */
+  .section-title { font-size:11px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--text3); margin-bottom:1rem; display:flex; align-items:center; gap:8px; }
+  .section-title::after { content:''; flex:1; height:1px; background:var(--border); }
+  .badge { font-family:var(--mono); font-size:10px; font-weight:500; padding:2px 7px; border-radius:4px; display:inline-flex; align-items:center; }
+  .badge-red { background:var(--red-dim); color:var(--red); }
+  .badge-green { background:var(--green-dim); color:var(--green); }
+
+  /* CAT CARDS */
+  .cat-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:14px; margin-bottom:2rem; }
+  .cat-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:1.25rem; cursor:pointer; transition:all 0.25s cubic-bezier(0.34,1.56,0.64,1); animation:fadeSlideIn 0.3s ease both; }
+  .cat-card:hover { border-color:var(--border2); background:var(--surface2); transform:translateY(-3px) scale(1.01); box-shadow:0 12px 40px rgba(0,0,0,0.5); }
+  .cat-card.has-pending { border-left:3px solid var(--red); }
+  .cat-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+  .cat-name { font-size:13px; font-weight:700; letter-spacing:0.04em; }
+  .cat-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+  .cat-stats { display:flex; gap:16px; margin-bottom:10px; }
+  .cat-stat { font-size:11px; color:var(--text2); }
+  .cat-stat strong { font-size:20px; font-weight:800; display:block; color:var(--text); }
+  .progress-bar { height:4px; background:var(--surface3); border-radius:2px; overflow:hidden; }
+  .progress-fill { height:100%; border-radius:2px; transition:width 0.6s cubic-bezier(0.34,1.56,0.64,1); }
+
+  /* PENDING LIST */
+  .pending-list { display:flex; flex-direction:column; gap:6px; }
+  .pending-item { background:var(--surface); border:1px solid var(--border); border-left:3px solid var(--red); border-radius:var(--radius); padding:10px 14px; display:grid; grid-template-columns:1fr auto auto; gap:12px; align-items:center; transition:all 0.2s; animation:fadeSlideIn 0.25s ease both; }
+  .pending-item:hover { border-color:rgba(255,77,77,0.4); background:var(--surface2); transform:translateX(3px); }
+  .pi-name { font-family:var(--mono); font-size:13px; font-weight:500; color:var(--text); }
+  .pi-cat { font-size:11px; color:var(--text2); }
+  .pi-creator { font-size:11px; background:var(--surface3); color:var(--text2); padding:2px 8px; border-radius:4px; font-family:var(--mono); }
+
+  /* STATUS BADGES — clickable toggle */
+  .status-pub { display:inline-flex; align-items:center; gap:4px; background:var(--green-dim); color:var(--green); padding:4px 10px; border-radius:5px; font-size:11px; font-weight:600; font-family:var(--mono); border:1px solid transparent; cursor:default; }
+  .status-pend { display:inline-flex; align-items:center; gap:4px; background:var(--red-dim); color:var(--red); padding:4px 10px; border-radius:5px; font-size:11px; font-weight:600; font-family:var(--mono); border:1px solid transparent; cursor:pointer; transition:all 0.2s; position:relative; overflow:hidden; }
+  .status-pend:hover { background:rgba(255,77,77,0.22); border-color:rgba(255,77,77,0.4); transform:scale(1.05); box-shadow:0 0 12px rgba(255,77,77,0.3); }
+  .status-pend:hover::after { content:'→ Publicar'; position:absolute; inset:0; background:rgba(0,230,118,0.9); color:#000; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; letter-spacing:0.04em; }
+  .status-dot { width:5px; height:5px; border-radius:50%; background:currentColor; }
+
+  /* PENDING TOGGLE BTN (in pending tab) */
+  .toggle-pub-btn { background:var(--red-dim); color:var(--red); border:1px solid rgba(255,77,77,0.3); border-radius:6px; padding:5px 12px; font-family:var(--mono); font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s; white-space:nowrap; }
+  .toggle-pub-btn:hover { background:var(--green-dim); color:var(--green); border-color:rgba(0,230,118,0.4); transform:scale(1.05); box-shadow:var(--glow-green); }
+
+  /* CAT PILL */
+  .cat-pill { font-size:11px; padding:2px 8px; border-radius:4px; font-weight:600; display:inline-block; transition:all 0.15s; }
+
+  /* TABLE */
+  .table-controls { display:flex; gap:12px; margin-bottom:1.5rem; flex-wrap:wrap; align-items:center; }
+  .search-input { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:9px 14px; color:var(--text); font-family:var(--font); font-size:13px; flex:1; min-width:180px; max-width:300px; outline:none; transition:all 0.2s; }
+  .search-input:focus { border-color:var(--accent-dark); box-shadow:0 0 0 2px rgba(200,255,0,0.1); }
+  .search-input::placeholder { color:var(--text3); }
+  select.filter-select { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:9px 14px; color:var(--text); font-family:var(--font); font-size:13px; cursor:pointer; outline:none; transition:border-color 0.2s; }
+  select.filter-select:hover { border-color:var(--border2); }
+  select.filter-select option { background:#1c1c1c; }
+  .table-wrap { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:auto; }
+  table { width:100%; border-collapse:collapse; font-size:13px; min-width:700px; }
+  th { background:var(--surface2); padding:10px 14px; text-align:left; font-size:10px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--text2); border-bottom:1px solid var(--border); white-space:nowrap; cursor:pointer; user-select:none; transition:color 0.15s; }
+  th:hover { color:var(--accent); }
+  td { padding:10px 14px; border-bottom:1px solid var(--border); vertical-align:middle; transition:background 0.15s; }
+  tr:last-child td { border-bottom:none; }
+  tr { transition:all 0.15s; }
+  tr:hover td { background:var(--surface2); }
+  tr:hover td:first-child { border-left:2px solid var(--accent); }
+  .code { font-family:var(--mono); color:var(--accent); font-size:12px; }
+  .link-btn { font-size:11px; background:var(--accent-dim); color:var(--accent); border:1px solid rgba(200,255,0,0.3); padding:3px 8px; border-radius:4px; cursor:pointer; font-family:var(--mono); transition:all 0.2s; white-space:nowrap; }
+  .link-btn:hover { background:var(--accent); color:#000; transform:scale(1.05); }
+  .has-link { font-size:11px; color:var(--teal); font-family:var(--mono); display:flex; align-items:center; gap:4px; transition:color 0.15s; }
+  .has-link:hover { color:#fff; }
+  .action-btn { background:transparent; border:1px solid var(--border); border-radius:6px; padding:4px 10px; color:var(--text2); cursor:pointer; font-family:var(--mono); font-size:11px; transition:all 0.2s; }
+  .action-btn:hover { border-color:var(--accent-dark); color:var(--accent); transform:scale(1.05); }
+
+  /* CREATOR CARDS */
+  .creator-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:12px 16px; margin-bottom:8px; display:flex; align-items:center; gap:12px; transition:all 0.25s cubic-bezier(0.34,1.56,0.64,1); animation:fadeSlideIn 0.3s ease both; }
+  .creator-card:hover { border-color:var(--border2); transform:translateX(4px); box-shadow:0 4px 20px rgba(0,0,0,0.4); }
+  .creator-rank { font-family:var(--mono); font-size:11px; font-weight:700; color:var(--text3); width:20px; text-align:center; flex-shrink:0; }
+  .creator-rank.gold { color:#ffd700; text-shadow:0 0 8px rgba(255,215,0,0.5); }
+  .creator-rank.silver { color:#c0c0c0; }
+  .creator-rank.bronze { color:#cd7f32; }
+  .creator-avatar { width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; flex-shrink:0; transition:transform 0.2s; }
+  .creator-card:hover .creator-avatar { transform:scale(1.15) rotate(-5deg); }
+  .creator-name { font-size:13px; font-weight:700; flex:1; }
+  .creator-stats { text-align:right; }
+  .creator-total { font-size:20px; font-weight:800; color:var(--text); font-family:var(--mono); line-height:1; }
+  .creator-pub { font-size:10px; color:var(--green); font-family:var(--mono); }
+  .creator-pend { font-size:10px; color:var(--red); font-family:var(--mono); }
+  .creator-bar-wrap { flex:1; }
+  .creator-bar { height:3px; background:var(--surface3); border-radius:2px; margin-top:4px; overflow:hidden; }
+  .creator-bar-fill { height:100%; border-radius:2px; transition:width 0.8s cubic-bezier(0.34,1.56,0.64,1); }
+
+  /* MODAL */
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:1000; align-items:center; justify-content:center; padding:1.5rem; backdrop-filter:blur(4px); }
+  .modal-overlay.open { display:flex; }
+  .modal { background:var(--surface); border:1px solid var(--border2); border-radius:var(--radius-lg); padding:1.75rem; width:100%; max-width:520px; max-height:90vh; overflow-y:auto; animation:popIn 0.25s cubic-bezier(0.34,1.56,0.64,1); }
+  .modal-title { font-size:15px; font-weight:800; margin-bottom:1.5rem; display:flex; justify-content:space-between; align-items:center; }
+  .modal-close { background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:4px 10px; color:var(--text2); cursor:pointer; font-size:18px; line-height:1; transition:all 0.15s; }
+  .modal-close:hover { color:var(--text); transform:scale(1.1); }
+  .form-group { margin-bottom:1rem; }
+  .form-label { font-size:10px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--text2); margin-bottom:6px; display:block; }
+  .form-input { width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); padding:10px 14px; color:var(--text); font-family:var(--font); font-size:14px; outline:none; transition:all 0.2s; }
+  .form-input:focus { border-color:var(--accent-dark); box-shadow:0 0 0 2px rgba(200,255,0,0.08); }
+  .form-input::placeholder { color:var(--text3); }
+  select.form-input option { background:#1c1c1c; }
+  .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .btn-primary { background:var(--accent); color:#000; border:none; border-radius:var(--radius); padding:12px 24px; font-family:var(--font); font-size:14px; font-weight:700; cursor:pointer; width:100%; margin-top:8px; letter-spacing:0.03em; transition:all 0.2s cubic-bezier(0.34,1.56,0.64,1); }
+  .btn-primary:hover { transform:scale(1.02); box-shadow:var(--glow-accent); }
+  .btn-primary:active { transform:scale(0.97); }
+  .btn-secondary { background:transparent; color:var(--text2); border:1px solid var(--border); border-radius:var(--radius); padding:12px 24px; font-family:var(--font); font-size:14px; font-weight:600; cursor:pointer; transition:all 0.2s; }
+  .btn-secondary:hover { border-color:var(--border2); color:var(--text); }
+  .btn-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px; }
+
+  /* TOAST */
+  .toast { position:fixed; bottom:2rem; right:2rem; background:var(--surface2); border:1px solid var(--border2); border-radius:var(--radius); padding:12px 20px; font-size:13px; font-weight:600; z-index:2000; transform:translateY(100px); opacity:0; transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+  .toast.show { transform:translateY(0); opacity:1; }
+  .toast.success { border-color:rgba(0,230,118,0.5); color:var(--green); box-shadow:var(--glow-green); }
+
+  /* MISC */
+  .empty { text-align:center; padding:4rem 2rem; color:var(--text3); font-size:14px; }
+  .page-label { font-size:13px; color:var(--text2); font-family:var(--mono); }
+  main { padding:1.5rem; max-width:1600px; margin:0 auto; width:100%; }
+
+  /* MOBILE */
+  @media (max-width:768px) {
+    header { padding:0 1rem; }
+    main { padding:1rem; }
+    .tabs { width:100%; justify-content:stretch; }
+    .tab { flex:1; text-align:center; padding:8px 10px; font-size:12px; }
+    .summary-grid { grid-template-columns:repeat(2,1fr); }
+    .cat-grid { grid-template-columns:1fr; }
+    #tab-dashboard > div[style*="grid"] { display:flex !important; flex-direction:column; }
+    .table-controls { flex-direction:column; align-items:stretch; }
+    .search-input { max-width:100%; }
+    .form-row { grid-template-columns:1fr; }
+    table { font-size:12px; }
+    th, td { padding:8px 10px; }
+    .modal { padding:1.25rem; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="logo-wrap"><img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiID8+DQo8IURPQ1RZUEUgc3ZnIFBVQkxJQyAiLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4iICJodHRwOi8vd3d3LnczLm9yZy9HcmFwaGljcy9TVkcvMS4xL0RURC9zdmcxMS5kdGQiPg0KPHN2ZyB3aWR0aD0iMTU4NnB0IiBoZWlnaHQ9IjU1OHB0IiB2aWV3Qm94PSIwIDAgMTU4NiA1NTgiIHZlcnNpb249IjEuMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4NCjxnIGlkPSIjZmZmZmZmZmYiPg0KPHBhdGggZmlsbD0iI2ZmZmZmZiIgb3BhY2l0eT0iMS4wMCIgZD0iIE0gMTU0Ni40OSAwLjAwIEwgMTU2Ni4xMSAwLjAwIEMgMTU3My4xNCAzLjE1IDE1NzkuMTcgOS4wNyAxNTgxLjQwIDE2LjU3IEMgMTU4NC4xOCAyNS4yMyAxNTgyLjEzIDM1LjI3IDE1NzYuMTAgNDIuMDggQyAxNTY3LjA2IDUzLjA3IDE1NDguOTggNTQuMDMgMTUzOC42MSA0NC40MiBDIDE1MzAuNjQgMzcuNjUgMTUyNy43MSAyNS44OSAxNTMxLjA5IDE2LjA4IEMgMTUzMy40NSA4Ljc0IDE1MzkuNDIgMi45MCAxNTQ2LjQ5IDAuMDAgTSAxNTUxLjMwIDMuMzYgQyAxNTQxLjk3IDUuMzUgMTUzNC45MiAxNC40NCAxNTM1LjI2IDIzLjk3IEMgMTUzNC44MyAzMS40MiAxNTM4LjM0IDM5LjIwIDE1NDQuNzkgNDMuMTYgQyAxNTUyLjQ1IDQ4LjEyIDE1NjMuNDMgNDcuNDIgMTU3MC4yMSA0MS4yMyBDIDE1ODAuMDEgMzIuMzIgMTU3OS40MyAxNC4zMyAxNTY4LjQyIDYuNjMgQyAxNTYzLjU1IDIuOTkgMTU1Ny4xNCAyLjI3IDE1NTEuMzAgMy4zNiBaIiAvPg0KPHBhdGggZmlsbD0iI2ZmZmZmZiIgb3BhY2l0eT0iMS4wMCIgZD0iIE0gMTU0Ni4wOCA5LjM2IEMgMTU1MS43MCA5LjU4IDE1NTcuNDggOC42NCAxNTYyLjk5IDEwLjA4IEMgMTU2OC40MiAxMS40OCAxNTY5LjU3IDE4LjczIDE1NjYuOTMgMjMuMDEgQyAxNTY1LjYyIDI1LjE2IDE1NjMuMDIgMjUuODEgMTU2MC44NiAyNi43MSBDIDE1NjMuMzUgMzEuMzAgMTU2Ni40NCAzNS41MyAxNTY5LjE2IDQwLjAwIEMgMTU2Ny40MyA0MC4wMCAxNTY1LjcyIDQwLjAwIDE1NjQuMDMgNDAuMDAgQyAxNTYxLjE2IDM1LjY3IDE1NTguNTIgMzEuMjAgMTU1NS44MiAyNi43NyBDIDE1NTQuMDkgMjYuNzEgMTU1Mi4zOCAyNi42OCAxNTUwLjcwIDI2LjY0IEMgMTU1MC42NCAzMS4wNyAxNTUwLjY4IDM1LjUwIDE1NTAuNjQgMzkuOTIgQyAxNTQ5LjEwIDM5Ljk2IDE1NDcuNTggMzkuOTkgMTU0Ni4wOCA0MC4wMiBDIDE1NDUuOTQgMjkuODAgMTU0NS45NCAxOS41OCAxNTQ2LjA4IDkuMzYgTSAxNTUwLjY5IDEzLjAxIEMgMTU1MC42NCAxNi4zNSAxNTUwLjY0IDE5LjcwIDE1NTAuNjkgMjMuMDQgQyAxNTUzLjk3IDIyLjk0IDE1NTcuMzEgMjMuMDQgMTU2MC41NSAyMi4zNyBDIDE1NjQuMzYgMjEuNTUgMTU2NC44MyAxNS4xNCAxNTYxLjE0IDEzLjc5IEMgMTU1Ny44MCAxMi41NSAxNTU0LjE1IDEzLjA5IDE1NTAuNjkgMTMuMDEgWiIgLz4NCjxwYXRoIGZpbGw9IiNmZmZmZmYiIG9wYWNpdHk9IjEuMDAiIGQ9IiBNIDUuODQgMzAuNzEgQyA3LjM3IDI0LjAxIDE0LjI0IDE5LjYwIDIwLjk0IDIwLjAwIEMgOTYuOTYgMjAuMDAgMTcyLjk4IDIwLjAwIDI0OS4wMCAyMC4wMCBDIDI2Mi4wOSAxOS43MCAyNzUuMjggMjEuMzcgMjg3LjgxIDI1LjIzIEMgMzA3LjIxIDMxLjU2IDMyNC43NiA0My41NCAzMzcuNjYgNTkuMzcgQyAzNDcuOTEgNzEuNzIgMzU0LjcwIDg2LjYxIDM1OC45OSAxMDEuOTkgQyAzNjYuMzYgMTI4Ljk5IDM2NC45NiAxNTguNjkgMzUzLjI4IDE4NC4yOCBDIDM1Mi4yNCAxODcuMzYgMzUwLjA1IDE5MC40MCAzNTAuMjUgMTkzLjY4IEMgMzU0LjE2IDIwMS4xMyAzNTkuMTEgMjA4LjEwIDM2MS44OSAyMTYuMTIgQyAzNjguNTAgMjMyLjU2IDM2OS40NSAyNTAuNDkgMzY5LjY4IDI2OC4wMCBDIDM2OS42NSAyOTIuMDAgMzY5LjY3IDMxNi4wMSAzNjkuNjcgMzQwLjAxIEMgMzY5LjU1IDM0NC4yNyAzNjkuMzYgMzQ4LjY4IDM2Ny42NyAzNTIuNjYgQyAzNjUuNzcgMzU2LjM1IDM2Mi4xNiAzNTkuMTcgMzU4LjA3IDM1OS45NSBDIDM0OS40NCAzNjEuNDkgMzQwLjY4IDM2MC4xMSAzMzIuMDAgMzYwLjMzIEMgMzIxLjMxIDM2MC4zNSAzMTAuNjMgMzYwLjMxIDI5OS45NSAzNjAuMzQgQyAyOTMuMjggMzYwLjYwIDI4Ni41NCAzNjEuMTMgMjc5LjkxIDM2MC4wMiBDIDI3NS41MiAzNTkuMjggMjcxLjU5IDM1Ni4yNSAyNjkuNzkgMzUyLjE4IEMgMjY3Ljk2IDM0Ny4zNCAyNjguMzYgMzQyLjA3IDI2OC4zMyAzMzcuMDAgQyAyNjguMzIgMzA5Ljk5IDI2OC4zNyAyODIuOTggMjY4LjMxIDI1NS45NyBDIDI2OC41NiAyNTAuODcgMjY0LjI0IDI0Ni4yMSAyNTkuMDIgMjQ2LjY5IEMgMjIwLjAzIDI0Ni42MiAxODEuMDQgMjQ2LjcxIDE0Mi4wNSAyNDYuNjUgQyAxMzcuMjAgMjQ2LjU4IDEzMS45OSAyNDUuMDkgMTI5LjEwIDI0MC45MSBDIDEyNi4wMSAyMzcuMDAgMTI2LjI2IDIzMS43MiAxMjYuMDEgMjI3LjAxIEMgMTI1Ljk5IDIwNi4zMyAxMjYuMDAgMTg1LjY2IDEyNi4wMCAxNjQuOTggQyAxMjYuMTUgMTYwLjI4IDEyNi4yNyAxNTUuMTQgMTI5LjE2IDE1MS4xOCBDIDEzMi4xMSAxNDcuMjIgMTM3LjIzIDE0NS41OSAxNDIuMDEgMTQ1LjY2IEMgMTc2LjY5IDE0NS42NiAyMTEuMzYgMTQ1LjY4IDI0Ni4wNCAxNDUuNjYgQyAyNTAuMDIgMTQ1LjQ2IDI1NC4wMCAxNDUuNDYgMjU3Ljk3IDE0NS4xNSBDIDI2Mi42NCAxNDMuODggMjY2LjIzIDEzOC44OCAyNjUuMjIgMTMzLjk5IEMgMjY0LjU4IDEyOS45MiAyNjMuODcgMTI1LjI4IDI2MC42MCAxMjIuNDEgQyAyNTcuNDggMTIwLjQxIDI1My41NSAxMjAuNzQgMjUwLjAwIDEyMC42NCBDIDIwMi4xMCAxMjAuODYgMTU0LjIwIDEyMC4yNyAxMDYuMzEgMTIxLjA0IEMgMTA2LjU1IDEyNy4zNyAxMDUuODQgMTMzLjY3IDEwNS45OSAxNDAuMDAgQyAxMDYuMDEgMjA4LjY5IDEwNi4wMCAyNzcuMzkgMTA2LjAwIDM0Ni4wOCBDIDEwNi4wOCAzNTMuNTkgOTkuMzMgMzYwLjQ1IDkxLjgyIDM2MC40MyBDIDgxLjIwIDM2MC4yNCA3MC41OCAzNjAuMzYgNTkuOTYgMzYwLjMzIEMgNDYuNjQgMzYxLjE0IDMzLjMzIDM1OS45MyAyMC4wMCAzNjAuMzYgQyAxMi4wOSAzNjEuMDEgNS4wNSAzNTMuODEgNS4xNSAzNDYuMDQgQyA1LjI3IDM0Mi4wMyA1LjQxIDMzOC4wMSA1LjM0IDMzNC4wMCBDIDUuMzMgMjM5LjY3IDUuMzMgMTQ1LjMzIDUuMzMgNTEuMDAgQyA1LjA0IDQ0LjI0IDQuNjAgMzcuNDAgNS44NCAzMC43MSBNIDIyLjQwIDI3LjQ4IEMgMTkuNzcgMjcuNjYgMTYuODQgMjcuOTAgMTQuODcgMjkuODggQyAxMi43MyAzMS45OSAxMi43NSAzNS4yMSAxMi42NSAzOC4wMCBDIDEyLjY4IDEzOS42NyAxMi42NyAyNDEuMzMgMTIuNjYgMzQzLjAwIEMgMTIuNzggMzQ2LjE0IDEzLjAwIDM1MC4zMiAxNi4xOCAzNTEuOTMgQyAyMC4zNCAzNTMuMDggMjQuNzEgMzUzLjI2IDI5LjAwIDM1My4zNSBDIDM2LjY2IDM1My4yNiA0NC4zMyAzNTMuNTUgNTEuOTggMzUzLjAyIEMgNjUuMzEgMzUzLjMwIDc4LjcxIDM1My44MiA5Mi4wMyAzNTIuODAgQyA5Ni4wOCAzNTIuODkgOTguNDIgMzQ4LjY0IDk4LjMxIDM0NS4wMyBDIDk4LjM4IDI3MC4zNyA5OC4yOSAxOTUuNzAgOTguMzUgMTIxLjAzIEMgOTguMjYgMTE3Ljk1IDEwMC4yNiAxMTQuOTYgMTAzLjA5IDExMy43OSBDIDEwNi42OSAxMTMuNDEgMTEwLjMzIDExMy41MSAxMTMuOTUgMTEzLjM0IEMgMTYwLjMyIDExMy4zMiAyMDYuNjggMTEzLjM1IDI1My4wNSAxMTMuMzMgQyAyNTYuODkgMTEzLjQ0IDI2MS4wMyAxMTMuNDMgMjY0LjQxIDExNS41MyBDIDI2Ny44MSAxMTcuNTYgMjY5Ljk5IDEyMS4xMyAyNzEuMTEgMTI0Ljg2IEMgMjcyLjc5IDEzMC41OSAyNzMuOTggMTM2LjkxIDI3MS43NCAxNDIuNjYgQyAyNjkuNjYgMTQ3LjY4IDI2NS4wMiAxNTEuNDYgMjU5LjgyIDE1Mi44OSBDIDI1Ni4zMCAxNTMuOTEgMjUyLjYxIDE1My42NiAyNDkuMDAgMTUzLjY4IEMgMjEyLjY1IDE1My42MyAxNzYuMzAgMTUzLjcxIDEzOS45NiAxNTMuNjMgQyAxMzYuOTAgMTUzLjk0IDEzMy43NyAxNTYuNjEgMTM0LjA0IDE1OS45MCBDIDEzMy4yNyAxODIuMjUgMTMzLjg2IDIwNC42MyAxMzMuNjUgMjI2Ljk5IEMgMTMzLjgzIDIzMC43NiAxMzMuMzggMjM1LjcxIDEzNy4wOSAyMzguMDAgQyAxMzkuMjUgMjM4Ljg4IDE0MS42NCAyMzguOTIgMTQzLjk1IDIzOS4wMSBDIDE4MC45NiAyMzguOTggMjE3Ljk4IDIzOS4wMiAyNTUuMDAgMjM4Ljk5IEMgMjU4LjM5IDIzOS4wNyAyNjEuOTQgMjM4LjU3IDI2NS4xNyAyMzkuODggQyAyNzEuMjIgMjQyLjI3IDI3NS45NCAyNDguMzAgMjc2LjAwIDI1NC45MiBDIDI3Ni4wMiAyODQuMzAgMjc1Ljk4IDMxMy42OCAyNzYuMDEgMzQzLjA2IEMgMjc2LjE5IDM0NS45MyAyNzYuMDggMzQ5LjQ4IDI3OC42MSAzNTEuNDIgQyAyODMuMzUgMzUzLjgyIDI4OC44NiAzNTMuMjkgMjk0LjAwIDM1My4zNCBDIDMwNi4wMCAzNTMuMTkgMzE4LjAwIDM1My42NSAzMjkuOTkgMzUzLjAwIEMgMzM3Ljk4IDM1Mi44OCAzNDYuMDEgMzU0LjM4IDM1My45NyAzNTIuOTcgQyAzNTUuOTcgMzUyLjU1IDM1OC4zOCAzNTIuNDQgMzU5Ljc2IDM1MC43MSBDIDM2MS41NiAzNDguMjEgMzYxLjU2IDM0NC45OSAzNjEuNjcgMzQyLjA2IEMgMzYxLjY2IDMxNC4wMyAzNjEuNjYgMjg2LjAwIDM2MS42NyAyNTcuOTYgQyAzNjEuNDkgMjM5LjYyIDM1Ny42OCAyMjAuODkgMzQ3LjgzIDIwNS4xOSBDIDM0NS42NSAyMDEuMjEgMzQyLjQ5IDE5Ny41NiAzNDEuNjMgMTkzLjAxIEMgMzQyLjM4IDE4OC44MyAzNDQuNjQgMTg1LjE1IDM0Ni4yNSAxODEuMjcgQyAzNTcuODcgMTU1Ljg1IDM1OC41OSAxMjYuMTUgMzUwLjI2IDk5LjY2IEMgMzQ1LjQzIDgzLjk1IDMzNy4yMCA2OS4xMyAzMjUuNDIgNTcuNTggQyAzMDkuNDAgNDAuODcgMjg3LjE5IDMwLjI1IDI2NC4xMiAyOC4yOSBDIDI1Ni43NiAyNy43MSAyNDkuMzkgMjcuMjEgMjQyLjAwIDI3LjMzIEMgMTcyLjY3IDI3LjM0IDEwMy4zMyAyNy4zMyAzNC4wMCAyNy4zMyBDIDMwLjEzIDI3LjM1IDI2LjI2IDI3LjIyIDIyLjQwIDI3LjQ4IFoiIC8+DQo8cGF0aCBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIxLjAwIiBkPSIgTSA0NzIuNDkgMjAuNzcgQyA0NzguNjMgMjAuMDQgNDg0LjgzIDIwLjQ5IDQ5MC45OSAyMC4wMSBDIDU0NC45OSAxOS45OCA1OTkuMDAgMjAuMDEgNjUzLjAwIDIwLjAwIEMgNjczLjQ3IDE5LjQwIDY5NC4xNCAyNC42OCA3MTEuNjcgMzUuMjkgQyA3MzIuNzEgNDguMzcgNzQ5Ljc4IDY4LjE1IDc1OC41MCA5MS40NCBDIDc2My43MSAxMDUuNjUgNzY1LjUyIDEyMC45MyA3NjUuMzQgMTM2LjAwIEMgNzY1LjMyIDE3MC42NyA3NjUuMzQgMjA1LjMzIDc2NS4zMyAyNDAuMDAgQyA3NjUuNDIgMjUwLjcxIDc2NS4yMSAyNjEuNTEgNzYzLjExIDI3Mi4wNiBDIDc1OS4yOSAyOTQuMjggNzQ3LjM4IDMxNC42OCA3MzEuMTEgMzMwLjExIEMgNzEyLjM4IDM0OC43NCA2ODYuNDEgMzU5Ljc5IDY2MC4wMCAzNjAuMzUgQyA1OTkuNjggMzYwLjMwIDUzOS4zNSAzNjAuMzYgNDc5LjAyIDM2MC4zMiBDIDQzNC4yOSAzNTguMDMgMzkzLjU2IDMyNC40OSAzODEuNDcgMjgxLjU3IEMgMzc4Ljg0IDI3Mi42MyAzNzcuNjggMjYzLjMyIDM3Ny4zNCAyNTQuMDMgQyAzNzcuMzIgMjExLjY3IDM3Ny4zNSAxNjkuMzEgMzc3LjMzIDEyNi45NiBDIDM3Ny41MiAxMTYuODEgMzc5LjEyIDEwNi43MCAzODIuMDMgOTYuOTggQyAzOTQuMzQgNTcuMTcgNDMwLjk0IDI1Ljc0IDQ3Mi40OSAyMC43NyBNIDQ4Ni4zOSAyNy40NiBDIDQ3OC45MSAyNy45MSA0NzEuMzcgMjguMzQgNDY0LjA2IDMwLjEyIEMgNDI4LjkxIDM4LjI1IDM5OS4xNSA2Ni4yOSAzODguOTAgMTAwLjg4IEMgMzg2LjY4IDEwOC43MSAzODUuMTkgMTE2LjgzIDM4NS4zMiAxMjQuOTkgQyAzODUuMzcgMTY5LjY3IDM4NS4yOCAyMTQuMzYgMzg1LjM2IDI1OS4wNCBDIDM4Ny41NiAzMDIuODIgNDIyLjQ5IDM0MS45MiA0NjUuMDkgMzUwLjkxIEMgNDczLjkzIDM1Mi42NSA0ODIuOTUgMzUzLjQzIDQ5MS45NSAzNTMuNjcgQyA1NDQuOTggMzUzLjY3IDU5OC4wMSAzNTMuNjYgNjUxLjA0IDM1My42NyBDIDY2OC41NSAzNTMuMjYgNjg2LjQwIDM1MC4zMCA3MDIuMDEgMzQyLjAwIEMgNzIxLjI5IDMzMS44MCA3MzcuMjIgMzE1LjQ3IDc0Ny4xNiAyOTYuMDcgQyA3NTQuMjcgMjgyLjE5IDc1Ny4wNSAyNjYuNTAgNzU3LjY2IDI1MS4wMyBDIDc1Ny42OCAyMTMuMDIgNzU3LjY2IDE3NS4wMSA3NTcuNjcgMTM3LjAwIEMgNzU3Ljk4IDEyMC4zNyA3NTUuODAgMTAzLjM3IDc0OC44MyA4OC4xMyBDIDczNi41OSA2Mi4wMSA3MTMuNTYgNDAuNzcgNjg1Ljg5IDMyLjExIEMgNjc0LjMwIDI4LjUyIDY2Mi4wOSAyNy40MyA2NTAuMDAgMjcuMzIgQyA1OTUuNDYgMjcuNDQgNTQwLjkyIDI3LjE1IDQ4Ni4zOSAyNy40NiBaIiAvPg0KPHBhdGggZmlsbD0iI2ZmZmZmZiIgb3BhY2l0eT0iMS4wMCIgZD0iIE0gODE4LjUzIDQxLjUxIEMgODM3LjU2IDI2LjY4IDg2MS45OSAxOS4zOSA4ODYuMDAgMjAuMDAgQyA5NDEuMDAgMjAuMDAgOTk2LjAwIDIwLjAxIDEwNTEuMDAgMTkuOTkgQyAxMDYxLjE4IDE5Ljc1IDEwNzEuMzYgMjEuMjYgMTA4MS4yMSAyMy44MCBDIDExMTQuMzUgMzIuODUgMTE0Mi4wOCA1OC43MCAxMTU0LjM1IDkwLjY4IEMgMTE1OS4yMSAxMDIuODMgMTE2MS4wNyAxMTUuOTcgMTE2MS4zMyAxMjkuMDAgQyAxMTYxLjM0IDE5OS42NyAxMTYxLjMyIDI3MC4zMyAxMTYxLjM0IDM0MS4wMCBDIDExNjEuMjQgMzQ0LjcyIDExNjEuODYgMzQ4LjY4IDExNjAuMTQgMzUyLjE0IEMgMTE1Ny45MyAzNTYuNzEgMTE1My4yOSAzNjAuNTAgMTE0OC4wMiAzNjAuMzMgQyAxMTIzLjY4IDM2MC4zNSAxMDk5LjMzIDM2MC4zMSAxMDc0Ljk4IDM2MC4zNSBDIDEwNjkuMjggMzYwLjU1IDEwNjMuMjggMzU3LjA0IDEwNjEuNTMgMzUxLjQ1IEMgMTA1OS41NyAzNDUuMTYgMTA1OS45OSAzMzguNDkgMTA2MC4zMyAzMzIuMDAgQyAxMDYwLjM0IDI2NC42NiAxMDYwLjMzIDE5Ny4zMSAxMDYwLjMzIDEyOS45NyBDIDEwNjAuNTQgMTI0Ljk4IDEwNTYuMDIgMTIwLjU3IDEwNTEuMDQgMTIwLjkzIEMgMTA0MC4yNyAxMjAuNTYgMTAyOS40NCAxMjAuMzcgMTAxOC42OCAxMjEuMDQgQyAxMDE4LjY0IDE5MS42OSAxMDE4LjY4IDI2Mi4zNSAxMDE4LjY3IDMzMy4wMCBDIDEwMTguNjEgMzM4LjgxIDEwMTkuMDUgMzQ0Ljc2IDEwMTcuNDcgMzUwLjQzIEMgMTAxNi4yNSAzNTUuMjggMTAxMS45NCAzNTkuMDcgMTAwNy4wNyAzNTkuOTcgQyA5OTguNzYgMzYxLjQyIDk5MC4zNSAzNjAuMTAgOTgxLjk5IDM2MC4zMyBDIDk2NC45OSAzNjAuMzQgOTQ3Ljk4IDM2MC4zMyA5MzAuOTggMzYwLjM1IEMgOTIzLjQzIDM2MC42MiA5MTcuMDcgMzUzLjQ2IDkxNy4zNSAzNDYuMDggQyA5MTcuMzAgMjcxLjA4IDkxNy4zNiAxOTYuMDkgOTE3LjMyIDEyMS4wOSBDIDkwNy45MCAxMjAuNDggODk4LjQ2IDEyMC42NyA4ODkuMDMgMTIwLjY5IEMgODg1LjE0IDEyMC44NyA4ODAuNjcgMTIwLjczIDg3Ny43MyAxMjMuNzUgQyA4NzQuNTkgMTI2LjU4IDg3NC41MyAxMzEuMDkgODc0LjY0IDEzNS4wMCBDIDg3NC43MCAyMDUuNjggODc0LjY1IDI3Ni4zNyA4NzQuNjcgMzQ3LjA1IEMgODc0Ljg2IDM1MS45MSA4NzEuNjAgMzU2LjE3IDg2Ny42NSAzNTguNjUgQyA4NjMuODQgMzYwLjk1IDg1OS4yMyAzNjAuMjYgODU1LjAxIDM2MC4zMyBDIDg0OS4zMiAzNjAuMTEgODQzLjY1IDM2MC44NiA4MzcuOTcgMzYwLjY2IEMgODI3Ljk5IDM2MC4wNCA4MTcuOTkgMzYwLjQ2IDgwOC4wMSAzNjAuMzIgQyA3OTkuODIgMzYwLjE3IDc5MS40NCAzNjEuNjggNzgzLjQxIDM1OS41NSBDIDc3Ny42MiAzNTcuODggNzczLjk3IDM1MS45NSA3NzQuMDIgMzQ2LjA4IEMgNzczLjk3IDI3My43MyA3NzQuMDIgMjAxLjM2IDc3My45OSAxMjkuMDAgQyA3NzQuMTkgMTE4LjY3IDc3NS42NyAxMDguMzYgNzc4LjQzIDk4LjM5IEMgNzg1LjAwIDc1LjY2IDc5OS43MiA1NS43MCA4MTguNTMgNDEuNTEgTSA4ODMuMzcgMjcuNDQgQyA4NzQuNTAgMjcuOTYgODY1LjU4IDI4LjY0IDg1Ny4wMCAzMS4wNCBDIDgyMi43MSA0MC40MCA3OTQuMzYgNjguODAgNzg1LjA3IDEwMy4xMSBDIDc4Mi4wMiAxMTQuMTIgNzgxLjc4IDEyNS42MiA3ODEuMzQgMTM2Ljk2IEMgNzgxLjMyIDIwNS4zMSA3ODEuMzQgMjczLjY3IDc4MS4zMyAzNDIuMDMgQyA3ODEuNDMgMzQ1LjE5IDc4MS43NyAzNDguNjUgNzgzLjc5IDM1MS4yMyBDIDc4Ni4yMCAzNTMuNTUgNzg5LjgxIDM1My41NyA3OTIuOTUgMzUzLjY4IEMgODE0Ljk2IDM1My42MSA4MzYuOTcgMzUzLjc2IDg1OC45OCAzNTMuNjEgQyA4NjMuNjUgMzUzLjgxIDg2Ny40MiAzNDkuNTkgODY3LjMxIDM0NS4wNCBDIDg2Ny4zOCAyNzMuMDQgODY3LjI5IDIwMS4wNCA4NjcuMzYgMTI5LjA0IEMgODY3LjUyIDEyMC40MyA4NzUuNTggMTEzLjI5IDg4NC4wNCAxMTMuMzQgQyA4OTQuMjIgMTEzLjM5IDkwNC40MSAxMTMuMTggOTE0LjU5IDExMy40NiBDIDkxNy4zMyAxMTMuNzYgOTIwLjU3IDExMy4yMiA5MjIuNzcgMTE1LjI4IEMgOTI0LjU4IDExNy4zOCA5MjUuMDYgMTIwLjI0IDkyNS4wMiAxMjIuOTQgQyA5MjQuOTcgMTk2LjMxIDkyNS4wMiAyNjkuNjggOTI0Ljk5IDM0My4wNSBDIDkyNS4yMCAzNDYuMTYgOTI1LjAwIDM1MC4xMCA5MjcuNzYgMzUyLjIxIEMgOTMwLjYwIDM1My41NyA5MzMuODcgMzUzLjUxIDkzNi45NyAzNTMuNjcgQyA5NTcuOTkgMzUzLjY3IDk3OS4wMSAzNTMuNjYgMTAwMC4wMyAzNTMuNjcgQyAxMDAzLjUxIDM1My42NSAxMDA3Ljk1IDM1My4wNCAxMDA5LjUyIDM0OS40MiBDIDEwMTAuNzIgMzQ2LjEyIDEwMTAuNTMgMzQyLjUwIDEwMTAuNjcgMzM5LjA0IEMgMTAxMC42NSAyNjYuNjkgMTAxMC42OSAxOTQuMzQgMTAxMC42NSAxMjEuOTkgQyAxMDEwLjYyIDExOC45MiAxMDExLjM3IDExNC40NiAxMDE1LjExIDExNC4wMSBDIDEwMjQuMzQgMTEyLjcwIDEwMzMuNzEgMTEzLjU5IDEwNDMuMDAgMTEzLjMzIEMgMTA0OS42NCAxMTMuNDEgMTA1Ny4zNiAxMTIuNDQgMTA2Mi43MiAxMTcuMjcgQyAxMDY3LjM1IDEyMS4wNCAxMDY4LjM1IDEyNy4zOCAxMDY4LjM0IDEzMy4wMiBDIDEwNjguMzMgMTk3LjY4IDEwNjguMzIgMjYyLjM0IDEwNjguMzQgMzI3LjAwIEMgMTA2OC41NSAzMzQuMzkgMTA2Ny4xNCAzNDEuOTEgMTA2OC45NiAzNDkuMTkgQyAxMDcwLjM4IDM1Mi42OSAxMDc0LjY3IDM1My40OSAxMDc4LjA1IDM1My42NCBDIDEwOTYuNzAgMzUzLjcxIDExMTUuMzUgMzUzLjYzIDExMzQuMDAgMzUzLjY4IEMgMTEzOC42NSAzNTMuNzEgMTE0My4zMiAzNTMuNTMgMTE0Ny45NiAzNTMuMTcgQyAxMTUxLjc4IDM1Mi43MCAxMTUzLjY4IDM0OC40MyAxMTUzLjY3IDM0NC45NyBDIDExNTMuNjUgMjcxLjY0IDExNTMuNjggMTk4LjMwIDExNTMuNjYgMTI0Ljk3IEMgMTE1Mi40NSA4MC41MSAxMTE4LjAwIDM5LjgzIDEwNzQuODEgMzAuMTQgQyAxMDU4LjEzIDI2LjM5IDEwNDAuOTUgMjcuNDkgMTAyNC4wMCAyNy4zMyBDIDk3Ny4xMiAyNy40MSA5MzAuMjQgMjcuMTkgODgzLjM3IDI3LjQ0IFoiIC8+DQo8cGF0aCBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIxLjAwIiBkPSIgTSAxMjY4LjQxIDIwLjQ2IEMgMTI3NS42MCAyMC4zNSAxMjgyLjc5IDE5Ljg3IDEyOTAuMDAgMjAuMDAgQyAxMzQyLjAwIDIwLjAwIDEzOTQuMDAgMjAuMDEgMTQ0Ni4wMCAxOS45OSBDIDE0NjIuNTMgMTkuNjggMTQ3OS4yNiAyMi42NyAxNDk0LjI3IDI5Ljc2IEMgMTUxNC4yNSAzOS4wOCAxNTMxLjEyIDU0LjYyIDE1NDIuNzMgNzMuMzAgQyAxNTUzLjE4IDkwLjIzIDE1NTguMTQgMTEwLjE5IDE1NTguMzQgMTMwLjAwIEMgMTU1OC4zMyAxNjcuMDAgMTU1OC4zMyAyMDQuMDAgMTU1OC4zNCAyNDEuMDAgQyAxNTU4LjQ2IDI0Ny4wMiAxNTU3Ljk5IDI1My4wMyAxNTU3LjkxIDI1OS4wNSBDIDE1NTYuMjYgMjg0LjE5IDE1NDUuNDUgMzA4Ljc1IDE1MjcuNjQgMzI2LjYyIEMgMTUwOS4wMiAzNDYuNjggMTQ4Mi4zNiAzNTkuMjAgMTQ1NC45OSAzNjAuMzMgQyAxMzk1LjAwIDM2MC4zNSAxMzM1LjAwIDM2MC4zMSAxMjc1LjAxIDM2MC4zNSBDIDEyNTguNzUgMzU5LjgyIDEyNDIuNTcgMzU1LjYwIDEyMjguMjYgMzQ3Ljg0IEMgMTIwOC4zOSAzMzYuODIgMTE5MS44NCAzMTkuODUgMTE4MS40OSAyOTkuNjEgQyAxMTc0LjA4IDI4NC45MiAxMTcwLjQ3IDI2OC40NSAxMTcwLjMyIDI1Mi4wMyBDIDExNzAuMzQgMjEwLjY3IDExNzAuMzMgMTY5LjMyIDExNzAuMzMgMTI3Ljk2IEMgMTE3MC41OCAxMDkuODkgMTE3NS4xMCA5MS43OSAxMTg0LjE0IDc2LjA5IEMgMTIwMS4zNSA0NS43MSAxMjMzLjQwIDIzLjYzIDEyNjguNDEgMjAuNDYgTSAxMjc5LjQwIDI3LjQ4IEMgMTI3Ni41OCAyNy42NCAxMjczLjc3IDI3Ljc3IDEyNzAuOTggMjguMDMgQyAxMjQ2LjUwIDI5LjgxIDEyMjMuMTkgNDEuNjYgMTIwNi40MCA1OS40MCBDIDExODguNTIgNzcuNzQgMTE3Ny4zMCAxMDMuMTggMTE3OC4zMyAxMjkuMDAgQyAxMTc4LjM1IDE3Mi4zNSAxMTc4LjI5IDIxNS42OSAxMTc4LjM2IDI1OS4wNCBDIDExODAuMzUgMjk3LjEyIDEyMDcuMDQgMzMxLjczIDEyNDIuMDAgMzQ1Ljk1IEMgMTI1Ny43NSAzNTIuNTQgMTI3NS4xMCAzNTMuODAgMTI5MS45OSAzNTMuNjcgQyAxMzQyLjY4IDM1My42NiAxMzkzLjM2IDM1My42OCAxNDQ0LjA0IDM1My42NiBDIDE0NTQuNzMgMzUzLjAwIDE0NjUuNjAgMzUyLjgxIDE0NzYuMDEgMzUwLjAyIEMgMTUwMC44MSAzNDIuMjcgMTUyMi42MiAzMjUuMzcgMTUzNi4yNyAzMDMuMjUgQyAxNTQ1LjQ5IDI4Ny44NSAxNTUwLjI4IDI2OS45NSAxNTUwLjY3IDI1Mi4wNCBDIDE1NTAuNjYgMjEzLjY5IDE1NTAuNjcgMTc1LjM0IDE1NTAuNjcgMTM3LjAwIEMgMTU1MC42MyAxMzEuNjggMTU1MC44NCAxMjYuMzYgMTU1MC4zMiAxMjEuMDYgQyAxNTQ4LjE3IDkzLjY1IDE1MzMuOTEgNjcuNjYgMTUxMi41NCA1MC40OCBDIDE0OTcuNjMgMzcuNjUgMTQ3OC41NCAzMC4xNSAxNDU5LjA2IDI4LjEwIEMgMTQ0Ny43NSAyNi44NyAxNDM2LjM1IDI3LjQ3IDE0MjUuMDAgMjcuMzMgQyAxMzc2LjQ3IDI3LjQzIDEzMjcuOTMgMjcuMTQgMTI3OS40MCAyNy40OCBaIiAvPg0KPHBhdGggZmlsbD0iI2ZmZmZmZiIgb3BhY2l0eT0iMS4wMCIgZD0iIE0gNDg4LjQwIDM0LjQ4IEMgNTM0LjI2IDM0LjE0IDU4MC4xMyAzNC40MyA2MjYuMDAgMzQuMzMgQyA2NDEuMzMgMzQuNDcgNjU2Ljc2IDMzLjc2IDY3MS45OSAzNS45MCBDIDcxNC41NiA0Mi40MiA3NDkuNzEgODEuNzUgNzUwLjY2IDEyNC45NCBDIDc1MC42NiAxNjguNjQgNzUwLjY5IDIxMi4zMyA3NTAuNjQgMjU2LjAzIEMgNzQ5LjcxIDI5NS41NCA3MjAuMDUgMzMxLjYyIDY4Mi4zOSAzNDIuMzggQyA2NjguNTkgMzQ2LjAzIDY1NC4yMCAzNDYuNDYgNjQwLjAwIDM0Ni4zMyBDIDU5NC4zMyAzNDYuMzMgNTQ4LjY2IDM0Ni4zMyA1MDIuOTkgMzQ2LjMzIEMgNDg5LjM0IDM0Ni40MyA0NzUuNTAgMzQ2LjE2IDQ2Mi4xOSAzNDIuODEgQyA0MjUuMDQgMzMyLjk0IDM5NS41MyAyOTguNTEgMzkyLjQ3IDI2MC4wNCBDIDM5MS42NCAyMTguMzggMzkyLjE0IDE3Ni42OCAzOTEuOTkgMTM1LjAwIEMgMzkxLjg2IDEyMC4wNiAzOTMuOTIgMTA0Ljg0IDQwMC4xNSA5MS4xNCBDIDQxMi4wOSA2NC45MSA0MzYuMDkgNDQuMTAgNDY0LjIzIDM3LjI2IEMgNDcyLjEyIDM1LjIyIDQ4MC4zMCAzNC45MiA0ODguNDAgMzQuNDggTSA0ODMuMzAgMTA3LjM3IEMgNDc0LjM5IDExMC44NiA0NjUuNjQgMTE4LjAzIDQ2NC4xMSAxMjcuOTggQyA0NjMuNjkgMTY1Ljk4IDQ2NC40NCAyMDQuMDEgNDYzLjY2IDI0Mi4wMCBDIDQ2My42MyAyNDguMjYgNDYzLjE5IDI1NC45NiA0NjYuNDcgMjYwLjU4IEMgNDcwLjUxIDI2Ny42MCA0NzcuNjMgMjczLjQ0IDQ4NS45NSAyNzQuMDAgQyA0OTguOTUgMjc0Ljk4IDUxMS45OCAyNzMuODIgNTI1LjAwIDI3NC4wMCBDIDU2NC4wMCAyNzQuMDAgNjAzLjAwIDI3My45OSA2NDIuMDEgMjc0LjAwIEMgNjQ4LjY3IDI3NC4zMSA2NTUuNDggMjc0LjgzIDY2Mi4wMiAyNzMuMTMgQyA2NzAuNjggMjcwLjY0IDY3Ny40NCAyNjIuODMgNjc4Ljg4IDI1My45NyBDIDY3OS45NCAyNDcuNjggNjc4Ljk2IDI0MS4zMiA2NzguOTkgMjM1LjAwIEMgNjc5LjAzIDIwMC4zMyA2NzguOTYgMTY1LjY2IDY3OS4wMyAxMzAuOTggQyA2NzkuNjIgMTIwLjg2IDY3Mi4yOSAxMTEuNDYgNjYzLjA1IDEwNy45OCBDIDY1OC41OCAxMDYuMTYgNjUzLjY5IDEwNi43MyA2NDkuMDAgMTA2LjY3IEMgNTk1LjY3IDEwNi42NyA1NDIuMzQgMTA2LjY3IDQ4OS4wMSAxMDYuNjYgQyA0ODcuMDkgMTA2LjcyIDQ4NS4xNSAxMDYuODMgNDgzLjMwIDEwNy4zNyBaIiAvPg0KPHBhdGggZmlsbD0iI2ZmZmZmZiIgb3BhY2l0eT0iMS4wMCIgZD0iIE0gODU3LjE5IDM4LjE2IEMgODY3LjUyIDM1LjIxIDg3OC4yOSAzNC40NSA4ODguOTkgMzQuMzIgQyA5MzYuOTkgMzQuMzUgOTg1LjAwIDM0LjMzIDEwMzMuMDAgMzQuMzMgQyAxMDQ1LjU2IDM0LjM1IDEwNTguMjMgMzQuMTYgMTA3MC42NSAzNi4zNSBDIDExMDUuOTggNDMuMTQgMTEzNS42OCA3Mi4xMiAxMTQ0LjA3IDEwNi45OSBDIDExNDYuMDggMTE1Ljg1IDExNDYuNzkgMTI0Ljk0IDExNDcuMDEgMTM0LjAwIEMgMTE0Ny4wMCAyMDEuNjcgMTE0Ni45OSAyNjkuMzMgMTE0Ny4wMSAzMzcuMDAgQyAxMTQ2Ljk5IDM0MC4wMSAxMTQ2Ljc0IDM0My4wMyAxMTQ2LjU5IDM0Ni4wNCBDIDExMjMuMDYgMzQ2LjcwIDEwOTkuNDggMzQ2LjE3IDEwNzUuOTQgMzQ2LjMyIEMgMTA3NS41OCAzNDMuNTYgMTA3NS4zMyAzNDAuNzggMTA3NS4zMyAzMzguMDEgQyAxMDc1LjMzIDI3MS42NyAxMDc1LjMzIDIwNS4zNCAxMDc1LjMzIDEzOS4wMCBDIDEwNzUuMzMgMTMzLjQyIDEwNzUuNzIgMTI3LjY2IDEwNzMuNzMgMTIyLjMzIEMgMTA3MC43MSAxMTMuMjcgMTA2MS43MyAxMDYuMjAgMTA1MS45OCAxMDYuNjYgQyAxMDM1LjkxIDEwNi45MiAxMDE5LjgwIDEwNi4xNSAxMDAzLjc1IDEwNy4wOSBDIDEwMDMuNjAgMTEwLjA0IDEwMDMuMzQgMTEyLjk5IDEwMDMuMzMgMTE1Ljk1IEMgMTAwMy4zMyAxNDYuMzAgMTAwMy4zNSAxNzYuNjUgMTAwMy4zMiAyMDcuMDAgQyAxMDA0LjA0IDIzMS42NSAxMDAzLjQ5IDI1Ni4zMyAxMDAzLjY4IDI4MS4wMCBDIDEwMDIuOTcgMzAyLjY3IDEwMDMuNTEgMzI0LjM3IDEwMDMuMzAgMzQ2LjA2IEMgOTg2LjU1IDM0Ni42OSA5NjkuNzYgMzQ2LjE2IDk1My4wMCAzNDYuMzMgQyA5NDYuMDAgMzQ2LjIxIDkzOC45OSAzNDYuNjQgOTMyLjAyIDM0Ni4wMyBDIDkzMS44OSAzMzQuNjkgOTMyLjI2IDMyMy4zNCA5MzEuNjYgMzEyLjAxIEMgOTMxLjY4IDI0My42MiA5MzEuNjQgMTc1LjI0IDkzMS42OSAxMDYuODYgQyA5MTguNDcgMTA2LjQxIDkwNS4yMyAxMDYuNzkgODkyLjAwIDEwNi42NyBDIDg4Ni42NCAxMDYuODAgODgxLjA4IDEwNi4wNCA4NzUuOTQgMTA3Ljk0IEMgODY4LjQ5IDExMC41OSA4NjIuODYgMTE3LjMwIDg2MC44MyAxMjQuODYgQyA4NTkuNjQgMTI5LjE0IDg2MC4wNCAxMzMuNjIgODYwLjAwIDEzOC4wMCBDIDg2MC4wMSAyMDcuMzAgODU5Ljk5IDI3Ni42MSA4NjAuMDEgMzQ1LjkxIEMgODQyLjY5IDM0Ni44MiA4MjUuMzMgMzQ2LjExIDgwOC4wMCAzNDYuMzMgQyA4MDEuNDQgMzQ2LjMwIDc5NC44NyAzNDYuNTYgNzg4LjM0IDM0NS44NCBDIDc4OC4zMiAyNzUuMjEgNzg4LjMzIDIwNC41OCA3ODguMzQgMTMzLjk1IEMgNzg4LjYwIDEyNi45MSA3ODguNzkgMTE5LjgzIDc5MC4wMSAxMTIuODcgQyA3OTIuNTkgOTcuMDggNzk5LjYyIDgyLjE1IDgwOS44MSA2OS44NSBDIDgyMi4xNyA1NS4xMyA4MzguNDcgNDMuMjIgODU3LjE5IDM4LjE2IFoiIC8+DQo8cGF0aCBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIxLjAwIiBkPSIgTSAxMjkyLjM5IDM0LjQ4IEMgMTMxNy4yNSAzMy43MiAxMzQyLjEzIDM1LjM4IDEzNjYuOTkgMzQuMzIgQyAxMzkzLjMxIDM0LjM4IDE0MTkuNjQgMzQuMjYgMTQ0NS45NiAzNC4zOCBDIDE0NjAuMzUgMzQuNjAgMTQ3NC45MiAzNi43NyAxNDg4LjA3IDQyLjg4IEMgMTUxMS42OCA1NC4xNiAxNTMwLjgwIDc0Ljk2IDE1MzkuMTMgOTkuODYgQyAxNTQyLjMwIDEwOS4yMiAxNTQzLjYzIDExOS4xMSAxNTQzLjY3IDEyOC45NyBDIDE1NDMuNjYgMTY5LjY2IDE1NDMuNjYgMjEwLjM0IDE1NDMuNjcgMjUxLjAzIEMgMTU0My41MyAyNjAuNDAgMTU0Mi40MiAyNjkuODAgMTUzOS43MyAyNzguODAgQyAxNTMzLjIyIDMwMC43MSAxNTE3Ljk2IDMxOS41MiAxNDk4Ljc3IDMzMS43MiBDIDE0OTEuMDcgMzM2LjYyIDE0ODIuNjkgMzQwLjYxIDE0NzMuODAgMzQyLjc2IEMgMTQ2MC44MCAzNDUuOTggMTQ0Ny4zMiAzNDYuNDYgMTQzNC4wMCAzNDYuMzMgQyAxMzg3LjY3IDM0Ni4zMyAxMzQxLjMzIDM0Ni4zMyAxMjk1LjAwIDM0Ni4zMyBDIDEyNzkuODUgMzQ2LjQ0IDEyNjQuMzYgMzQ2LjAxIDEyNDkuODMgMzQxLjI0IEMgMTIyMy45OCAzMzIuNTQgMTIwMi40OCAzMTIuMTEgMTE5MS45MyAyODcuMDMgQyAxMTg3LjUzIDI3Ni4yNSAxMTg1LjMyIDI2NC42MiAxMTg0Ljk5IDI1My4wMCBDIDExODUuMDAgMjExLjMzIDExODUuMDEgMTY5LjY2IDExODQuOTkgMTI3Ljk5IEMgMTE4NS4xMCAxMjAuMzAgMTE4Ni4yMiAxMTIuNjMgMTE4OC4wNyAxMDUuMTYgQyAxMTk2LjkzIDcxLjI4IDEyMjYuMDMgNDMuNTIgMTI2MC4zOCAzNi41MSBDIDEyNzAuOTAgMzQuMjkgMTI4MS43MSAzNC45NSAxMjkyLjM5IDM0LjQ4IE0gMTI3Ni4yNyAxMDcuMzIgQyAxMjY4LjY0IDExMC4xOCAxMjYxLjcwIDExNS43OCAxMjU4LjE5IDEyMy4yNSBDIDEyNTUuOTYgMTI3LjgzIDEyNTYuMzIgMTMzLjA1IDEyNTYuMzMgMTM4LjAwIEMgMTI1Ni4zNCAxNzEuNjYgMTI1Ni4zMyAyMDUuMzMgMTI1Ni4zMyAyMzguOTkgQyAxMjU2LjM2IDI0My43NiAxMjU2LjA5IDI0OC41NyAxMjU2Ljg1IDI1My4zMSBDIDEyNTguNzcgMjY0LjMxIDEyNjguNzAgMjczLjYxIDEyNzkuOTggMjc0LjEwIEMgMTI4NC45NyAyNzQuNzEgMTI4OS45OSAyNzQuMDMgMTI5NS4wMCAyNzMuOTkgQyAxMzM3LjM0IDI3NC4wMSAxMzc5LjY3IDI3NC4wMCAxNDIyLjAwIDI3NC4wMCBDIDE0MzEuMzQgMjczLjgwIDE0NDAuNjggMjc0Ljg0IDE0NTAuMDEgMjc0LjE0IEMgMTQ2MS4yNiAyNzMuMjMgMTQ3MS4yMCAyNjMuMzcgMTQ3MS45OCAyNTIuMDkgQyAxNDcyLjAzIDIxMS43MSAxNDcxLjk2IDE3MS4zNCAxNDcyLjAyIDEzMC45NiBDIDE0NzIuMjggMTIwLjY1IDE0NjQuODMgMTExLjAyIDE0NTUuMjMgMTA3LjcxIEMgMTQ1MS4zMCAxMDYuMjkgMTQ0Ny4wOCAxMDYuNjkgMTQ0My4wMCAxMDYuNjYgQyAxMzg5LjM0IDEwNi42NyAxMzM1LjY3IDEwNi42NiAxMjgyLjAxIDEwNi42NyBDIDEyODAuMDcgMTA2LjcyIDEyNzguMTMgMTA2LjgzIDEyNzYuMjcgMTA3LjMyIFoiIC8+DQo8cGF0aCBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIxLjAwIiBkPSIgTSAyMC4wMSAzNS4wMSBDIDk5LjM0IDM0Ljk5IDE3OC42OCAzNS4wMCAyNTguMDEgMzUuMDAgQyAyODkuNjIgMzUuNDIgMzIwLjAxIDU0LjE3IDMzNS4xNSA4MS44MiBDIDM1MS45MyAxMTIuMDIgMzUzLjc1IDE1MC40MyAzMzguNTMgMTgxLjYxIEMgMzM2Ljc3IDE4NS41MCAzMzQuMzUgMTg5LjA3IDMzMi44NyAxOTMuMDggQyAzMzIuMDYgMTk0Ljg0IDMzMy4zOSAxOTYuMzMgMzM0LjM3IDE5Ny42NCBDIDM0Ni4xOCAyMTIuMTIgMzUzLjEzIDIzMC40MiAzNTQuMjggMjQ5LjA0IEMgMzU0LjUzIDI1OC43MCAzNTQuMDEgMjY4LjM4IDM1NC42MiAyNzguMDQgQyAzNTQuNzkgMzAwLjQ0IDM1NC42NiAzMjIuODQgMzU0LjMwIDM0NS4yNCBDIDMzOC4yMiAzNDYuMTAgMzIyLjEwIDM0NS40OCAzMDYuMDAgMzQ1LjY3IEMgMjk4LjMzIDM0NS42OCAyOTAuNjYgMzQ1Ljc4IDI4My4wMSAzNDUuMjUgQyAyODIuNzIgMzI0LjUwIDI4Mi4zMCAzMDMuNzMgMjgzLjAxIDI4Mi45OSBDIDI4Mi45NCAyNzMuNjMgMjgzLjA5IDI2NC4yNyAyODIuOTYgMjU0LjkxIEMgMjgyLjYxIDI0My4yNCAyNzIuNjQgMjMyLjc2IDI2MS4wMSAyMzEuODIgQyAyMjcuMzYgMjMyLjIyIDE5My42NyAyMzEuODggMTYwLjAwIDIzMi4wMSBDIDE1My42MSAyMzIuMTQgMTQ3LjIzIDIzMS40MSAxNDAuODMgMjMxLjcxIEMgMTQwLjM3IDIyMi4yMiAxNDAuOTMgMjEyLjcwIDE0MC41NSAyMDMuMjEgQyAxNDAuMjEgMTk4LjQxIDE0MC4yMyAxOTMuNjAgMTQwLjU3IDE4OC44MCBDIDE0MC45MyAxNzkuMzEgMTQwLjM1IDE2OS44MCAxNDAuODYgMTYwLjMxIEMgMTc3LjI0IDE2MC4zNyAyMTMuNjIgMTYwLjMxIDI1MC4wMCAxNjAuMzQgQyAyNTMuMzIgMTYwLjMxIDI1Ni42NyAxNjAuNTQgMjU5Ljk2IDE1OS45OCBDIDI3MC45NyAxNTcuODMgMjgwLjA4IDE0Ny4zOSAyNzkuNjkgMTM2LjAwIEMgMjc5LjQyIDEyOS40NyAyNzguMzEgMTIyLjczIDI3NC45OCAxMTcuMDEgQyAyNzEuMzMgMTEwLjczIDI2NC4yNSAxMDYuNjggMjU2Ljk5IDEwNi42NyBDIDIwMS45MCAxMDYuNjUgMTQ2LjgxIDEwNi42OCA5MS43MSAxMDYuNjYgQyA5MS4xOCAxMTAuMDggOTEuMzAgMTEzLjU1IDkxLjMzIDExNy4wMCBDIDkxLjM0IDE5My4wNiA5MS4zMiAyNjkuMTIgOTEuMzQgMzQ1LjE4IEMgODYuNjAgMzQ1Ljk2IDgxLjc4IDM0NS42MSA3Ny4wMCAzNDUuNjYgQyA2MC42NyAzNDUuNjggNDQuMzMgMzQ1LjY1IDI4LjAwIDM0NS42OCBDIDI1LjIxIDM0NS42OCAyMi40NCAzNDUuNDEgMTkuNjYgMzQ1LjE3IEMgMTkuNjcgMjUyLjQ0IDE5LjY2IDE1OS43MiAxOS42NyA2Ny4wMCBDIDIwLjI1IDU2LjM1IDE5LjkwIDQ1LjY3IDIwLjAxIDM1LjAxIFoiIC8+DQo8cGF0aCBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIxLjAwIiBkPSIgTSA0ODguNDAgMTEzLjQ5IEMgNTQzLjYwIDExMy4xMiA1OTguODIgMTEzLjQ1IDY1NC4wMyAxMTMuMzMgQyA2NjAuOTEgMTEzLjEyIDY2Ny4zNiAxMTcuNDkgNjcwLjUwIDEyMy40NyBDIDY3Mi4zOSAxMjcuMzYgNjcxLjk0IDEzMS44MiA2NzIuMDEgMTM2LjAwIEMgNjcxLjk5IDE3NC4wMiA2NzEuOTggMjEyLjA0IDY3Mi4wMiAyNTAuMDYgQyA2NzIuMTggMjU4LjYzIDY2NC44MyAyNjYuOTUgNjU2LjA4IDI2Ny4wMCBDIDYwMC4wMyAyNjcuMDIgNTQzLjk4IDI2Ni45NyA0ODcuOTQgMjY3LjAyIEMgNDc4LjkyIDI2Ny4xMyA0NzAuMzUgMjU5LjIxIDQ3MC4zMyAyNTAuMDggQyA0NzAuMzEgMjExLjA0IDQ3MC4zNyAxNzIuMDAgNDcwLjMwIDEzMi45NiBDIDQ2OS41MCAxMjIuOTcgNDc5LjAzIDExNC41MSA0ODguNDAgMTEzLjQ5IE0gNDg3LjMwIDEyMS4zNSBDIDQ4My41NyAxMjIuODAgNDgwLjAwIDEyNS41OCA0NzguNjAgMTI5LjQ1IEMgNDc4LjA1IDEzMi4yNiA0NzguMzkgMTM1LjE2IDQ3OC4zMyAxMzguMDAgQyA0NzguMzMgMTc1LjAzIDQ3OC4zNiAyMTIuMDcgNDc4LjI5IDI0OS4wOSBDIDQ3OC4wOCAyNTIuODkgNDgwLjIwIDI1Ni43MSA0ODMuNjggMjU4LjMzIEMgNDg3LjE3IDI2MC4xMyA0OTEuMjEgMjU5LjYyIDQ5NS4wMCAyNTkuNjggQyA1NDguMDIgMjU5LjY1IDYwMS4wNCAyNTkuNjcgNjU0LjA1IDI1OS42NyBDIDY1OC4zNCAyNTkuODEgNjYyLjU4IDI1Ni45NSA2NjMuOTcgMjUyLjg4IEMgNjY0LjYyIDI0OS45NyA2NjQuMjcgMjQ2Ljk1IDY2NC4zNCAyNDQuMDAgQyA2NjQuMzIgMjA2LjMyIDY2NC4zNCAxNjguNjQgNjY0LjMzIDEzMC45NiBDIDY2NC4yOSAxMjUuODkgNjU5Ljg3IDEyMS41NyA2NTQuOTcgMTIwLjg4IEMgNjUxLjY2IDEyMC40NiA2NDguMzIgMTIwLjcxIDY0NS4wMCAxMjAuNjcgQyA1OTQuMzQgMTIwLjY3IDU0My42NyAxMjAuNjcgNDkzLjAxIDEyMC42NyBDIDQ5MS4wOSAxMjAuNzIgNDg5LjE1IDEyMC44MyA0ODcuMzAgMTIxLjM1IFoiIC8+DQo8cGF0aCBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIxLjAwIiBkPSIgTSAxMjgxLjQwIDExMy40NyBDIDEzMzYuNjAgMTEzLjE1IDEzOTEuODIgMTEzLjQzIDE0NDcuMDMgMTEzLjMzIEMgMTQ1My45MiAxMTMuMTIgMTQ2MC42MiAxMTcuMzUgMTQ2My41MSAxMjMuNTkgQyAxNDY1LjUzIDEyNy40MSAxNDY0LjkzIDEzMS44NSAxNDY1LjAxIDEzNi4wMCBDIDE0NjUuMDAgMTc0LjAyIDE0NjQuOTggMjEyLjA1IDE0NjUuMDIgMjUwLjA3IEMgMTQ2NS4zMCAyNTguNzAgMTQ1Ny44NSAyNjYuOTUgMTQ0OS4wOSAyNjYuOTYgQyAxMzk0LjczIDI2Ny4wNiAxMzQwLjM3IDI2Ni45NiAxMjg2LjAxIDI2Ny4wMSBDIDEyODMuMzcgMjY2Ljk5IDEyODAuNzMgMjY3LjE2IDEyNzguMTMgMjY2Ljc4IEMgMTI3MC4yOCAyNjUuMzIgMTI2My4zNSAyNTguMjggMTI2My4zMyAyNTAuMDggQyAxMjYzLjMyIDIxMi4zOSAxMjYzLjM0IDE3NC43MCAxMjYzLjMzIDEzNy4wMSBDIDEyNjMuMzggMTMyLjcyIDEyNjIuNzAgMTI4LjA0IDEyNjUuMjAgMTI0LjI1IEMgMTI2OC42NiAxMTguNjIgMTI3NC42NyAxMTQuMDMgMTI4MS40MCAxMTMuNDcgTSAxMjgwLjMyIDEyMS4zOCBDIDEyNzYuNTYgMTIyLjg4IDEyNzIuODMgMTI1LjU5IDEyNzEuNjEgMTI5LjYyIEMgMTI3MS4wNSAxMzIuMzcgMTI3MS4zOCAxMzUuMjEgMTI3MS4zMyAxMzguMDAgQyAxMjcxLjM0IDE3MS4wMCAxMjcxLjMzIDIwNC4wMSAxMjcxLjM0IDIzNy4wMSBDIDEyNzEuMjAgMjQyLjU2IDEyNzAuNTEgMjQ4LjMxIDEyNzIuMTggMjUzLjcxIEMgMTI3My45NyAyNTcuMzQgMTI3Ny45OSAyNTkuNjkgMTI4Mi4wMyAyNTkuNjcgQyAxMzM3LjAzIDI1OS42NyAxMzkyLjA0IDI1OS42NiAxNDQ3LjA1IDI1OS42NyBDIDE0NTEuMzYgMjU5LjgyIDE0NTUuNTQgMjU2LjkzIDE0NTcuMDEgMjUyLjg5IEMgMTQ1Ny41NyAyNTAuMzAgMTQ1Ny4yOCAyNDcuNjMgMTQ1Ny4zNSAyNDUuMDAgQyAxNDU3LjMxIDIwNi45OSAxNDU3LjM1IDE2OC45OCAxNDU3LjMzIDEzMC45NyBDIDE0NTcuNTQgMTI2LjQxIDE0NTMuNzggMTIyLjY2IDE0NDkuNzAgMTIxLjI4IEMgMTQ0Ni4yMiAxMjAuMjggMTQ0Mi41NSAxMjAuNzUgMTQzOS4wMCAxMjAuNjYgQyAxMzkwLjAwIDEyMC42NyAxMzQxLjAwIDEyMC42NyAxMjkyLjAwIDEyMC42NiBDIDEyODguMTEgMTIwLjczIDEyODQuMTEgMTIwLjMxIDEyODAuMzIgMTIxLjM4IFoiIC8+DQo8cGF0aCBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIxLjAwIiBkPSIgTSA2LjAxIDQxNC42OSBDIDM5LjM0IDQxNC42MyA3Mi42NyA0MTQuNjkgMTA1Ljk5IDQxNC42NiBDIDEyNi4zOSA0MTMuNzAgMTQ2LjMyIDQzMC4zMCAxNDcuNjIgNDUwLjkyIEMgMTQ3Ljc0IDQ2OS45NiAxNDcuNjIgNDg4Ljk5IDE0Ny42OCA1MDguMDMgQyAxNDcuODIgNTI3Ljc1IDEzMC42NCA1NDUuNDcgMTExLjExIDU0Ni43OCBDIDc2LjExIDU0Ni41NiA0MS4wNiA1NDYuNzAgNi4wNCA1NDYuNjggQyA1Ljk1IDUwMi42OCA2LjAxIDQ1OC42OSA2LjAxIDQxNC42OSBNIDM2LjY5IDQ0NC43NSBDIDM2LjIzIDQ2OC40NiAzNi4wNSA0OTIuMjEgMzYuNzYgNTE1LjkyIEMgMzcuNzggNTE3LjA4IDM5LjU5IDUxNi40NiA0MC45NSA1MTYuNjkgQyA2Mi45OCA1MTYuNjMgODUuMDIgNTE2LjY4IDEwNy4wNSA1MTYuNjcgQyAxMTIuNjYgNTE2LjkxIDExNy43OCA1MTEuNjQgMTE3LjM1IDUwNi4wMyBDIDExNy4xOCA0ODguNjggMTE3LjU4IDQ3MS4zMSAxMTcuMjIgNDUzLjk3IEMgMTE2LjgxIDQ0Ni45OSAxMDkuMTIgNDQ0LjA1IDEwMy4wNiA0NDQuMzQgQyA4MC45NCA0NDQuNTQgNTguODAgNDQzLjg4IDM2LjY5IDQ0NC43NSBaIiAvPg0KPHBhdGggZmlsbD0iI2ZmZmZmZiIgb3BhY2l0eT0iMS4wMCIgZD0iIE0gMjc5LjcwIDQxNC43MCBDIDI4OS42OCA0MTQuNzYgMjk5LjY4IDQxNC40MSAzMDkuNjYgNDE0Ljg3IEMgMzEwLjQyIDQ0NS41NyAzMDkuODAgNDc2LjMwIDMxMC4wMCA1MDcuMDEgQyAzMTAuMzEgNTI0LjgxIDI5Ny4wMSA1NDEuNTIgMjc5Ljg1IDU0NS44MSBDIDI3NC4zNSA1NDcuMjkgMjY4LjYyIDU0Ni42NSAyNjMuMDEgNTQ2LjY2IEMgMjQzLjAwIDU0Ni42NyAyMjMuMDAgNTQ2LjY2IDIwMy4wMCA1NDYuNjYgQyAxOTguMDUgNTQ2LjY0IDE5Mi45OSA1NDcuMTYgMTg4LjE2IDU0NS44MiBDIDE3My4zOCA1NDIuMTIgMTYxLjQzIDUyOS4zNiAxNTguNTcgNTE0LjQzIEMgMTU3LjYxIDUwOS42NiAxNTguMTUgNTA0Ljc5IDE1Ny45NyA0OTkuOTggQyAxNTcuMzEgNDkyLjAyIDE1OC4zMiA0ODQuMDYgMTU3Ljk5IDQ3Ni4wOSBDIDE2OC4wMCA0NzUuNDQgMTc4LjA3IDQ3NS40NCAxODguMDggNDc2LjEwIEMgMTg4LjgyIDQ4Ni42NSAxODcuODQgNDk3LjI1IDE4OC42MCA1MDcuODAgQyAxODguOTQgNTEyLjkzIDE5NC4wNSA1MTYuNjEgMTk4Ljk0IDUxNi42NiBDIDIyMi4zMSA1MTYuNjcgMjQ1LjY4IDUxNi42NiAyNjkuMDQgNTE2LjY3IEMgMjc0LjI2IDUxNi44NSAyNzkuNjIgNTEyLjUwIDI3OS4zMSA1MDcuMDIgQyAyNzkuNTMgNDc2LjI1IDI3OC45NSA0NDUuNDYgMjc5LjcwIDQxNC43MCBaIiAvPg0KPHBhdGggZmlsbD0iI2ZmZmZmZiIgb3BhY2l0eT0iMS4wMCIgZD0iIE0gNTc3LjMyIDQyNi4yOCBDIDU4Mi44NCA0MjAuNTEgNTg5Ljk4IDQxNi4wNSA1OTguMDMgNDE1LjA2IEMgNjE0LjU4IDQxMi40NiA2MzEuODMgNDI2LjAyIDYzMi4yMyA0NDMuMDEgQyA2MzEuNDIgNDY4LjY2IDYzMi42OSA0OTQuMzEgNjMyLjI3IDUxOS45NyBDIDYzMS42OCA1MjguNzYgNjMyLjIzIDUzNy41OCA2MzEuOTEgNTQ2LjM5IEMgNjIxLjk3IDU0Ny4wNiA2MTIuMDIgNTQ3LjAzIDYwMi4wOSA1NDYuMzkgQyA2MDEuNjkgNTI5LjYwIDYwMi40OCA1MTIuODAgNjAxLjYwIDQ5Ni4wMyBDIDU4Ni4zOCA0OTUuOTYgNTcxLjE1IDQ5Ni4wMiA1NTUuOTMgNDk1Ljk5IEMgNTUzLjAwIDQ5NS44NCA1NTAuMDAgNDk2Ljc5IDU0OC4wNiA0OTkuMDYgQyA1MzMuNjIgNTE0LjI4IDUxOC40NyA1MjguODEgNTAzLjc3IDU0My43NyBDIDUwMC43MCA1NDcuNjEgNDk1LjMyIDU0Ni45OSA0OTAuOTYgNTQ2Ljk0IEMgNDgwLjA1IDU0Ni4wMiA0NjkuMTEgNTQ3LjQ1IDQ1OC4yMSA1NDYuNTUgQyA0NjMuMjAgNTQwLjc5IDQ2OC4zMSA1MzUuMTEgNDc0LjA0IDUzMC4wNyBDIDUwOC43OSA0OTUuNzggNTQyLjU3IDQ2MC41NiA1NzcuMzIgNDI2LjI4IE0gNTgyLjgwIDQ2NS4yOCBDIDU4OS4xMCA0NjUuMjggNTk1LjQyIDQ2NS41NyA2MDEuNzIgNDY1LjEyIEMgNjAyLjA4IDQ1OC45NiA2MDIuMjUgNDUyLjc2IDYwMS42MiA0NDYuNjIgQyA1OTMuNzYgNDUwLjk0IDU4OC4xMyA0NTguMjUgNTgyLjgwIDQ2NS4yOCBaIiAvPg0KPHBhdGggZmlsbD0iI2ZmZmZmZiIgb3BhY2l0eT0iMS4wMCIgZD0iIE0gNjY0Ljk5IDQxOC45NyBDIDY3Mi40MSA0MTUuMzUgNjgwLjgzIDQxNC40OSA2ODguOTkgNDE0LjY1IEMgNzEzLjk1IDQxNC44MiA3MzguOTIgNDE0LjI5IDc2My44NyA0MTUuMTMgQyA3NjQuMTIgNDI0LjcwIDc2NC4wMiA0MzQuMjggNzYzLjkyIDQ0My44NSBDIDc2MC4yOCA0NDQuMDAgNzU2LjY1IDQ0NC4zMSA3NTMuMDEgNDQ0LjM0IEMgNzMwLjAyIDQ0NC4zNCA3MDcuMDIgNDQ0LjMxIDY4NC4wNCA0NDQuMzUgQyA2NzcuNDkgNDQ0LjI5IDY3Mi4zMiA0NTAuNjYgNjcyLjY1IDQ1Ni45OCBDIDY3Mi42NyA0NzIuOTkgNjcyLjY3IDQ4OS4wMSA2NzIuNjUgNTA1LjAyIEMgNjcyLjQ4IDUwOS4yMiA2NzQuNTggNTEzLjY0IDY3OC40NSA1MTUuNTUgQyA2ODEuMDQgNTE3LjAzIDY4NC4xMiA1MTYuNjQgNjg2Ljk4IDUxNi42OSBDIDcxMS4zNCA1MTYuNjIgNzM1LjcwIDUxNi43MiA3NjAuMDUgNTE2LjY0IEMgNzYxLjIyIDUxNi44MSA3NjMuNzQgNTE2LjA5IDc2My42MSA1MTguMDggQyA3NjQuNjggNTI3LjQ1IDc2My44NyA1MzYuODggNzYzLjk0IDU0Ni4yOCBDIDc1Ni4zMCA1NDYuODYgNzQ4LjY0IDU0Ni42MiA3NDEuMDAgNTQ2LjY3IEMgNzIxLjMzIDU0Ni42OCA3MDEuNjcgNTQ2LjY0IDY4Mi4wMCA1NDYuNjkgQyA2NjYuNTMgNTQ3LjQ1IDY1Mi4yMCA1MzYuODMgNjQ1LjgwIDUyMy4xNyBDIDY0Mi44OCA1MTYuODkgNjQyLjIyIDUwOS44NCA2NDIuMDAgNTAzLjAwIEMgNjQxLjk5IDQ5MC42NyA2NDIuMDEgNDc4LjMzIDY0Mi4wMCA0NjYuMDAgQyA2NDEuOTcgNDU5LjY2IDY0MS45MiA0NTMuMjcgNjQzLjA3IDQ0Ny4wMiBDIDY0NS4zOSA0MzQuODkgNjUzLjg3IDQyNC4yNSA2NjQuOTkgNDE4Ljk3IFoiIC8+DQo8cGF0aCBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIxLjAwIiBkPSIgTSA4OTcuOTMgNDIyLjkzIEMgOTA1LjgyIDQxNS43NCA5MTcuNTYgNDEyLjc2IDkyNy44MCA0MTYuMTQgQyA5NDAuNjYgNDE5LjY5IDk1MC4wMCA0MzIuNzAgOTQ5LjM2IDQ0Ni4wMSBDIDk0OS4zMSA0NzkuNDAgOTQ5LjMzIDUxMi43OSA5NDkuMzUgNTQ2LjE4IEMgOTM5LjQyIDU0Ny4yOSA5MjkuNDEgNTQ3LjAyIDkxOS40NyA1NDYuMzMgQyA5MTguNDYgNTI5LjU4IDkxOS4yNiA1MTIuNzggOTE4Ljk5IDQ5Ni4wMSBDIDkwMi45NyA0OTYuMTUgODg2Ljk0IDQ5NS42NSA4NzAuOTQgNDk2LjMzIEMgODY3LjcyIDQ5NS45MSA4NjYuMDMgNDk5LjA2IDg2My44NCA1MDAuODAgQyA4NDkuNjYgNTE0LjYzIDgzNS44MiA1MjguODIgODIxLjczIDU0Mi43NCBDIDgyMC4zNyA1NDMuOTQgODE5LjEyIDU0NS4zNSA4MTcuNDkgNTQ2LjIwIEMgODAzLjU4IDU0Ny43MiA3ODkuNTggNTQ2LjUxIDc3NS42MyA1NDYuNjAgQyA3NzcuMDggNTQ0LjQzIDc3OC43MCA1NDIuMzYgNzgwLjU2IDU0MC41MiBDIDgxOS45OCA1MDEuNjIgODU4LjU3IDQ2MS44OSA4OTcuOTMgNDIyLjkzIE0gOTAwLjMxIDQ2NS4yNyBDIDkwNi41MSA0NjUuMzYgOTEyLjcxIDQ2NS4zOSA5MTguOTEgNDY1LjI1IEMgOTE5LjMxIDQ1OC42MSA5MTkuNTIgNDUxLjk1IDkxOC44NSA0NDUuMzEgQyA5MTIuMDYgNDUxLjM0IDkwNC43MSA0NTcuMTUgOTAwLjMxIDQ2NS4yNyBaIiAvPg0KPHBhdGggZmlsbD0iI2ZmZmZmZiIgb3BhY2l0eT0iMS4wMCIgZD0iIE0gOTU5Ljc1IDQxNS4wMSBDIDk5Mi44MiA0MTQuNDMgMTAyNS45MSA0MTQuNzUgMTA1OC45OSA0MTQuNjUgQyAxMDY3LjU2IDQxNC42NCAxMDc2LjE3IDQxNi45MSAxMDgzLjQyIDQyMS41MyBDIDEwOTIuNjcgNDI3LjMzIDEwOTkuMTkgNDM3LjI1IDExMDAuOTEgNDQ4LjAzIEMgMTEwMi41MSA0NTcuOTQgMTEwMi4wMiA0NjguMDIgMTEwMS42NCA0NzguMDAgQyAxMTAyLjEyIDQ4OS40MyAxMTAyLjMzIDUwMC45MSAxMTAxLjE3IDUxMi4zMSBDIDEwOTguOTQgNTMxLjI0IDEwODEuMTcgNTQ3LjE4IDEwNjIuMDEgNTQ2LjY5IEMgMTAzMC45OSA1NDYuNjQgOTk5Ljk3IDU0Ni42OCA5NjguOTUgNTQ2LjY2IEMgOTY1LjkxIDU0Ni42MiA5NjIuODggNTQ2LjM0IDk1OS44NSA1NDYuMjkgQyA5NTkuMDQgNTQxLjkwIDk1OS4zNyA1MzcuNDMgOTU5LjM0IDUzMy4wMCBDIDk1OS4zMiA0OTcuMzIgOTU5LjM1IDQ2MS42NSA5NTkuMzIgNDI1Ljk3IEMgOTU5LjMxIDQyMi4zMSA5NTkuNjUgNDE4LjY3IDk1OS43NSA0MTUuMDEgTSA5OTAuMTAgNDQ0LjcyIEMgOTg5LjIxIDQ1OC40NiA5ODkuODcgNDcyLjI0IDk4OS42NyA0ODYuMDAgQyA5ODkuODUgNDk2LjIxIDk4OS4yMSA1MDYuNDYgOTkwLjE2IDUxNi42NiBDIDEwMTMuNDcgNTE2LjY5IDEwMzYuNzcgNTE2LjY0IDEwNjAuMDcgNTE2LjY4IEMgMTA2NS41MCA1MTcuMDQgMTA3MS4wMCA1MTIuNjkgMTA3MS4wMCA1MDcuMDYgQyAxMDcxLjcxIDQ5NS4zOSAxMDcxLjE2IDQ4My42OSAxMDcxLjMzIDQ3Mi4wMCBDIDEwNzEuMTIgNDY1LjIyIDEwNzIuMDEgNDU4LjI4IDEwNzAuMjYgNDUxLjY0IEMgMTA2OC4zNyA0NDYuMzcgMTA2Mi4yNyA0NDQuMDkgMTA1Ny4wNiA0NDQuMzEgQyAxMDM0Ljc0IDQ0NC41NCAxMDEyLjQwIDQ0My45MCA5OTAuMTAgNDQ0LjcyIFoiIC8+DQo8cGF0aCBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIxLjAwIiBkPSIgTSAxMTE0LjUxIDQzOS41NiBDIDExMjAuNTIgNDI0LjcwIDExMzYuMTUgNDE0LjgzIDExNTIuMDMgNDE0LjcwIEMgMTE3OC42NiA0MTQuNjYgMTIwNS4zMCA0MTQuNTEgMTIzMS45MiA0MTQuOTkgQyAxMjMyLjUxIDQyNC43MSAxMjMyLjUxIDQzNC40NSAxMjMxLjc5IDQ0NC4xNiBDIDEyMDYuMjIgNDQ0LjU5IDExODAuNjMgNDQ0LjE3IDExNTUuMDUgNDQ0LjM2IEMgMTE1MS4wMiA0NDQuNTAgMTE0Ni4zMCA0NDUuMjUgMTE0NC4wMiA0NDkuMDEgQyAxMTQwLjg2IDQ1My44MyAxMTQxLjkzIDQ1OS44NCAxMTQyLjA5IDQ2NS4yNSBDIDExNzAuNzUgNDY1LjY3IDExOTkuNDQgNDY0LjgxIDEyMjguMDkgNDY1LjcwIEMgMTIyOS4wOCA0NzUuNjMgMTIyOC44MCA0ODUuNjcgMTIyOC4xNCA0OTUuNjIgQyAxMTk5LjUxIDQ5Ni41NCAxMTcwLjg0IDQ5NS42MiAxMTQyLjIwIDQ5Ni4xMSBDIDExNDEuOTEgNTAwLjk4IDExNDEuMDEgNTA2LjE5IDExNDMuMTkgNTEwLjc4IEMgMTE0NC45NSA1MTQuNDkgMTE0OC45NyA1MTYuNzIgMTE1My4wNCA1MTYuNjQgQyAxMTc2LjY5IDUxNi43MCAxMjAwLjM1IDUxNi42NiAxMjI0LjAwIDUxNi42NiBDIDEyMjcuMDAgNTE2LjY2IDEyMzAuMDAgNTE2LjkyIDEyMzMuMDEgNTE3LjA5IEMgMTIzMi45NyA1MjYuOTUgMTIzMy4wNiA1MzYuODIgMTIzMi45NiA1NDYuNjggQyAxMjA2LjY2IDU0Ni43NiAxMTgwLjM1IDU0Ni40NCAxMTU0LjA2IDU0Ni44NCBDIDExMzIuMzcgNTQ4Ljg5IDExMTEuNTAgNTI5Ljc3IDExMTEuNjYgNTA3Ljk4IEMgMTExMS42NiA0OTEuNjUgMTExMS42OCA0NzUuMzMgMTExMS42NSA0NTkuMDAgQyAxMTExLjU5IDQ1Mi40NCAxMTExLjg4IDQ0NS42NyAxMTE0LjUxIDQzOS41NiBaIiAvPg0KPHBhdGggZmlsbD0iI2ZmZmZmZiIgb3BhY2l0eT0iMS4wMCIgZD0iIE0gMTI3My4yMSA0MTYuMjMgQyAxMjgxLjMxIDQxNC4yMCAxMjg5LjczIDQxNC43MyAxMjk4LjAwIDQxNC42NyBDIDEzMTguMzYgNDE0LjgzIDEzMzguNzQgNDE0LjI4IDEzNTkuMTAgNDE1LjA4IEMgMTM3Ni4yMyA0MTYuNDQgMTM5MS41MiA0MzAuMjYgMTM5NC42NyA0NDcuMTYgQyAxMzk1LjYyIDQ1Mi4wNSAxMzk1LjI5IDQ1Ny4wNSAxMzk1LjMzIDQ2Mi4wMCBDIDEzOTUuMzQgNDg4LjM0IDEzOTUuMzEgNTE0LjY3IDEzOTUuMzUgNTQxLjAxIEMgMTM5NS4zMiA1NDIuODAgMTM5NS4xMiA1NDQuNjAgMTM5NC45MCA1NDYuMzggQyAxMzg1LjA1IDU0Ni45MCAxMzc1LjExIDU0Ny40NSAxMzY1LjMxIDU0Ni4xMSBDIDEzNjQuNjEgNTE1LjczIDEzNjUuMjMgNDg1LjMxIDEzNjQuOTUgNDU0LjkyIEMgMTM2NC43MyA0NDkuOTYgMTM2MC45MiA0NDUuMDUgMTM1NS43OSA0NDQuNjQgQyAxMzQ4LjkxIDQ0My45NyAxMzQxLjk5IDQ0NC41MSAxMzM1LjEwIDQ0NC4zMSBDIDEzMzQuNDYgNDUzLjE3IDEzMzQuNzcgNDYyLjA2IDEzMzQuNjEgNDcwLjk0IEMgMTMzMy43NyA0ODEuOTYgMTMzNC45NSA0OTIuOTggMTMzNC42NyA1MDQuMDAgQyAxMzM0LjQ3IDUxOC4wOSAxMzM1LjExIDUzMi4yMCAxMzM0LjIzIDU0Ni4yOCBDIDEzMjQuMzkgNTQ3LjE4IDEzMTQuNDkgNTQ3LjA5IDEzMDQuNjUgNTQ2LjMxIEMgMTMwNC4xMSA1NDEuODkgMTMwNC4zNiA1MzcuNDQgMTMwNC4zNCA1MzMuMDAgQyAxMzA0LjMzIDUwNy4wMCAxMzA0LjMzIDQ4MS4wMCAxMzA0LjM0IDQ1NC45OSBDIDEzMDQuMzAgNDUxLjQyIDEzMDMuOTkgNDQ3Ljg3IDEzMDMuODkgNDQ0LjMxIEMgMTI5Ny42NSA0NDQuNDEgMTI5MS40MSA0NDQuMjIgMTI4NS4xOCA0NDQuMzggQyAxMjgxLjE1IDQ0NC40NiAxMjc3LjA5IDQ0Ni42MCAxMjc1LjE5IDQ1MC4yMyBDIDEyNzMuNDMgNDUzLjE5IDEyNzQuMTQgNDU2Ljc1IDEyNzMuOTggNDYwLjAyIEMgMTI3Mi45NiA0ODMuMzYgMTI3NC41MiA1MDYuNzEgMTI3My44OSA1MzAuMDUgQyAxMjczLjUyIDUzNS4zOSAxMjczLjY1IDU0MC43NSAxMjczLjczIDU0Ni4xMCBDIDEyNjMuNzggNTQ3LjM4IDEyNTMuNjMgNTQ3LjA1IDEyNDMuNjUgNTQ2LjE4IEMgMTI0My42OCA1MTcuNDUgMTI0My42NiA0ODguNzMgMTI0My42NiA0NjAuMDAgQyAxMjQzLjYxIDQ1NC4xMSAxMjQzLjQ0IDQ0OC4wNiAxMjQ1LjM1IDQ0Mi40MCBDIDEyNDkuMzggNDI5LjY4IDEyNjAuNDAgNDE5LjY4IDEyNzMuMjEgNDE2LjIzIFoiIC8+DQo8cGF0aCBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIxLjAwIiBkPSIgTSAxNDA1Ljg5IDQxNC43MCBDIDE0MTUuOTIgNDE0LjYzIDE0MjUuOTUgNDE0LjY2IDE0MzUuOTggNDE0LjY5IEMgMTQzNi4xOCA0MjguMTUgMTQzNS42NiA0NDEuNjMgMTQzNi4yNiA0NTUuMDggQyAxNDM2LjE5IDQ2MC4zMiAxNDQwLjU3IDQ2NS40MiAxNDQ1Ljk2IDQ2NS4zMyBDIDE0NjkuNjUgNDY1LjM0IDE0OTMuMzQgNDY1LjMyIDE1MTcuMDMgNDY1LjM1IEMgMTUyMi4yNyA0NjUuODkgMTUyNi42OCA0NjEuMDIgMTUyNi45MCA0NTYuMDMgQyAxNTI3LjQwIDQ0Mi4yNSAxNTI2LjM3IDQyOC40MSAxNTI3LjQ2IDQxNC42NiBDIDE1MzcuMzcgNDE0LjY1IDE1NDcuMjcgNDE0LjcwIDE1NTcuMTkgNDE0LjY0IEMgMTU1OC40MyA0MjQuMDMgMTU1Ny4xMCA0MzMuNTUgMTU1Ny42MyA0NDIuOTggQyAxNTU3LjY3IDQ1Mi45NiAxNTU4LjM4IDQ2My41MyAxNTUzLjgwIDQ3Mi43NCBDIDE1NDguMTMgNDg0LjM3IDE1MzYuOTkgNDkzLjgwIDE1MjMuOTkgNDk1Ljc0IEMgMTUxNS4wMyA0OTYuNDggMTUwNi4wMSA0OTUuNDkgMTQ5Ny4wNiA0OTYuMzggQyAxNDk1LjkwIDUxMy4xMyAxNDk3LjYzIDUyOS45MSAxNDk2LjU4IDU0Ni42NiBDIDE0ODYuNTYgNTQ3LjAxIDE0NzYuNTcgNTQ2LjgxIDE0NjYuNTUgNTQ2LjYwIEMgMTQ2NS45MSA1MjkuODYgMTQ2Ni43NSA1MTMuMDkgMTQ2Ni4xMyA0OTYuMzYgQyAxNDU3Ljc0IDQ5NS42NCAxNDQ5LjMyIDQ5Ni4yNCAxNDQwLjkyIDQ5NS45MiBDIDE0MjguNjcgNDk0Ljg0IDE0MTcuNjUgNDg2LjkyIDE0MTEuNTQgNDc2LjQyIEMgMTQwNi41OCA0NjguNTggMTQwNS40OSA0NTkuMDkgMTQwNS4zMiA0NTAuMDEgQyAxNDA2LjA2IDQzOC4yNSAxNDA0LjY5IDQyNi40NiAxNDA1Ljg5IDQxNC43MCBaIiAvPg0KPC9nPg0KPC9zdmc+DQo=" style="height:32px;filter:brightness(1)" alt="ROMO DJ Academy"><span class="app-subtitle">CONTENT TEAM</span></div>
+    <div class="header-actions">
+      
+      <span class="page-label" id="header-count">464 videos</span>
+      <div id="sync-status" style="display:flex;align-items:center;gap:6px;font-size:11px;font-family:var(--mono);color:var(--text2)">
+        <span id="sync-dot" style="width: 7px; height: 7px; border-radius: 50%; background: rgb(0, 230, 118); display: inline-block; animation: 2s ease 0s infinite normal none running pulseGreen;"></span>
+        <span id="sync-label">● En vivo</span>
+      </div>
+      <button class="action-btn" onclick="exportCSV()" style="font-size:12px;padding:6px 12px;border-color:rgba(200,255,0,0.3);color:var(--accent)" title="Exportar CSV">⬇ CSV</button>
+      <button class="btn-primary" style="padding:8px 18px;font-size:13px;width:auto;margin:0" onclick="openAddModal()">+ Agregar video</button>
+    </div>
+  </header>
+  <main>
+    <div class="tabs">
+      <button class="tab" onclick="switchTab(&#39;dashboard&#39;)">Dashboard</button>
+      <button class="tab" onclick="switchTab(&#39;pendientes&#39;)">Pendientes</button>
+      <button class="tab active" onclick="switchTab(&#39;videos&#39;)">Todos los videos</button>
+      <button class="tab" onclick="switchTab(&#39;tanda&#39;)">+ Tanda masiva</button>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="tab-dashboard" style="display: none;">
+      <div class="summary-grid" id="summary-grid"></div>
+      <div style="display:grid;grid-template-columns:1fr 340px;gap:24px;align-items:start">
+        <div>
+          <div class="section-title">por categoría</div>
+          <div class="cat-grid" id="cat-grid" style="grid-template-columns:repeat(auto-fill,minmax(240px,1fr))"></div>
+        </div>
+        <div>
+          <div class="section-title">top creadores</div>
+          <div id="top-creators"></div>
+          <div class="section-title" style="margin-top:1.5rem">por mes</div>
+          <div id="month-panel"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PENDIENTES -->
+    <div id="tab-pendientes" style="display:none">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.25rem;flex-wrap:wrap">
+        <div class="section-title" style="margin:0">Videos pendientes <span id="pend-count" class="badge badge-red">176</span></div>
+        <input class="search-input" type="text" id="pend-search" placeholder="Buscar pendiente..." oninput="renderPending()" style="max-width:240px;margin:0">
+      </div>
+      <div class="pending-list" id="pending-list"></div>
+    </div>
+
+    <!-- TODOS LOS VIDEOS -->
+    <div id="tab-videos" style="">
+      <div class="table-controls">
+        <input class="search-input" type="text" placeholder="Buscar por nombre, código, creador..." id="search-input" oninput="renderTable()">
+        <select class="filter-select" id="filter-cat" onchange="renderTable()"><option value="">Todas las categorías</option></select>
+        <select class="filter-select" id="filter-status" onchange="renderTable()">
+          <option value="">Todos los estados</option>
+          <option value="PUBLICADO">Publicado</option>
+          <option value="PENDIENTE">Pendiente</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table id="video-table">
+          <thead>
+            <tr>
+              <th onclick="sortBy(&#39;nombre&#39;)">Código / Nombre ↕</th>
+              <th onclick="sortBy(&#39;categoria&#39;)">Categoría ↕</th>
+              <th onclick="sortBy(&#39;fecha&#39;)">Fecha ↕</th>
+              <th onclick="sortBy(&#39;estado&#39;)">Estado ↕</th>
+              <th onclick="sortBy(&#39;creador&#39;)">Creador ↕</th>
+              <th>Link</th>
+              <th onclick="sortBy(&#39;vistas&#39;)">Vistas ↕</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+      <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center">
+        <span class="page-label" id="table-info">464 videos</span>
+      </div>
+    </div>
+    <!-- TANDA MASIVA -->
+    <div id="tab-tanda" style="display:none">
+      <div style="max-width:680px;margin:0 auto">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.75rem;margin-bottom:1.5rem">
+          <div style="font-size:15px;font-weight:800;margin-bottom:4px">Carga masiva de tanda</div>
+          <div style="font-size:12px;color:var(--text2);margin-bottom:1.5rem">Registra múltiples videos de un solo golpe. Pon un código por línea.</div>
+
+          <div class="form-row" style="margin-bottom:1rem">
+            <div class="form-group" style="margin:0">
+              <label class="form-label">Categoría *</label>
+              <select class="form-input" id="bulk-cat" onchange="updateBulkHint()"><option value="ESTUDIANTES">ESTUDIANTES</option><option value="DEMOSTRATIVAS">DEMOSTRATIVAS</option><option value="ROMO ROOM">ROMO ROOM</option><option value="RELLENO">RELLENO</option><option value="ROMO DJS">ROMO DJS</option><option value="VIDEOS 360">VIDEOS 360</option><option value="PEDRO ROMO">PEDRO ROMO</option><option value="MINISTERIO DE TRABAJO">MINISTERIO DE TRABAJO</option><option value="VIDEOS IA">VIDEOS IA</option></select>
+            </div>
+            <div class="form-group" style="margin:0">
+              <label class="form-label">Estado</label>
+              <select class="form-input" id="bulk-status">
+                <option value="PUBLICADO">Publicado</option>
+                <option value="PENDIENTE">Pendiente</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row" style="margin-bottom:1rem">
+            <div class="form-group" style="margin:0">
+              <label class="form-label">Creador del video</label>
+              <input class="form-input" type="text" id="bulk-creator" placeholder="MARLONT, KIKE...">
+            </div>
+            <div class="form-group" style="margin:0">
+              <label class="form-label">Fecha de envío</label>
+              <input class="form-input" type="date" id="bulk-fecha">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tanda #</label>
+            <input class="form-input" type="text" id="bulk-tanda" placeholder="Número de tanda">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Códigos / nombres — uno por línea *</label>
+            <textarea class="form-input" id="bulk-codes" rows="8" placeholder="ES 133
+ES 134
+ES 135
+ES 136
+..."></textarea>
+            <div id="bulk-hint" style="font-size:11px;color:var(--text3);margin-top:6px;font-family:var(--mono);display:flex;justify-content:space-between">
+              <span id="bulk-count">0 videos listos para registrar</span>
+              <span id="bulk-next-hint"></span>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:4px">
+            <button class="btn-secondary" style="flex:1;padding:12px" onclick="previewBulk()">Vista previa</button>
+            <button class="btn-primary" style="flex:2;margin:0" onclick="saveBulk()">Registrar tanda ↗</button>
+          </div>
+        </div>
+
+        <!-- Preview area -->
+        <div id="bulk-preview" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.5rem">
+          <div style="font-size:13px;font-weight:700;margin-bottom:12px;color:var(--text2)">Vista previa</div>
+          <div id="bulk-preview-list"></div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ADD MODAL -->
+<div class="modal-overlay" id="add-modal">
+  <div class="modal">
+    <div class="modal-title">Agregar video <button class="modal-close" onclick="closeModal(&#39;add-modal&#39;)">×</button></div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Categoría *</label>
+        <select class="form-input" id="new-cat" onchange="updateCodeHint()">
+          <option value="">Seleccionar...</option>
+        <option value="ESTUDIANTES">ESTUDIANTES</option><option value="DEMOSTRATIVAS">DEMOSTRATIVAS</option><option value="ROMO ROOM">ROMO ROOM</option><option value="RELLENO">RELLENO</option><option value="ROMO DJS">ROMO DJS</option><option value="VIDEOS 360">VIDEOS 360</option><option value="PEDRO ROMO">PEDRO ROMO</option><option value="MINISTERIO DE TRABAJO">MINISTERIO DE TRABAJO</option><option value="VIDEOS IA">VIDEOS IA</option></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Estado *</label>
+        <select class="form-input" id="new-status">
+          <option value="PENDIENTE">Pendiente</option>
+          <option value="PUBLICADO">Publicado</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Nombre / Código *</label>
+      <input class="form-input" type="text" id="new-nombre" placeholder="Ej: ES 133, RLL0083..." oninput="updateCodeHint()">
+      <div id="code-hint" style="font-size:11px;color:var(--text3);margin-top:4px;font-family:var(--mono)"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Creador del video</label>
+        <input class="form-input" type="text" id="new-creator" placeholder="MARLONT, KIKE...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Fecha envío</label>
+        <input class="form-input" type="date" id="new-fecha">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Link del video publicado</label>
+      <input class="form-input" type="text" id="new-link" placeholder="https://...">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Vistas alcanzadas 👁</label>
+        <input class="form-input" type="number" id="new-vistas" placeholder="0" min="0">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tanda</label>
+        <input class="form-input" type="text" id="new-tanda" placeholder="Número de tanda">
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="closeModal(&#39;add-modal&#39;)">Cancelar</button>
+      <button class="btn-primary" style="margin:0" onclick="addVideo()">Guardar video</button>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL / EDIT MODAL -->
+<div class="modal-overlay" id="detail-modal">
+  <div class="modal">
+    <div class="modal-title" id="detail-title">Detalle <button class="modal-close" onclick="closeModal(&#39;detail-modal&#39;)">×</button></div>
+    <div id="detail-body"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast">CSV exportado ✓ — 464 videos</div>
+
+<script>
+const CATEGORIES = {
+  'ESTUDIANTES':        { color: '#448aff', prefix: 'ES' },
+  'DEMOSTRATIVAS':      { color: '#c8ff00', prefix: 'DM' },
+  'ROMO ROOM':          { color: '#e040fb', prefix: 'RR' },
+  'RELLENO':            { color: '#888', prefix: 'RLL' },
+  'ROMO DJS':           { color: '#ff6d00', prefix: 'RDJ' },
+  'VIDEOS 360':         { color: '#1de9b6', prefix: '360' },
+  'PEDRO ROMO':         { color: '#ff4081', prefix: 'PDR' },
+  'MINISTERIO DE TRABAJO': { color: '#ffab00', prefix: 'MDT' },
+  'VIDEOS IA':          { color: '#a78bfa', prefix: 'IA' },
+};
+
+
+// ===== GOOGLE SHEETS CONFIG =====
+// Pega aqui la URL de tu Apps Script desplegado como Web App:
+const SCRIPT_URL = 'PEGA_AQUI_LA_URL_DEL_APPS_SCRIPT';
+// ================================
+
+let videos = [];
+let sortKey = 'fecha';
+let sortDir = -1;
+let editingId = null;
+
+// ---- GOOGLE SHEETS API (Apps Script) ----
+async function apiGet() {
+  const res = await fetch(SCRIPT_URL);
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
+  return data;
+}
+
+async function apiPost(action, payload) {
+  // text/plain evita el preflight CORS que Apps Script no soporta
+  const res = await fetch(SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action, ...payload })
+  });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
+  return data;
+}
+
+async function initData() {
+  setSyncStatus('syncing');
+  try {
+    videos = await apiGet();
+    setSyncStatus('ok');
+  } catch(e) {
+    console.error('Sheets error:', e);
+    setSyncStatus('error');
+    showToast('⚠ Error de conexión: ' + e.message);
+    videos = [];
+  }
+  renderDashboard();
+  renderPending();
+  populateFilterCat();
+  startRealtime();
+}
+
+async function saveVideo(vid) {
+  try {
+    await apiPost('update', { video: vid });
+  } catch(e) {
+    console.error('saveVideo error:', e);
+    showToast('⚠ Error guardando: ' + e.message);
+  }
+}
+
+async function insertVideo(vid) {
+  try {
+    await apiPost('insert', { video: vid });
+  } catch(e) {
+    console.error('insertVideo error:', e);
+    showToast('⚠ Error guardando: ' + e.message);
+  }
+}
+
+async function deleteVideoFromDB(id) {
+  try {
+    await apiPost('delete', { id });
+  } catch(e) {
+    console.error('deleteVideo error:', e);
+  }
+}
+
+function setSyncStatus(state) {
+  const dot = document.getElementById('sync-dot');
+  const label = document.getElementById('sync-label');
+  const wrap = document.getElementById('sync-status');
+  if (!dot) return;
+  wrap.style.display = 'flex';
+  const map = {
+    idle: ['#444','● En vivo'],
+    syncing: ['#ffab00','Sincronizando...'],
+    ok: ['#00e676','● En vivo'],
+    error: ['#ff4d4d','Sin conexión']
+  };
+  const [color, text] = map[state] || map.idle;
+  dot.style.background = color;
+  if (state === 'ok') dot.style.animation = 'pulseGreen 2s infinite';
+  else dot.style.animation = '';
+  label.textContent = text;
+}
+
+let _lastHash = '';
+function hashVideos(arr) {
+  return arr.map(v => v.id + v.estado + (v.creador||'') + (v.link||'') + (v.vistas||'')).join('|');
+}
+
+function startRealtime() {
+  _lastHash = hashVideos(videos);
+  setInterval(async () => {
+    try {
+      const data = await apiGet();
+      const newHash = hashVideos(data);
+      if (newHash === _lastHash) { setSyncStatus('ok'); return; }
+      _lastHash = newHash;
+      videos = data;
+      const activeTabEl = document.querySelector('.tab.active');
+      const activeTab = activeTabEl ? activeTabEl.textContent.trim() : '';
+      renderDashboard();
+      if (activeTab.includes('Pendientes')) renderPending();
+      if (activeTab.includes('videos') || activeTab.includes('Videos')) renderTable();
+      setSyncStatus('ok');
+    } catch(e) {
+      setSyncStatus('error');
+    }
+  }, 60000);
+}
+
+
+function getCatColor(cat) {
+  return (CATEGORIES[cat] || {color:'#888'}).color;
+}
+
+function catPill(cat) {
+  const c = getCatColor(cat);
+  return `<span class="cat-pill" style="background:${c}22;color:${c}">${cat}</span>`;
+}
+
+function statusBadge(estado) {
+  if (estado === 'PUBLICADO') return `<span class="status-pub"><span class="status-dot"></span>Publicado</span>`;
+  return `<span class="status-pend"><span class="status-dot"></span>Pendiente</span>`;
+}
+
+// ---- TABS ----
+function switchTab(tab) {
+  ['dashboard','pendientes','videos','tanda'].forEach(t => {
+    document.getElementById('tab-'+t).style.display = t===tab?'':'none';
+  });
+  document.querySelectorAll('.tab').forEach((el,i) => {
+    const tabs = ['dashboard','pendientes','videos','tanda'];
+    el.classList.toggle('active', tabs[i]===tab);
+  });
+  if (tab==='dashboard') renderDashboard();
+  if (tab==='pendientes') renderPending();
+  if (tab==='videos') renderTable();
+}
+
+// ---- DASHBOARD ----
+const CREATOR_COLORS = ['#c8ff00','#448aff','#e040fb','#ff6d00','#1de9b6','#ff4081','#ffab00','#ff4d4d','#a78bfa'];
+
+function getMonthName(offset=0) {
+  const d = new Date();
+  d.setMonth(d.getMonth() + offset);
+  return d.toLocaleString('es-ES', {month:'long', year:'numeric'});
+}
+
+function getMonthKey(dateStr, offset=0) {
+  // offset: 0 = current month, -1 = previous, etc.
+  const now = new Date();
+  const target = new Date(now.getFullYear(), now.getMonth() + offset, 1);
+  return `${target.getFullYear()}-${String(target.getMonth()+1).padStart(2,'0')}`;
+}
+
+function parseFecha(fechaStr) {
+  if (!fechaStr) return null;
+  // Handle ISO format YYYY-MM-DD directly
+  if (/^\d{4}-\d{2}-\d{2}$/.test(fechaStr.trim())) {
+    const [y,m,d] = fechaStr.split('-').map(Number);
+    return new Date(y, m-1, d);
+  }
+  const meses = {enero:0,febrero:1,marzo:2,abril:3,mayo:4,junio:5,julio:6,agosto:7,septiembre:8,octubre:9,noviembre:10,diciembre:11};
+  const parts = fechaStr.toLowerCase().replace(/de\s+/g,' ').replace(/[^a-z0-9\s]/g,'').trim().split(/\s+/);
+  let day = 1, month = -1, year = -1;
+  parts.forEach(p => {
+    if (meses[p] !== undefined) month = meses[p];
+    else if (/^20\d\d$/.test(p)) year = parseInt(p);
+    else if (/^\d{1,2}$/.test(p)) day = parseInt(p);
+  });
+  if (month === -1 || year === -1) return null;
+  return new Date(year, month, day);
+}
+
+function formatFechaDisplay(fechaStr) {
+  if (!fechaStr) return '—';
+  const d = parseFecha(fechaStr);
+  if (!d) return fechaStr;
+  return d.toLocaleDateString('es-ES', {day:'numeric', month:'short', year:'numeric'});
+}
+
+function getFechaIso(fechaStr) {
+  if (!fechaStr) return '';
+  const d = parseFecha(fechaStr);
+  if (!d) return '';
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function getVideoMonthKey(v) {
+  const d = parseFecha(v.fecha);
+  if (!d) return null;
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+}
+
+let selectedMonthOffset = 0;
+
+function renderTopCreators() {
+  // Only count videos WITH assigned creator
+  const creatorMap = {};
+  videos.forEach(v => {
+    const raw = (v.creador || '').trim();
+    if (!raw) return; // skip unassigned
+    const c = raw.toUpperCase();
+    if (!creatorMap[c]) creatorMap[c] = { total: 0, pub: 0, pend: 0, vistas: 0 };
+    creatorMap[c].total++;
+    if (v.estado === 'PUBLICADO') creatorMap[c].pub++;
+    else creatorMap[c].pend++;
+    creatorMap[c].vistas += parseInt(v.vistas || 0);
+  });
+
+  const sorted = Object.entries(creatorMap).sort((a,b) => b[1].pub - a[1].pub);
+  const maxPub = sorted[0]?.[1]?.pub || 1;
+  const META = 20;
+  const rankLabels = ['#1','#2','#3'];
+  const rankClass = ['gold','silver','bronze'];
+  const container = document.getElementById('top-creators');
+
+  container.innerHTML = sorted.map(([name, s], i) => {
+    const color = CREATOR_COLORS[i % CREATOR_COLORS.length];
+    const initials = name.slice(0,2);
+    const rLabel = i < 3 ? rankLabels[i] : `#${i+1}`;
+    const rClass = i < 3 ? rankClass[i] : '';
+    const pct = Math.round(s.total / (sorted[0][1].total || 1) * 100);
+    return `<div class="creator-card" style="animation-delay:${i*0.05}s">
+      <span class="creator-rank ${rClass}">${rLabel}</span>
+      <div class="creator-avatar" style="background:${color}22;color:${color}">${initials}</div>
+      <div class="creator-bar-wrap">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+          <span class="creator-name">${name}</span>
+        </div>
+        <div class="creator-bar">
+          <div class="creator-bar-fill" style="width:${pct}%;background:${color}"></div>
+        </div>
+        <div style="font-size:10px;color:var(--text3);margin-top:3px;font-family:var(--mono)">
+          <span style="color:var(--green)">✓ ${s.pub} pub</span>
+          ${s.pend > 0 ? `<span style="color:var(--red);margin-left:6px">⧖ ${s.pend} pend</span>` : ''}
+          ${s.vistas > 0 ? `<span style="color:var(--amber);margin-left:6px">👁 ${s.vistas.toLocaleString()}</span>` : ''}
+        </div>
+      </div>
+      <div class="creator-stats">
+        <div class="creator-total">${s.total}</div>
+        <div style="font-size:9px;color:var(--text3);font-family:var(--mono)">videos</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Render monthly panel
+  renderMonthPanel();
+}
+
+function renderMonthPanel() {
+  const META = 20;
+  const monthKey = getMonthKey(0, selectedMonthOffset);
+  const prevKey = getMonthKey(0, selectedMonthOffset - 1);
+  const monthLabel = getMonthName(selectedMonthOffset);
+  const prevLabel = getMonthName(selectedMonthOffset - 1);
+
+  const thisMonthVids = videos.filter(v => (v.creador||'').trim() && getVideoMonthKey(v) === monthKey && v.estado === 'PUBLICADO');
+  const prevMonthVids = videos.filter(v => (v.creador||'').trim() && getVideoMonthKey(v) === prevKey && v.estado === 'PUBLICADO');
+
+  // group by creator
+  const thisMap = {};
+  thisMonthVids.forEach(v => {
+    const c = v.creador.trim().toUpperCase();
+    if (!thisMap[c]) thisMap[c] = [];
+    thisMap[c].push(v);
+  });
+
+  const prevMap = {};
+  prevMonthVids.forEach(v => {
+    const c = v.creador.trim().toUpperCase();
+    if (!prevMap[c]) prevMap[c] = [];
+    prevMap[c].push(v);
+  });
+
+  const container = document.getElementById('month-panel');
+  if (!container) return;
+
+  container.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <button onclick="selectedMonthOffset--;renderTopCreators()" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:4px 10px;color:var(--text2);cursor:pointer;font-size:13px">‹</button>
+      <span style="font-size:12px;font-weight:700;color:var(--text);text-transform:capitalize">${monthLabel}</span>
+      <button onclick="selectedMonthOffset++;renderTopCreators()" ${selectedMonthOffset >= 0 ? 'disabled style="opacity:0.3;cursor:default"' : ''} style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:4px 10px;color:var(--text2);cursor:pointer;font-size:13px">›</button>
+    </div>
+
+    ${Object.keys(thisMap).length === 0 ? `<div style="text-align:center;color:var(--text3);font-size:13px;padding:1.5rem">Sin videos registrados este mes</div>` :
+      Object.entries(thisMap).sort((a,b)=>b[1].length-a[1].length).map(([name, vids]) => {
+        const prev = (prevMap[name]||[]).length;
+        const curr = vids.length;
+        const diff = curr - prev;
+        const metaPct = Math.min(100, Math.round(curr/META*100));
+        const comisiona = curr >= META;
+        const color = comisiona ? 'var(--accent)' : 'var(--blue)';
+        return `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:8px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <span style="font-size:13px;font-weight:700">${name}</span>
+            <div style="text-align:right">
+              <span style="font-size:20px;font-weight:800;font-family:var(--mono);color:${color}">${curr}</span>
+              <span style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-left:4px">/${META}</span>
+              ${diff !== 0 ? `<span style="font-size:10px;margin-left:6px;color:${diff>0?'var(--green)':'var(--red)'}">vs anterior ${diff>0?'+':''}${diff}</span>` : `<span style="font-size:10px;margin-left:6px;color:var(--text3)">vs ant: ${prev}</span>`}
+            </div>
+          </div>
+          <div style="height:4px;background:var(--surface3);border-radius:2px;overflow:hidden">
+            <div style="height:100%;width:${metaPct}%;background:${color};border-radius:2px;transition:width 0.3s"></div>
+          </div>
+          ${comisiona ? '<div style="font-size:10px;color:var(--accent);margin-top:4px;font-weight:700;font-family:var(--mono)">✓ META ALCANZADA — COMISIONA</div>' : `<div style="font-size:10px;color:var(--text3);margin-top:4px;font-family:var(--mono)">Faltan ${META-curr} para comisionar</div>`}
+        </div>`;
+      }).join('')
+    }
+
+    ${Object.keys(prevMap).length > 0 ? `
+    <div style="margin-top:16px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:8px">${prevLabel} (anterior)</div>
+      ${Object.entries(prevMap).sort((a,b)=>b[1].length-a[1].length).map(([name, vids]) => {
+        const comisiona = vids.length >= META;
+        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;margin-bottom:6px">
+          <span style="font-size:12px;color:var(--text2)">${name}</span>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:14px;font-weight:700;font-family:var(--mono)">${vids.length}</span>
+            ${comisiona ? '<span style="font-size:9px;background:rgba(200,255,0,0.15);color:var(--accent);padding:1px 5px;border-radius:3px;font-weight:700">COMISIONÓ</span>' : `<span style="font-size:10px;color:var(--text3)">de ${META}</span>`}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>` : ''}
+  `;
+}
+
+
+function renderDashboard() {
+  const total = videos.length;
+  const pub = videos.filter(v=>v.estado==='PUBLICADO').length;
+  const pend = videos.filter(v=>v.estado==='PENDIENTE').length;
+  const cats = Object.keys(CATEGORIES);
+
+  document.getElementById('header-count').textContent = total + ' videos';
+
+  document.getElementById('summary-grid').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-label">Total</div>
+      <div class="stat-value">${total}</div>
+      <div class="stat-sub">videos registrados</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Publicados</div>
+      <div class="stat-value" style="color:var(--green)">${pub}</div>
+      <div class="stat-sub">${Math.round(pub/total*100)}% del total</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Pendientes</div>
+      <div class="stat-value" style="color:var(--red)">${pend}</div>
+      <div class="stat-sub">por publicar / editar</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Categorías</div>
+      <div class="stat-value">${Object.keys(CATEGORIES).filter(c=>videos.some(v=>v.categoria===c)).length}</div>
+      <div class="stat-sub">activas</div>
+    </div>
+  `;
+
+  renderTopCreators();
+  const allCats = [...new Set(videos.map(v=>v.categoria))].sort();
+  const catGrid = document.getElementById('cat-grid');
+  catGrid.innerHTML = allCats.map(cat => {
+    const catVids = videos.filter(v=>v.categoria===cat);
+    const catPub = catVids.filter(v=>v.estado==='PUBLICADO').length;
+    const catPend = catVids.length - catPub;
+    const pct = catVids.length ? Math.round(catPub/catVids.length*100) : 0;
+    const color = getCatColor(cat);
+    return `<div class="cat-card ${catPend>0?'has-pending':''}" onclick="filterByCat('${cat}')">
+      <div class="cat-header">
+        <span class="cat-name" style="color:${color}">${cat}</span>
+        <span class="cat-dot" style="background:${catPend>0?'var(--red)':'var(--green)'}"></span>
+      </div>
+      <div class="cat-stats">
+        <div class="cat-stat"><strong>${catVids.length}</strong>total</div>
+        <div class="cat-stat"><strong style="color:var(--green)">${catPub}</strong>publicados</div>
+        <div class="cat-stat"><strong style="color:${catPend>0?'var(--red)':'var(--text3)'}">${catPend}</strong>pendientes</div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${color}"></div></div>
+      <div style="font-size:11px;color:var(--text3);margin-top:6px;font-family:var(--mono)">${pct}% publicado</div>
+    </div>`;
+  }).join('');
+}
+
+function filterByCat(cat) {
+  switchTab('videos');
+  document.getElementById('filter-cat').value = cat;
+  renderTable();
+}
+
+// ---- PENDING ----
+function renderPending() {
+  const searchEl = document.getElementById('pend-search');
+  const q = searchEl ? searchEl.value.toLowerCase() : '';
+  const allPend = videos.filter(v => v.estado === 'PENDIENTE');
+  const pend = q
+    ? allPend.filter(v => `${v.nombre} ${v.categoria} ${v.creador}`.toLowerCase().includes(q))
+    : allPend;
+  document.getElementById('pend-count').textContent = allPend.length;
+  const list = document.getElementById('pending-list');
+  if (!allPend.length) { list.innerHTML = '<div class="empty">🎉 No hay videos pendientes</div>'; return; }
+  if (!pend.length) { list.innerHTML = '<div class="empty" style="padding:2rem">Sin resultados para "' + q + '"</div>'; return; }
+  list.innerHTML = pend.map(v => `
+    <div class="pending-item">
+      <div>
+        <div class="pi-name">${v.nombre}</div>
+        <div class="pi-cat">${v.categoria} · ${formatFechaDisplay(v.fecha)}</div>
+      </div>
+      <span class="pi-creator">${v.creador||'—'}</span>
+      <div style="display:flex;gap:6px">
+        <button class="toggle-pub-btn" onclick="toggleStatus('${v.id}')">Pendiente</button>
+        <button class="action-btn" onclick="openDetailModal('${v.id}')">✎</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ---- TABLE ----
+function renderTable() {
+  const search = (document.getElementById('search-input').value||'').toLowerCase();
+  const catF = document.getElementById('filter-cat').value;
+  const statusF = document.getElementById('filter-status').value;
+
+  let filtered = videos.filter(v => {
+    if (catF && v.categoria !== catF) return false;
+    if (statusF && v.estado !== statusF) return false;
+    if (search && !`${v.nombre} ${v.creador} ${v.categoria}`.toLowerCase().includes(search)) return false;
+    return true;
+  });
+
+  filtered.sort((a,b) => {
+    let va = sortVal(a, sortKey), vb = sortVal(b, sortKey);
+    return va < vb ? -sortDir : va > vb ? sortDir : 0;
+  });
+
+  document.getElementById('table-info').textContent = `${filtered.length} videos`;
+  document.getElementById('header-count').textContent = videos.length + ' videos';
+
+  const tbody = document.getElementById('table-body');
+  if (!filtered.length) { tbody.innerHTML = '<tr><td colspan="8" class="empty">Sin resultados</td></tr>'; return; }
+
+  tbody.innerHTML = filtered.map(v => `
+    <tr>
+      <td><span class="code">${v.nombre}</span></td>
+      <td>${catPill(v.categoria)}</td>
+      <td style="color:var(--text2);font-size:12px;font-family:var(--mono)">${formatFechaDisplay(v.fecha)}</td>
+      <td>${v.estado==='PENDIENTE'
+        ? `<span class="status-pend" onclick="toggleStatus('${v.id}')" title="Click para marcar como publicado"><span class="status-dot"></span>Pendiente</span>`
+        : `<span class="status-pub" onclick="toggleStatus('${v.id}')" title="Click para marcar como pendiente" style="cursor:pointer"><span class="status-dot"></span>Publicado</span>`
+      }</td>
+      <td style="color:var(--text2);font-size:12px">${v.creador||'—'}</td>
+      <td>${v.link ? `<a class="has-link" href="${v.link}" target="_blank">🔗 ver video</a>` : `<button class="link-btn" onclick="openLinkModal('${v.id}')">+ link</button>`}</td>
+      <td>${v.vistas ? `<span style="font-family:var(--mono);font-size:12px;color:var(--amber)">👁 ${parseInt(v.vistas).toLocaleString()}</span>` : '<span style="color:var(--text3);font-size:11px">—</span>'}</td>
+      <td><button class="action-btn" onclick="openDetailModal('${v.id}')">✎ editar</button></td>
+    </tr>
+  `).join('');
+}
+
+function sortBy(key) {
+  if (sortKey === key) sortDir *= -1;
+  else { sortKey = key; sortDir = 1; }
+  renderTable();
+}
+
+function sortVal(v, key) {
+  if (key === 'fecha') {
+    const d = parseFecha(v.fecha);
+    return d ? d.getTime() : 0;
+  }
+  if (key === 'vistas') return parseInt(v.vistas||0);
+  return (v[key]||'').toLowerCase();
+}
+
+// ---- MODALS ----
+function openAddModal() {
+  editingId = null;
+  document.getElementById('new-nombre').value = '';
+  document.getElementById('new-creator').value = '';
+  document.getElementById('new-fecha').value = new Date().toISOString().split('T')[0];
+  document.getElementById('new-link').value = '';
+  document.getElementById('new-tanda').value = '';
+  document.getElementById('new-status').value = 'PENDIENTE';
+  document.getElementById('new-cat').value = '';
+  document.getElementById('code-hint').textContent = '';
+  document.getElementById('add-modal').classList.add('open');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+function updateCodeHint() {
+  const cat = document.getElementById('new-cat').value;
+  const info = CATEGORIES[cat];
+  if (!info) { document.getElementById('code-hint').textContent = ''; return; }
+  const existing = videos.filter(v=>v.categoria===cat).length + 1;
+  const num = String(existing).padStart(3,'0');
+  document.getElementById('code-hint').textContent = `Siguiente sugerido: ${info.prefix} ${num}`;
+}
+
+async function addVideo() {
+  const cat = document.getElementById('new-cat').value;
+  const nombre = document.getElementById('new-nombre').value.trim();
+  const estado = document.getElementById('new-status').value;
+  const creator = document.getElementById('new-creator').value.trim();
+  const fecha = document.getElementById('new-fecha').value;
+  const link = document.getElementById('new-link').value.trim();
+  const tanda = document.getElementById('new-tanda').value.trim();
+
+  if (!cat || !nombre) { showToast('Completa categoría y nombre'); return; }
+
+  const vid = { id: 'v'+Date.now(), tanda, fecha, categoria: cat, nombre, estado, creador: creator, link, notas: '', vistas: document.getElementById('new-vistas').value.trim() };
+  videos.push(vid);
+  await insertVideo(vid);
+  closeModal('add-modal');
+  showToast('Video agregado ✓', true);
+  renderDashboard();
+}
+
+function openDetailModal(id) {
+  const v = videos.find(x=>x.id===id);
+  if (!v) return;
+  const color = getCatColor(v.categoria);
+  document.getElementById('detail-title').innerHTML = `<span style="color:${color};font-family:var(--mono)">${v.nombre}</span> <button class="modal-close" onclick="closeModal('detail-modal')">×</button>`;
+  document.getElementById('detail-body').innerHTML = `
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Categoría</label>
+        <select class="form-input" id="ed-cat">
+          ${Object.keys(CATEGORIES).map(c=>`<option value="${c}" ${v.categoria===c?'selected':''}>${c}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Estado</label>
+        <select class="form-input" id="ed-status">
+          <option value="PUBLICADO" ${v.estado==='PUBLICADO'?'selected':''}>Publicado</option>
+          <option value="PENDIENTE" ${v.estado==='PENDIENTE'?'selected':''}>Pendiente</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Nombre / Código</label>
+      <input class="form-input" type="text" id="ed-nombre" value="${v.nombre}">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Creador</label>
+        <input class="form-input" type="text" id="ed-creator" value="${v.creador}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Fecha</label>
+        <input class="form-input" type="text" id="ed-fecha" value="${v.fecha}">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Link del video publicado</label>
+      <input class="form-input" type="text" id="ed-link" value="${v.link}" placeholder="https://...">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Vistas alcanzadas 👁</label>
+        <input class="form-input" type="number" id="ed-vistas" value="${v.vistas||''}" placeholder="0" min="0">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notas</label>
+        <textarea class="form-input" id="ed-notas" rows="2" placeholder="Notas opcionales...">${v.notas||''}</textarea>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="deleteVideo('${v.id}')" style="border-color:rgba(255,77,77,0.3);color:var(--red)">Eliminar</button>
+      <button class="btn-primary" style="margin:0" onclick="saveEdit('${v.id}')">Guardar cambios</button>
+    </div>
+  `;
+  document.getElementById('detail-modal').classList.add('open');
+}
+
+async function saveEdit(id) {
+  const v = videos.find(x=>x.id===id);
+  if (!v) return;
+  v.categoria = document.getElementById('ed-cat').value;
+  v.estado = document.getElementById('ed-status').value;
+  v.nombre = document.getElementById('ed-nombre').value.trim();
+  v.creador = document.getElementById('ed-creator').value.trim();
+  v.fecha = document.getElementById('ed-fecha').value;
+  v.link = document.getElementById('ed-link').value.trim();
+  v.notas = document.getElementById('ed-notas').value.trim();
+  v.vistas = document.getElementById('ed-vistas').value.trim();
+    closeModal('detail-modal');
+  showToast('Guardado ✓', true);
+  renderDashboard();
+  renderTable();
+}
+
+async function deleteVideo(id) {
+  if (!confirm('¿Eliminar este video?')) return;
+  videos = videos.filter(v=>v.id!==id);
+    closeModal('detail-modal');
+  showToast('Eliminado');
+  renderDashboard();
+  renderTable();
+}
+
+async function toggleStatus(id) {
+  const v = videos.find(x=>x.id===id);
+  if (!v) return;
+  const wasPublicado = v.estado === 'PUBLICADO';
+  v.estado = wasPublicado ? 'PENDIENTE' : 'PUBLICADO';
+  await saveVideo(v);
+  showToast(wasPublicado ? '↩ Marcado como pendiente' : '✓ Marcado como publicado', !wasPublicado);
+  renderDashboard();
+  renderTable();
+  renderPending();
+}
+
+function openLinkModal(id) { openDetailModal(id); }
+
+// ---- TOAST ----
+function showToast(msg, success=false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (success?' success':'');
+  setTimeout(()=>t.className='toast', 2500);
+}
+
+
+// ---- EXPORT CSV ----
+function exportCSV() {
+  const headers = ['TANDA','FECHA ENVIO','CATEGORIA','NOMBRE','ESTADO','CREADOR DEL VIDEO'];
+  const rows = [headers];
+  videos.forEach(v => {
+    rows.push([
+      v.tanda || '',
+      v.fecha || '',
+      v.categoria || '',
+      v.nombre || '',
+      v.estado || '',
+      v.creador || ''
+    ]);
+  });
+  const csv = rows.map(r => r.map(cell => {
+    const s = String(cell);
+    return s.includes(',') || s.includes('"') || s.includes('\n') ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }).join(',')).join('\n');
+  const bom = '\uFEFF'; // UTF-8 BOM for Excel/Sheets
+  const blob = new Blob([bom + csv], {type: 'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'ROMO_Content_' + new Date().toISOString().split('T')[0] + '.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('CSV exportado ✓ — ' + videos.length + ' videos', true);
+}
+
+// INIT
+function populateCatSelect(selId) {
+  const sel = document.getElementById(selId);
+  if (!sel) return;
+  Object.keys(CATEGORIES).forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c; opt.textContent = c;
+    sel.appendChild(opt);
+  });
+}
+
+function populateFilterCat() {
+  const sel = document.getElementById('filter-cat');
+  const cats = [...new Set(videos.map(v=>v.categoria))].sort();
+  cats.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c; opt.textContent = c;
+    sel.appendChild(opt);
+  });
+}
+
+// ---- BULK TANDA ----
+function updateBulkHint() {
+  const cat = document.getElementById('bulk-cat').value;
+  const codes = (document.getElementById('bulk-codes').value||'').split('\n').map(l=>l.trim()).filter(Boolean);
+  document.getElementById('bulk-count').textContent = codes.length + ' videos listos para registrar';
+  const info = CATEGORIES[cat];
+  if (info && codes.length === 0) {
+    const next = videos.filter(v=>v.categoria===cat).length + 1;
+    document.getElementById('bulk-next-hint').textContent = 'Siguiente: ' + info.prefix + ' ' + String(next).padStart(3,'0');
+  } else {
+    document.getElementById('bulk-next-hint').textContent = '';
+  }
+}
+
+function previewBulk() {
+  const cat = document.getElementById('bulk-cat').value;
+  const estado = document.getElementById('bulk-status').value;
+  const creator = document.getElementById('bulk-creator').value.trim();
+  const fecha = document.getElementById('bulk-fecha').value;
+  const tanda = document.getElementById('bulk-tanda').value.trim();
+  const codes = (document.getElementById('bulk-codes').value||'').split('\n').map(l=>l.trim()).filter(Boolean);
+
+  if (!cat || codes.length === 0) { showToast('Completa categoría y al menos un código'); return; }
+
+  const color = getCatColor(cat);
+  const preview = document.getElementById('bulk-preview');
+  const list = document.getElementById('bulk-preview-list');
+  preview.style.display = 'block';
+
+  list.innerHTML = codes.map((code, i) => `
+    <div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);animation:fadeSlideIn 0.2s ease ${i*0.03}s both">
+      <span style="font-family:var(--mono);font-size:11px;color:var(--text3);width:24px">${i+1}</span>
+      <span style="font-family:var(--mono);font-size:13px;color:${color};flex:1">${code}</span>
+      <span style="font-size:11px;padding:2px 8px;border-radius:4px;background:${cat?color+'22':'var(--surface3)'};color:${cat?color:'var(--text2)'};">${cat}</span>
+      <span class="${estado==='PUBLICADO'?'status-pub':'status-pend'}" style="cursor:default">${estado==='PUBLICADO'?'Publicado':'Pendiente'}</span>
+      <span style="font-size:11px;color:var(--text2)">${creator||'—'}</span>
+    </div>
+  `).join('');
+  list.innerHTML += `<div style="font-size:12px;color:var(--text2);padding-top:12px;text-align:center">${codes.length} videos · ${fecha||'sin fecha'} · Tanda ${tanda||'—'}</div>`;
+}
+
+async function saveBulk() {
+  const cat = document.getElementById('bulk-cat').value;
+  const estado = document.getElementById('bulk-status').value;
+  const creator = document.getElementById('bulk-creator').value.trim();
+  const fecha = document.getElementById('bulk-fecha').value;
+  const tanda = document.getElementById('bulk-tanda').value.trim();
+  const codes = (document.getElementById('bulk-codes').value||'').split('\n').map(l=>l.trim()).filter(Boolean);
+
+  if (!cat || codes.length === 0) { showToast('Completa categoría y al menos un código'); return; }
+
+  const newVids = codes.map((nombre, i) => ({
+    id: 'v' + (Date.now() + i),
+    tanda, fecha, categoria: cat, nombre,
+    estado, creador: creator, link: '', notas: '', vistas: '',
+  }));
+
+  videos.push(...newVids);
+  for (const nv of newVids) { await insertVideo(nv); }
+
+  // Reset form
+  document.getElementById('bulk-codes').value = '';
+  document.getElementById('bulk-preview').style.display = 'none';
+  document.getElementById('bulk-count').textContent = '0 videos listos para registrar';
+
+  showToast(`✓ ${newVids.length} videos registrados`, true);
+  renderDashboard();
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  populateCatSelect('new-cat');
+  populateCatSelect('bulk-cat');
+  await initData();
+  // Bind bulk textarea live count
+  document.getElementById('bulk-fecha').value = new Date().toISOString().split('T')[0];
+  document.getElementById('bulk-codes').addEventListener('input', updateBulkHint);
+});
+
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target===m) m.classList.remove('open'); });
+});
+</script>
+
+
+</body></html>
