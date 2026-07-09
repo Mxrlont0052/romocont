@@ -368,6 +368,10 @@ ES 136
       <label class="form-label">Link del video publicado</label>
       <input class="form-input" type="text" id="new-link" placeholder="https://...">
     </div>
+    <div class="form-group">
+      <label class="form-label">Descripción TikTok 📝</label>
+      <textarea class="form-input" id="new-descripcion" rows="3" placeholder="Caption para TikTok / IG: texto, hashtags..."></textarea>
+    </div>
     <div class="form-row">
       <div class="form-group">
         <label class="form-label">Vistas alcanzadas 👁</label>
@@ -512,7 +516,7 @@ function setSyncStatus(state) {
 
 let _lastHash = '';
 function hashVideos(arr) {
-  return arr.map(v => v.id + v.estado + (v.creador||'') + (v.link||'') + (v.vistas||'')).join('|');
+  return arr.map(v => v.id + v.estado + (v.creador||'') + (v.link||'') + (v.vistas||'') + (v.descripcion||'')).join('|');
 }
 
 function startRealtime() {
@@ -937,7 +941,7 @@ async function addVideo() {
 
   if (!cat || !nombre) { showToast('Completa categoría y nombre'); return; }
 
-  const vid = { id: 'v'+Date.now(), tanda, fecha, categoria: cat, nombre, estado, creador: creator, link, notas: '', vistas: document.getElementById('new-vistas').value.trim() };
+  const vid = { id: 'v'+Date.now(), tanda, fecha, categoria: cat, nombre, estado, creador: creator, link, notas: '', vistas: document.getElementById('new-vistas').value.trim(), descripcion: document.getElementById('new-descripcion').value.trim() };
   videos.push(vid);
   await insertVideo(vid);
   closeModal('add-modal');
@@ -984,6 +988,12 @@ function openDetailModal(id) {
       <label class="form-label">Link del video publicado</label>
       <input class="form-input" type="text" id="ed-link" value="${v.link}" placeholder="https://...">
     </div>
+    <div class="form-group">
+      <label class="form-label" style="display:flex;justify-content:space-between;align-items:center">Descripción TikTok 📝
+        <button type="button" onclick="copyDescripcion()" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--text2);font-size:10px;font-family:var(--mono);padding:3px 10px;cursor:pointer">⧉ Copiar</button>
+      </label>
+      <textarea class="form-input" id="ed-descripcion" rows="3" placeholder="Caption para TikTok / IG: texto, hashtags...">${v.descripcion||''}</textarea>
+    </div>
     <div class="form-row">
       <div class="form-group">
         <label class="form-label">Vistas alcanzadas 👁</label>
@@ -1013,16 +1023,28 @@ async function saveEdit(id) {
   v.link = document.getElementById('ed-link').value.trim();
   v.notas = document.getElementById('ed-notas').value.trim();
   v.vistas = document.getElementById('ed-vistas').value.trim();
-    closeModal('detail-modal');
+  v.descripcion = document.getElementById('ed-descripcion').value.trim();
+  await saveVideo(v);
+  closeModal('detail-modal');
   showToast('Guardado ✓', true);
   renderDashboard();
   renderTable();
 }
 
+function copyDescripcion() {
+  const txt = document.getElementById('ed-descripcion').value;
+  if (!txt) { showToast('No hay descripción que copiar'); return; }
+  navigator.clipboard.writeText(txt).then(
+    () => showToast('📋 Descripción copiada ✓', true),
+    () => showToast('⚠ No se pudo copiar')
+  );
+}
+
 async function deleteVideo(id) {
   if (!confirm('¿Eliminar este video?')) return;
   videos = videos.filter(v=>v.id!==id);
-    closeModal('detail-modal');
+  await deleteVideoFromDB(id);
+  closeModal('detail-modal');
   showToast('Eliminado');
   renderDashboard();
   renderTable();
@@ -1155,7 +1177,7 @@ async function saveBulk() {
   const newVids = codes.map((nombre, i) => ({
     id: 'v' + (Date.now() + i),
     tanda, fecha, categoria: cat, nombre,
-    estado, creador: creator, link: '', notas: '', vistas: '',
+    estado, creador: creator, link: '', notas: '', vistas: '', descripcion: '',
   }));
 
   videos.push(...newVids);

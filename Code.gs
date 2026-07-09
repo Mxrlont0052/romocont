@@ -17,7 +17,7 @@
 
 const SHEET_NAME = 'VIDEOS';
 // Orden exacto de columnas en el Sheet:
-const FIELDS = ['id','tanda','fecha','categoria','nombre','estado','creador','link','notas','vistas','created_at'];
+const FIELDS = ['id','tanda','fecha','categoria','nombre','estado','creador','link','notas','vistas','created_at','descripcion'];
 
 function getSheet() {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
@@ -37,7 +37,14 @@ function doGet() {
     const data = sheet.getDataRange().getValues();
     const videos = [];
     for (let r = 1; r < data.length; r++) {
-      if (!data[r][0]) continue; // sin ID = fila vacía
+      // Fila totalmente vacía: ignorar
+      if (!data[r][3] && !data[r][4]) continue; // sin categoría ni nombre
+      // Fila agregada a mano en el Sheet sin ID: asignarle uno automáticamente
+      if (!data[r][0]) {
+        const newId = 'v' + Date.now() + '_' + r;
+        sheet.getRange(r + 1, 1).setValue(newId);
+        data[r][0] = newId;
+      }
       const v = {};
       FIELDS.forEach((f, i) => {
         let val = data[r][i];
