@@ -72,6 +72,21 @@
   .progress-bar { height:4px; background:var(--surface3); border-radius:2px; overflow:hidden; }
   .progress-fill { height:100%; border-radius:2px; transition:width 0.6s cubic-bezier(0.34,1.56,0.64,1); }
 
+  /* ALERTA DE BUFFER — contenido que falta */
+  .alert-panel { background:var(--surface); border:1px solid rgba(255,77,77,0.35); border-radius:var(--radius-lg); padding:1.1rem 1.25rem; margin-bottom:2rem; animation:fadeSlideIn 0.3s ease both; }
+  .alert-title { font-size:11px; font-weight:800; letter-spacing:0.12em; text-transform:uppercase; color:var(--red); margin-bottom:12px; display:flex; align-items:center; gap:8px; }
+  .alert-title::after { content:''; flex:1; height:1px; background:rgba(255,77,77,0.2); }
+  .alert-row { display:flex; align-items:center; gap:12px; padding:9px 12px; border-radius:8px; }
+  .alert-row + .alert-row { margin-top:5px; }
+  .alert-row.crit { background:var(--red-dim); border:1px solid rgba(255,77,77,0.25); }
+  .alert-row.low { background:var(--amber-dim); border:1px solid rgba(255,171,0,0.2); }
+  .alert-name { font-weight:700; font-size:13px; flex:1; letter-spacing:0.03em; }
+  .alert-count { font-family:var(--mono); font-size:12px; white-space:nowrap; }
+  .alert-row.crit .alert-count { color:var(--red); font-weight:700; }
+  .alert-row.low .alert-count { color:var(--amber); }
+  .cat-card.buffer-crit { border-left:3px solid var(--red); }
+  .cat-card.buffer-low { border-left:3px solid var(--amber); }
+
   /* PENDING LIST */
   .pending-list { display:flex; flex-direction:column; gap:6px; }
   .pending-item { background:var(--surface); border:1px solid var(--border); border-left:3px solid var(--red); border-radius:var(--radius); padding:10px 14px; display:grid; grid-template-columns:1fr auto auto; gap:12px; align-items:center; transition:all 0.2s; animation:fadeSlideIn 0.25s ease both; }
@@ -234,6 +249,7 @@
     <!-- DASHBOARD -->
     <div id="tab-dashboard" style="display: none;">
       <div class="summary-grid" id="summary-grid"></div>
+      <div id="alert-panel" style="display:none"></div>
       <div style="display:grid;grid-template-columns:1fr 340px;gap:24px;align-items:start">
         <div>
           <div class="section-title">por categoría</div>
@@ -812,6 +828,7 @@ function renderDashboard() {
   `;
 
   renderTopCreators();
+  renderAlertPanel();
   const allCats = [...new Set(videos.map(v=>v.categoria))].sort();
   const catGrid = document.getElementById('cat-grid');
   catGrid.innerHTML = allCats.map(cat => {
@@ -820,20 +837,57 @@ function renderDashboard() {
     const catPend = catVids.length - catPub;
     const pct = catVids.length ? Math.round(catPub/catVids.length*100) : 0;
     const color = getCatColor(cat);
-    return `<div class="cat-card ${catPend>0?'has-pending':''}" onclick="filterByCat('${cat}')">
+    const buf = bufferLevel(catPend); // el buffer manda: quedarse sin pendientes es lo malo
+    const bufColors = { crit:'var(--red)', low:'var(--amber)', ok:'var(--green)' };
+    return `<div class="cat-card ${buf==='ok'?'':'buffer-'+buf}" onclick="filterByCat('${cat}')">
       <div class="cat-header">
         <span class="cat-name" style="color:${color}">${cat}</span>
-        <span class="cat-dot" style="background:${catPend>0?'var(--red)':'var(--green)'}"></span>
+        <span class="cat-dot" style="background:${bufColors[buf]}"></span>
       </div>
       <div class="cat-stats">
         <div class="cat-stat"><strong>${catVids.length}</strong>total</div>
         <div class="cat-stat"><strong style="color:var(--green)">${catPub}</strong>publicados</div>
-        <div class="cat-stat"><strong style="color:${catPend>0?'var(--red)':'var(--text3)'}">${catPend}</strong>pendientes</div>
+        <div class="cat-stat"><strong style="color:${bufColors[buf]}">${catPend}</strong>en buffer</div>
       </div>
       <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${color}"></div></div>
       <div style="font-size:11px;color:var(--text3);margin-top:6px;font-family:var(--mono)">${pct}% publicado</div>
     </div>`;
   }).join('');
+}
+
+// ---- ALERTA DE BUFFER ----
+// Buffer = videos PENDIENTES listos por publicar. Umbral: menos de 5 = alerta.
+const BUFFER_MIN = 5;
+function bufferLevel(pend) {
+  if (pend === 0) return 'crit';   // 🔴 vacío: producir ya
+  if (pend < BUFFER_MIN) return 'low'; // 🟠 buffer flaco
+  return 'ok';                     // 🟢 sano
+}
+
+function renderAlertPanel() {
+  const panel = document.getElementById('alert-panel');
+  if (!panel) return;
+  const allCats = [...new Set(videos.map(v=>v.categoria))];
+  const alerts = allCats.map(cat => {
+    const pend = videos.filter(v=>v.categoria===cat && v.estado==='PENDIENTE').length;
+    return { cat, pend, level: bufferLevel(pend) };
+  }).filter(a => a.level !== 'ok')
+    .sort((a,b) => a.pend - b.pend || a.cat.localeCompare(b.cat));
+
+  if (!alerts.length) { panel.style.display = 'none'; return; }
+
+  panel.style.display = 'block';
+  panel.className = 'alert-panel';
+  panel.innerHTML = `
+    <div class="alert-title">🚨 Emergente — Contenido que falta <span style="text-transform:none;letter-spacing:0;font-weight:500;color:var(--text3)">buffer mínimo: ${BUFFER_MIN}</span></div>
+    ${alerts.map(a => `
+      <div class="alert-row ${a.level}">
+        <span>${a.level==='crit'?'🔴':'🟠'}</span>
+        <span class="alert-name" style="color:${getCatColor(a.cat)}">${a.cat}</span>
+        <span class="alert-count">${a.pend===0 ? 'SIN CONTENIDO — producir ya' : a.pend + ' pendiente' + (a.pend===1?'':'s') + ' (faltan ' + (BUFFER_MIN-a.pend) + ')'}</span>
+        <button class="link-btn" onclick="event.stopPropagation();filterByCat('${a.cat}')">ver →</button>
+      </div>`).join('')}
+  `;
 }
 
 function filterByCat(cat) {
