@@ -37,26 +37,31 @@ while true; do
 "$PY" - "$RAIZ" "$LINK_FILE" "$API_URL" "$CARPETA_BASE" <<'PYEOF'
 # -*- coding: utf-8 -*-
 # Compatible con Python 2.7 (Mojave) y Python 3
-import os, re, json, ssl, sys, time, shutil
+import os, re, json, sys, time, shutil, subprocess
 try:
-    from urllib.request import urlopen, Request
     from urllib.parse import quote
 except ImportError:
-    from urllib2 import urlopen, Request
     from urllib import quote
 
 RAIZ, LINK_FILE, API_URL, CARPETA_BASE = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
 VIDEO_EXT = ('.mp4', '.mov', '.m4v', '.avi', '.mkv', '.webm')
-CTX = ssl.create_default_context()
 
-def abrir(url, data=None, headers=None):
-    # Mojave: certificados/SSL viejos y conexiones que se cuelgan.
-    # 1er intento verificado con timeout; si falla, sin verificar.
-    req = Request(url, data, headers or {})
-    try:
-        return urlopen(req, context=CTX, timeout=120)
-    except Exception:
-        return urlopen(req, context=ssl._create_unverified_context(), timeout=120)
+# HTTP via curl: el Python de Mojave se cuelga con SSL de Google,
+# pero el curl del sistema (con --http1.1) funciona confiable.
+def curl(extra, data=None):
+    cmd = ['curl', '-sL', '--http1.1', '--max-time', '180'] + extra
+    p = subprocess.Popen(cmd, stdin=subprocess.PIPE if data is not None else None,
+                         stdout=subprocess.PIPE)
+    out, _ = p.communicate(data)
+    if p.returncode != 0:
+        raise Exception('curl fallo con codigo %d' % p.returncode)
+    return out
+
+def http_get(url):
+    return curl([url])
+
+def http_post(url, body):
+    return curl(['-H', 'Content-Type: text/plain;charset=utf-8', '--data-binary', '@-', url], body)
 INBOX_NAME = 'SUBIR AQUI'
 CONFIG_ID = 'CONFIG_NUBE'
 
@@ -144,7 +149,7 @@ log('Videos con codigo en la nube: %d' % len(archivos))
 # ---- 3. cruzar con ROMO CONT ----
 log('Descargando la base de ROMO CONT...')
 try:
-    data = json.loads(abrir(API_URL).read().decode('utf-8'))
+    data = json.loads(http_get(API_URL).decode('utf-8'))
 except Exception as e:
     log('ERROR conectando con ROMO CONT: %r — reintento en la proxima pasada' % e)
     sys.exit(0)
@@ -157,9 +162,8 @@ def hacer_link(rel):
 
 def post(action, video):
     try:
-        r = abrir(API_URL, json.dumps({'action':action,'video':video,'id':video.get('id')}).encode('utf-8'),
-                  {'Content-Type':'text/plain;charset=utf-8'})
-        return json.loads(r.read().decode('utf-8'))
+        body = json.dumps({'action':action,'video':video,'id':video.get('id')}).encode('utf-8')
+        return json.loads(http_post(API_URL, body).decode('utf-8'))
     except Exception as e:
         return {'error': repr(e)}
 
