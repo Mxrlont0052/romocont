@@ -1,14 +1,15 @@
 #!/bin/bash
 # ============================================================
-# ROMO NUBE SYNC v2.0 — nube ↔ ROMO CONT
+# ROMO NUBE SYNC v3.0 — nube ↔ ROMO CONT (solo videos nuevos)
 #
 # Qué hace (cada 5 minutos):
 #  1. ORGANIZA: lo que el equipo suba a la carpeta "SUBIR AQUI"
 #     lo mueve solo a su carpeta por categoría según el código:
 #     RLL034 → RELLENO, ES 137 → ESTUDIANTES, DM22 → DEMOSTRATIVAS...
-#  2. VINCULA: escanea toda la nube y le pone el link de descarga
-#     a cada video de ROMO CONT que encuentre por su código
-#  3. Si el link del túnel cambió, re-escribe TODOS los links
+#  2. VINCULA: le pone el link de descarga en ROMO CONT a los
+#     videos organizados (NO escanea los discos completos —
+#     solo la carpeta ROMO CONT que maneja este script)
+#  3. Si el link del túnel cambió, refresca los links existentes
 #  4. Publica la carpeta "SUBIR AQUI" en ROMO CONT para que el
 #     botón "📤 Subir a la nube" siempre apunte al link vigente
 #
@@ -49,7 +50,8 @@ VIDEO_EXT = ('.mp4', '.mov', '.m4v', '.avi', '.mkv', '.webm')
 # HTTP via curl: el Python de Mojave se cuelga con SSL de Google,
 # pero el curl del sistema (con --http1.1) funciona confiable.
 def curl(extra, data=None):
-    cmd = ['curl', '-sL', '--http1.1', '--max-time', '180'] + extra
+    # -4: forzar IPv4 (Mojave pierde ~2 min por request esperando IPv6)
+    cmd = ['curl', '-sL', '-4', '--http1.1', '--max-time', '180'] + extra
     p = subprocess.Popen(cmd, stdin=subprocess.PIPE if data is not None else None,
                          stdout=subprocess.PIPE)
     out, _ = p.communicate(data)
@@ -134,9 +136,9 @@ for fn in sorted(os.listdir(inbox)):
     shutil.move(src, destino)
     log('  📁 %s -> %s/' % (fn, carpeta_de(prefijo, fn)))
 
-# ---- 2. escanear todos los videos de la nube ----
+# ---- 2. escanear SOLO la carpeta ROMO CONT (lo que este script organiza) ----
 archivos = []
-for dirpath, dirs, files in os.walk(RAIZ, followlinks=True):
+for dirpath, dirs, files in os.walk(base_dir, followlinks=True):
     dirs[:] = [d for d in dirs if not d.startswith('.') and d != INBOX_NAME]
     for fn in files:
         if fn.lower().endswith(VIDEO_EXT) and not fn.startswith('.'):
@@ -144,7 +146,7 @@ for dirpath, dirs, files in os.walk(RAIZ, followlinks=True):
             cods = codigos(os.path.splitext(fn)[0])
             if cods:
                 archivos.append((rel, cods))
-log('Videos con codigo en la nube: %d' % len(archivos))
+log('Videos organizados en ROMO CONT: %d' % len(archivos))
 
 # ---- 3. cruzar con ROMO CONT ----
 log('Descargando la base de ROMO CONT...')
@@ -167,7 +169,7 @@ def post(action, video):
     except Exception as e:
         return {'error': repr(e)}
 
-nuevos, refrescados = 0, 0
+cambios, nuevos, refrescados = [], 0, 0
 for v in data:
     if v.get('id') == CONFIG_ID: continue
     vcods = codigos(v.get('nombre',''))
@@ -182,12 +184,44 @@ for v in data:
     if link_viejo == link_nuevo: continue
     if link_viejo and '/files/' not in link_viejo: continue  # no pisar links de TikTok etc.
     v['link'] = link_nuevo
-    r = post('update', v)
-    if r.get('error'): log('  ERROR guardando %s: %s' % (v.get('nombre'), r['error'])); continue
+    cambios.append(v)
     if link_viejo: refrescados += 1
     else:
         nuevos += 1
         log('  🔗 %s -> %s' % (v.get('nombre'), match))
+
+# ---- 3b. refrescar links viejos de la nube si cambio el tunel (sin tocar disco) ----
+ya = set(v['id'] for v in cambios)
+for v in data:
+    if v.get('id') == CONFIG_ID or v['id'] in ya: continue
+    link = v.get('link','')
+    if '/files/' in link and not link.startswith(base + '/'):
+        v['link'] = base + '/files/' + link.split('/files/', 1)[1]
+        cambios.append(v)
+        refrescados += 1
+
+# guardar en lotes de 50 (una sola conexion por lote)
+if cambios:
+    log('Guardando %d links en lotes de 50...' % len(cambios))
+i = 0
+while i < len(cambios):
+    lote = cambios[i:i+50]
+    try:
+        body = json.dumps({'action':'bulk','videos':lote}).encode('utf-8')
+        r = json.loads(http_post(API_URL, body).decode('utf-8'))
+    except Exception as e:
+        r = {'error': repr(e)}
+    if isinstance(r, dict) and r.get('error') and 'desconocida' in r.get('error',''):
+        # Code.gs viejo sin accion bulk: guardar uno por uno
+        log('  (Code.gs sin modo lote: guardando de a uno)')
+        for v in lote:
+            rr = post('update', v)
+            if rr.get('error'): log('  ERROR guardando %s: %s' % (v.get('nombre'), rr['error']))
+    elif isinstance(r, dict) and r.get('error'):
+        log('  ERROR en lote: %s' % r['error'])
+    else:
+        log('  ✓ lote de %d guardado' % len(lote))
+    i += 50
 
 # ---- 4. publicar el link de SUBIR AQUI para el boton de la pagina ----
 inbox_link = base + '/files/' + quote(inbox_rel)

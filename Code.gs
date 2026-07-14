@@ -96,6 +96,25 @@ function doPost(e) {
       return jsonOut({ ok: true, action: 'delete', id: req.id });
     }
 
+    if (req.action === 'bulk') {
+      // Actualización masiva (la usa nube-sync): lista de videos por id
+      const list = req.videos || [];
+      let updated = 0;
+      const data = sheet.getDataRange().getValues();
+      const rowById = {};
+      for (let r = 1; r < data.length; r++) rowById[String(data[r][0])] = r + 1;
+      list.forEach(v => {
+        const row = rowById[String(v.id)];
+        if (!row) return;
+        const current = sheet.getRange(row, 1, 1, FIELDS.length).getValues()[0];
+        const values = FIELDS.map((f, i) =>
+          f === 'created_at' ? current[i] : (v[f] == null ? '' : String(v[f])));
+        sheet.getRange(row, 1, 1, FIELDS.length).setValues([values]);
+        updated++;
+      });
+      return jsonOut({ ok: true, action: 'bulk', updated: updated });
+    }
+
     throw new Error('Acción desconocida: ' + req.action);
   } catch (err) {
     return jsonOut({ error: err.message });
