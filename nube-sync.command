@@ -48,6 +48,15 @@ except ImportError:
 RAIZ, LINK_FILE, API_URL, CARPETA_BASE = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
 VIDEO_EXT = ('.mp4', '.mov', '.m4v', '.avi', '.mkv', '.webm')
 CTX = ssl.create_default_context()
+
+def abrir(url, data=None, headers=None):
+    # Mojave: certificados/SSL viejos y conexiones que se cuelgan.
+    # 1er intento verificado con timeout; si falla, sin verificar.
+    req = Request(url, data, headers or {})
+    try:
+        return urlopen(req, context=CTX, timeout=120)
+    except Exception:
+        return urlopen(req, context=ssl._create_unverified_context(), timeout=120)
 INBOX_NAME = 'SUBIR AQUI'
 CONFIG_ID = 'CONFIG_NUBE'
 
@@ -133,17 +142,26 @@ for dirpath, dirs, files in os.walk(RAIZ, followlinks=True):
 log('Videos con codigo en la nube: %d' % len(archivos))
 
 # ---- 3. cruzar con ROMO CONT ----
-data = json.loads(urlopen(API_URL, context=CTX).read().decode('utf-8'))
+log('Descargando la base de ROMO CONT...')
+try:
+    data = json.loads(abrir(API_URL).read().decode('utf-8'))
+except Exception as e:
+    log('ERROR conectando con ROMO CONT: %r — reintento en la proxima pasada' % e)
+    sys.exit(0)
 if isinstance(data, dict) and data.get('error'):
     log('ERROR de la API: ' + data['error']); sys.exit(1)
+log('Base descargada: %d videos. Cruzando...' % len(data))
 
 def hacer_link(rel):
     return base + '/files/' + quote(rel)
 
 def post(action, video):
-    req = Request(API_URL, json.dumps({'action':action,'video':video,'id':video.get('id')}).encode('utf-8'),
+    try:
+        r = abrir(API_URL, json.dumps({'action':action,'video':video,'id':video.get('id')}).encode('utf-8'),
                   {'Content-Type':'text/plain;charset=utf-8'})
-    return json.loads(urlopen(req, context=CTX).read().decode('utf-8'))
+        return json.loads(r.read().decode('utf-8'))
+    except Exception as e:
+        return {'error': repr(e)}
 
 nuevos, refrescados = 0, 0
 for v in data:
