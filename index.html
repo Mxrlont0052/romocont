@@ -234,6 +234,7 @@
         <span id="sync-dot" style="width: 7px; height: 7px; border-radius: 50%; background: rgb(0, 230, 118); display: inline-block; animation: 2s ease 0s infinite normal none running pulseGreen;"></span>
         <span id="sync-label">● En vivo</span>
       </div>
+      <a id="nube-header-btn" href="#" target="_blank" style="display:none;font-size:12px;padding:6px 12px;border:1px solid rgba(29,233,182,0.4);border-radius:6px;color:var(--teal);font-family:var(--mono);text-decoration:none" title="Subir videos a la nube ROMO">📤 nube</a>
       <button class="action-btn" onclick="exportCSV()" style="font-size:12px;padding:6px 12px;border-color:rgba(200,255,0,0.3);color:var(--accent)" title="Exportar CSV">⬇ CSV</button>
       <button class="btn-primary" style="padding:8px 18px;font-size:13px;width:auto;margin:0" onclick="openAddModal()">+ Agregar video</button>
     </div>
@@ -293,7 +294,7 @@
               <th onclick="sortBy(&#39;estado&#39;)">Estado ↕</th>
               <th onclick="sortBy(&#39;creador&#39;)">Creador ↕</th>
               <th>Descripción</th>
-              <th onclick="sortBy(&#39;vistas&#39;)">Vistas ↕</th>
+              <th>Video</th>
               <th></th>
             </tr>
           </thead>
@@ -485,13 +486,19 @@ async function apiGet() {
 }
 
 function actualizarBotonNube() {
+  const hay = !!window.NUBE_INBOX;
   const btn = document.getElementById('nube-upload-btn');
   const hint = document.getElementById('nube-upload-hint');
-  if (!btn) return;
-  const hay = !!window.NUBE_INBOX;
-  btn.style.display = hay ? 'block' : 'none';
+  const hbtn = document.getElementById('nube-header-btn');
+  if (btn) {
+    btn.style.display = hay ? 'block' : 'none';
+    if (hay) btn.href = window.NUBE_INBOX;
+  }
   if (hint) hint.style.display = hay ? 'block' : 'none';
-  if (hay) btn.href = window.NUBE_INBOX;
+  if (hbtn) {
+    hbtn.style.display = hay ? 'inline-block' : 'none';
+    if (hay) hbtn.href = window.NUBE_INBOX;
+  }
 }
 
 async function apiPost(action, payload) {
@@ -1022,7 +1029,11 @@ function renderTable() {
       }</td>
       <td style="color:var(--text2);font-size:12px">${v.creador||'—'}</td>
       <td>${v.descripcion ? `<button class="link-btn" style="border-color:rgba(0,230,118,.4);color:var(--green)" onclick="copyDescFromTable('${v.id}')" title="${v.descripcion.replace(/"/g,'&quot;').slice(0,120)}">📝 copiar</button>` : `<button class="link-btn" onclick="openDetailModal('${v.id}')">+ descripción</button>`}</td>
-      <td>${v.vistas ? `<span style="font-family:var(--mono);font-size:12px;color:var(--amber)">👁 ${parseInt(v.vistas).toLocaleString()}</span>` : '<span style="color:var(--text3);font-size:11px">—</span>'}</td>
+      <td>${v.link
+        ? (v.link.includes('/files/')
+          ? `<a class="link-btn" style="text-decoration:none;display:inline-flex;align-items:center;border-color:rgba(29,233,182,0.4);color:var(--teal)" href="${v.link}" target="_blank" title="Descargar de la nube ROMO">⬇ descargar</a>`
+          : `<a class="has-link" href="${v.link}" target="_blank">🔗 ver</a>`)
+        : '<span style="color:var(--text3);font-size:11px">—</span>'}</td>
       <td><button class="action-btn" onclick="openDetailModal('${v.id}')">✎ editar</button></td>
     </tr>
   `).join('');
