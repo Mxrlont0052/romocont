@@ -961,6 +961,7 @@ function renderPending() {
       </div>
       <span class="pi-creator">${v.creador||'—'}</span>
       <div style="display:flex;gap:6px">
+        ${v.link ? `<a class="link-btn" style="text-decoration:none;display:inline-flex;align-items:center;border-color:rgba(29,233,182,0.4);color:var(--teal)" href="${v.link}" target="_blank" title="Descargar de la nube ROMO">⬇ descargar</a>` : ''}
         <button class="toggle-pub-btn" onclick="toggleStatus('${v.id}')">Pendiente</button>
         <button class="action-btn" onclick="openDetailModal('${v.id}')">✎</button>
       </div>
