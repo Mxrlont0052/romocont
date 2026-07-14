@@ -354,6 +354,10 @@ ES 136
             <button class="btn-secondary" style="flex:1;padding:12px" onclick="previewBulk()">Vista previa</button>
             <button class="btn-primary" style="flex:2;margin:0" onclick="saveBulk()">Registrar tanda ↗</button>
           </div>
+          <a id="nube-upload-btn" href="#" target="_blank" style="display:none;margin-top:10px;text-align:center;background:rgba(29,233,182,0.1);border:1px solid rgba(29,233,182,0.35);border-radius:var(--radius);color:var(--teal);font-weight:700;font-size:13px;padding:12px;text-decoration:none">📤 Subir los videos a la nube ROMO</a>
+          <div id="nube-upload-hint" style="display:none;font-size:10px;color:var(--text3);margin-top:6px;font-family:var(--mono);text-align:center">Sube los archivos con su código en el nombre (RLL001.mp4, ES 137.mov...) — la nube los organiza y vincula sola</div>
+          <div style="display:none">
+          </div>
         </div>
 
         <!-- Preview area -->
@@ -473,7 +477,21 @@ async function apiGet() {
       if (!isNaN(d)) v.fecha = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
     }
   });
-  return data;
+  // Fila de configuración de la nube (la escribe nube-sync): no es un video
+  const cfg = data.find(v => v.id === 'CONFIG_NUBE');
+  window.NUBE_INBOX = cfg ? cfg.link : '';
+  actualizarBotonNube();
+  return data.filter(v => v.id !== 'CONFIG_NUBE');
+}
+
+function actualizarBotonNube() {
+  const btn = document.getElementById('nube-upload-btn');
+  const hint = document.getElementById('nube-upload-hint');
+  if (!btn) return;
+  const hay = !!window.NUBE_INBOX;
+  btn.style.display = hay ? 'block' : 'none';
+  if (hint) hint.style.display = hay ? 'block' : 'none';
+  if (hay) btn.href = window.NUBE_INBOX;
 }
 
 async function apiPost(action, payload) {
@@ -1323,7 +1341,7 @@ async function saveBulk() {
   document.getElementById('bulk-preview').style.display = 'none';
   document.getElementById('bulk-count').textContent = '0 videos listos para registrar';
 
-  showToast(`✓ ${newVids.length} videos registrados`, true);
+  showToast(`✓ ${newVids.length} videos registrados` + (window.NUBE_INBOX ? ' — ahora súbelos a la nube 📤' : ''), true);
   renderDashboard();
 }
 
