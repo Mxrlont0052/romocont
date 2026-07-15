@@ -234,7 +234,7 @@
         <span id="sync-dot" style="width: 7px; height: 7px; border-radius: 50%; background: rgb(0, 230, 118); display: inline-block; animation: 2s ease 0s infinite normal none running pulseGreen;"></span>
         <span id="sync-label">● En vivo</span>
       </div>
-      <a id="nube-header-btn" href="#" target="_blank" style="display:none;font-size:12px;padding:6px 12px;border:1px solid rgba(29,233,182,0.4);border-radius:6px;color:var(--teal);font-family:var(--mono);text-decoration:none" title="Subir videos a la nube ROMO">📤 nube</a>
+      <button id="nube-header-btn" onclick="openNubeModal()" style="display:none;font-size:12px;padding:6px 12px;border:1px solid rgba(29,233,182,0.4);border-radius:6px;background:transparent;color:var(--teal);font-family:var(--mono);cursor:pointer" title="Subir videos a la nube ROMO">📤 nube</button>
       <button class="action-btn" onclick="exportCSV()" style="font-size:12px;padding:6px 12px;border-color:rgba(200,255,0,0.3);color:var(--accent)" title="Exportar CSV">⬇ CSV</button>
       <button class="btn-primary" style="padding:8px 18px;font-size:13px;width:auto;margin:0" onclick="openAddModal()">+ Agregar video</button>
     </div>
@@ -355,7 +355,7 @@ ES 136
             <button class="btn-secondary" style="flex:1;padding:12px" onclick="previewBulk()">Vista previa</button>
             <button class="btn-primary" style="flex:2;margin:0" onclick="saveBulk()">Registrar tanda ↗</button>
           </div>
-          <a id="nube-upload-btn" href="#" target="_blank" style="display:none;margin-top:10px;text-align:center;background:rgba(29,233,182,0.1);border:1px solid rgba(29,233,182,0.35);border-radius:var(--radius);color:var(--teal);font-weight:700;font-size:13px;padding:12px;text-decoration:none">📤 Subir los videos a la nube ROMO</a>
+          <button id="nube-upload-btn" onclick="openNubeModal()" style="display:none;margin-top:10px;width:100%;background:rgba(29,233,182,0.1);border:1px solid rgba(29,233,182,0.35);border-radius:var(--radius);color:var(--teal);font-weight:700;font-size:13px;padding:12px;cursor:pointer">📤 Subir los videos a la nube ROMO</button>
           <div id="nube-upload-hint" style="display:none;font-size:10px;color:var(--text3);margin-top:6px;font-family:var(--mono);text-align:center">Sube los archivos con su código en el nombre (RLL001.mp4, ES 137.mov...) — la nube los organiza y vincula sola</div>
           <div style="display:none">
           </div>
@@ -424,10 +424,24 @@ ES 136
         <input class="form-input" type="text" id="new-tanda" placeholder="Número de tanda">
       </div>
     </div>
+    <button id="nube-add-btn" onclick="openNubeModal()" style="display:none;width:100%;margin-bottom:10px;background:rgba(29,233,182,0.1);border:1px solid rgba(29,233,182,0.35);border-radius:var(--radius);color:var(--teal);font-weight:700;font-size:13px;padding:11px;cursor:pointer">📤 Subir el video a la nube</button>
     <div class="btn-row">
       <button class="btn-secondary" onclick="closeModal(&#39;add-modal&#39;)">Cancelar</button>
       <button class="btn-primary" style="margin:0" onclick="addVideo()">Guardar video</button>
     </div>
+  </div>
+</div>
+
+<!-- SUBIR A LA NUBE (FileBrowser embebido) -->
+<div class="modal-overlay" id="nube-modal">
+  <div class="modal" style="max-width:900px;width:95%;height:85vh;display:flex;flex-direction:column;padding:1.25rem">
+    <div class="modal-title" style="margin-bottom:0.75rem">
+      📤 Subir videos a la nube
+      <a id="nube-open-tab" href="#" target="_blank" style="font-size:11px;font-family:var(--mono);color:var(--teal);text-decoration:none;border:1px solid rgba(29,233,182,0.4);border-radius:6px;padding:4px 10px;margin-left:auto;margin-right:8px">↗ pantalla completa</a>
+      <button class="modal-close" onclick="closeModal('nube-modal')">×</button>
+    </div>
+    <div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:10px">Arrastra los archivos aquí. Nómbralos igual que en ROMO CONT, pegado y .mp4 (ej: ES133.mp4). Máx ~100 MB por archivo.</div>
+    <iframe id="nube-iframe" src="about:blank" style="flex:1;width:100%;border:1px solid var(--border);border-radius:var(--radius);background:#fff"></iframe>
   </div>
 </div>
 
@@ -496,15 +510,21 @@ function actualizarBotonNube() {
   const btn = document.getElementById('nube-upload-btn');
   const hint = document.getElementById('nube-upload-hint');
   const hbtn = document.getElementById('nube-header-btn');
-  if (btn) {
-    btn.style.display = hay ? 'block' : 'none';
-    if (hay) btn.href = window.NUBE_INBOX;
-  }
+  const abtn = document.getElementById('nube-add-btn');
+  if (btn) btn.style.display = hay ? 'block' : 'none';
   if (hint) hint.style.display = hay ? 'block' : 'none';
-  if (hbtn) {
-    hbtn.style.display = hay ? 'inline-block' : 'none';
-    if (hay) hbtn.href = window.NUBE_INBOX;
-  }
+  if (hbtn) hbtn.style.display = hay ? 'inline-block' : 'none';
+  if (abtn) abtn.style.display = hay ? 'block' : 'none';
+}
+
+// Abre la nube (SUBIR AQUI) embebida para arrastrar archivos dentro de ROMO CONT
+function openNubeModal() {
+  if (!window.NUBE_INBOX) { showToast('La nube no está conectada ahora'); return; }
+  const iframe = document.getElementById('nube-iframe');
+  const tab = document.getElementById('nube-open-tab');
+  if (iframe.src !== window.NUBE_INBOX) iframe.src = window.NUBE_INBOX;
+  tab.href = window.NUBE_INBOX;
+  document.getElementById('nube-modal').classList.add('open');
 }
 
 async function apiPost(action, payload) {
