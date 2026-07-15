@@ -781,18 +781,42 @@ function toggleCreatorDetail(card) {
   }
 }
 
+// Cuota mensual de videos ENVIADOS (40/mes = 10 por semana, 4 semanas)
+const QUOTA_MENSUAL = { 'DANIEL': 40, 'TIPAN': 40 };
+
+function quotaBar(count, meta, color) {
+  const semanas = 4, porSemana = meta / semanas;
+  let segs = '';
+  for (let i = 0; i < semanas; i++) {
+    const lleno = Math.max(0, Math.min(porSemana, count - i * porSemana));
+    const pct = lleno / porSemana * 100;
+    const completo = lleno >= porSemana;
+    segs += `<div style="flex:1;height:7px;background:var(--surface3);border-radius:3px;overflow:hidden">
+      <div style="width:${pct}%;height:100%;background:${completo ? 'var(--green)' : color};transition:width .6s cubic-bezier(0.34,1.56,0.64,1)"></div></div>`;
+  }
+  const listo = count >= meta;
+  return `<div style="margin-top:7px">
+    <div style="display:flex;gap:3px">${segs}</div>
+    <div style="font-size:9px;font-family:var(--mono);margin-top:4px;color:${listo ? 'var(--green)' : 'var(--text3)'}">
+      📅 mes: ${count}/${meta} ${listo ? '✅ completo' : '· faltan ' + (meta - count)}
+    </div>
+  </div>`;
+}
+
 function renderTopCreators() {
+  const mesActual = getMonthKey(null, 0); // "YYYY-MM" del mes en curso
   // Only count videos WITH assigned creator
   const creatorMap = {};
   videos.forEach(v => {
     const raw = (v.creador || '').trim();
     if (!raw) return; // skip unassigned
     const c = raw.toUpperCase();
-    if (!creatorMap[c]) creatorMap[c] = { total: 0, pub: 0, pend: 0, vistas: 0 };
+    if (!creatorMap[c]) creatorMap[c] = { total: 0, pub: 0, pend: 0, vistas: 0, mes: 0 };
     creatorMap[c].total++;
     if (v.estado === 'PUBLICADO') creatorMap[c].pub++;
     else creatorMap[c].pend++;
     creatorMap[c].vistas += parseInt(v.vistas || 0);
+    if (getVideoMonthKey(v) === mesActual) creatorMap[c].mes++;
   });
 
   const sorted = Object.entries(creatorMap).sort((a,b) => b[1].pub - a[1].pub);
@@ -826,6 +850,7 @@ function renderTopCreators() {
           ${s.pend > 0 ? `<span style="color:var(--red);margin-left:6px">⧖ ${s.pend} pend</span>` : ''}
           ${s.vistas > 0 ? `<span style="color:var(--amber);margin-left:6px">👁 ${s.vistas.toLocaleString()}</span>` : ''}
         </div>
+        ${QUOTA_MENSUAL[name] ? quotaBar(s.mes, QUOTA_MENSUAL[name], color) : ''}
       </div>
       <div class="creator-stats">
         <div class="creator-total">${s.total}</div>
