@@ -116,6 +116,41 @@ function doPost(e) {
       return jsonOut({ ok: true, action: 'bulk', updated: updated });
     }
 
+    if (req.action === 'nube') {
+      // La Air manda la lista de archivos que hay en la nube; Google hace el cruce.
+      // items = [{n:'ED001.mp4', u:'https://.../ED001.mp4'}, ...]
+      const items = req.items || [];
+      const data = sheet.getDataRange().getValues();
+      const linkCol = FIELDS.indexOf('link') + 1; // columna LINK
+      // normaliza para cruzar: MAYUS y sin espacios ("RLL 034" == "RLL034")
+      const norm = s => String(s || '').toUpperCase().replace(/\s+/g, '');
+      const map = {};
+      items.forEach(it => {
+        const dot = it.n.lastIndexOf('.');
+        const code = norm(dot >= 0 ? it.n.slice(0, dot) : it.n);
+        if (code) map[code] = it.u;
+      });
+      let linked = 0, configRow = 0;
+      for (let r = 1; r < data.length; r++) {
+        if (String(data[r][0]) === 'CONFIG_NUBE') { configRow = r + 1; continue; }
+        const code = norm(data[r][4]); // NOMBRE
+        if (code && map[code] && data[r][linkCol - 1] !== map[code]) {
+          sheet.getRange(r + 1, linkCol).setValue(map[code]);
+          linked++;
+        }
+      }
+      // Guardar el link de SUBIR AQUI para el botón 📤 de la página
+      if (req.inbox) {
+        if (configRow) {
+          sheet.getRange(configRow, linkCol).setValue(req.inbox);
+        } else {
+          sheet.appendRow(FIELDS.map(f =>
+            f === 'id' ? 'CONFIG_NUBE' : f === 'nombre' ? 'CONFIG NUBE' : f === 'link' ? req.inbox : ''));
+        }
+      }
+      return jsonOut({ ok: true, action: 'nube', linked: linked, archivos: items.length });
+    }
+
     throw new Error('Acción desconocida: ' + req.action);
   } catch (err) {
     return jsonOut({ error: err.message });
