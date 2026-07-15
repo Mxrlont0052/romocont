@@ -476,6 +476,8 @@ const CATEGORIES = {
 // ===== GOOGLE SHEETS CONFIG =====
 // Pega aqui la URL de tu Apps Script desplegado como Web App:
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxXMj7tetNujWtLkvyaFQfRJlJfn_MduZP6uDt24lzjznjlY8w0PQ4St1kOqt5Yx6Tb/exec';
+// Carpeta SUBIR AQUI de la nube. Si el túnel de Cloudflare cambia, actualiza SOLO esta línea.
+const NUBE_INBOX_DEFAULT = 'https://friendship-tampa-tension-frontier.trycloudflare.com/files/ROMODJ%20VAUL/ROMO%20CONT/SUBIR%20AQUI';
 // ================================
 
 let videos = [];
@@ -498,7 +500,8 @@ async function apiGet() {
   });
   // Fila de configuración de la nube (la escribe nube-sync): no es un video
   const cfg = data.find(v => v.id === 'CONFIG_NUBE');
-  window.NUBE_INBOX = cfg ? cfg.link : '';
+  // Usa CONFIG_NUBE si existe; si no, el link fijo (así los botones siempre aparecen)
+  window.NUBE_INBOX = (cfg && cfg.link) ? cfg.link : NUBE_INBOX_DEFAULT;
   actualizarBotonNube();
   return data.filter(v => v.id !== 'CONFIG_NUBE');
 }
