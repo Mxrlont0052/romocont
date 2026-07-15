@@ -407,8 +407,8 @@ ES 136
       </div>
     </div>
     <div class="form-group">
-      <label class="form-label">Link del video publicado</label>
-      <input class="form-input" type="text" id="new-link" placeholder="https://...">
+      <label class="form-label">Link de TikTok publicado 🎵</label>
+      <input class="form-input" type="text" id="new-link" placeholder="https://www.tiktok.com/...">
     </div>
     <div class="form-group">
       <label class="form-label">Descripción TikTok 📝</label>
@@ -578,7 +578,7 @@ function setSyncStatus(state) {
 
 let _lastHash = '';
 function hashVideos(arr) {
-  return arr.map(v => v.id + v.estado + (v.creador||'') + (v.link||'') + (v.vistas||'') + (v.descripcion||'')).join('|');
+  return arr.map(v => v.id + v.estado + (v.creador||'') + (v.link||'') + (v.tiktok||'') + (v.vistas||'') + (v.descripcion||'')).join('|');
 }
 
 function startRealtime() {
@@ -1092,7 +1092,7 @@ async function addVideo() {
 
   if (!cat || !nombre) { showToast('Completa categoría y nombre'); return; }
 
-  const vid = { id: 'v'+Date.now(), tanda, fecha, categoria: cat, nombre, estado, creador: creator, link, notas: '', vistas: document.getElementById('new-vistas').value.trim(), descripcion: document.getElementById('new-descripcion').value.trim() };
+  const vid = { id: 'v'+Date.now(), tanda, fecha, categoria: cat, nombre, estado, creador: creator, link: '', tiktok: link, notas: '', vistas: document.getElementById('new-vistas').value.trim(), descripcion: document.getElementById('new-descripcion').value.trim() };
   videos.push(vid);
   await insertVideo(vid);
   closeModal('add-modal');
@@ -1136,8 +1136,9 @@ function openDetailModal(id) {
       </div>
     </div>
     <div class="form-group">
-      <label class="form-label">Link del video publicado</label>
-      <input class="form-input" type="text" id="ed-link" value="${v.link}" placeholder="https://...">
+      <label class="form-label">Link de TikTok publicado 🎵</label>
+      <input class="form-input" type="text" id="ed-link" value="${v.tiktok||''}" placeholder="https://www.tiktok.com/...">
+      ${v.link && v.link.includes('/files/') ? `<div style="margin-top:6px"><a class="has-link" href="${v.link}" target="_blank">⬇ Archivo en la nube ROMO</a></div>` : ''}
     </div>
     <div class="form-group">
       <label class="form-label" style="display:flex;justify-content:space-between;align-items:center">Descripción TikTok 📝
@@ -1171,7 +1172,7 @@ async function saveEdit(id) {
   v.nombre = document.getElementById('ed-nombre').value.trim();
   v.creador = document.getElementById('ed-creator').value.trim();
   v.fecha = document.getElementById('ed-fecha').value;
-  v.link = document.getElementById('ed-link').value.trim();
+  v.tiktok = document.getElementById('ed-link').value.trim();
   v.notas = document.getElementById('ed-notas').value.trim();
   v.vistas = document.getElementById('ed-vistas').value.trim();
   v.descripcion = document.getElementById('ed-descripcion').value.trim();
@@ -1341,7 +1342,7 @@ async function saveBulk() {
   const newVids = codes.map((nombre, i) => ({
     id: 'v' + (Date.now() + i),
     tanda, fecha, categoria: cat, nombre,
-    estado, creador: creator, link: '', notas: '', vistas: '', descripcion: '',
+    estado, creador: creator, link: '', tiktok: '', notas: '', vistas: '', descripcion: '',
   }));
 
   videos.push(...newVids);

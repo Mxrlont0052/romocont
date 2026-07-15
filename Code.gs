@@ -17,7 +17,8 @@
 
 const SHEET_NAME = 'VIDEOS';
 // Orden exacto de columnas en el Sheet:
-const FIELDS = ['id','tanda','fecha','categoria','nombre','estado','creador','link','notas','vistas','created_at','descripcion'];
+// link = archivo en la nube ROMO (lo maneja nube-sync) · tiktok = link del video publicado (lo maneja el equipo)
+const FIELDS = ['id','tanda','fecha','categoria','nombre','estado','creador','link','notas','vistas','created_at','descripcion','tiktok'];
 
 function getSheet() {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);

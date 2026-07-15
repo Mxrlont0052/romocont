@@ -1,6 +1,8 @@
 #!/bin/bash
 # ============================================================
-# ROMO NUBE SYNC v3.0 — nube ↔ ROMO CONT (solo videos nuevos)
+# ROMO NUBE SYNC v3.1 — nube ↔ ROMO CONT (solo videos nuevos)
+# v3.1: la casilla LINK es 100% de la nube; los links de TikTok
+#       que la ocupaban se mudan solos a la casilla TIKTOK
 #
 # Qué hace (cada 5 minutos):
 #  1. ORGANIZA: lo que el equipo suba a la carpeta "SUBIR AQUI"
@@ -182,7 +184,8 @@ for v in data:
     link_nuevo = hacer_link(match)
     link_viejo = v.get('link','')
     if link_viejo == link_nuevo: continue
-    if link_viejo and '/files/' not in link_viejo: continue  # no pisar links de TikTok etc.
+    if link_viejo and '/files/' not in link_viejo and not v.get('tiktok'):
+        v['tiktok'] = link_viejo  # link externo (TikTok) se muda a su propia casilla
     v['link'] = link_nuevo
     cambios.append(v)
     if link_viejo: refrescados += 1
