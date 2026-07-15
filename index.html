@@ -485,6 +485,12 @@ async function apiGet() {
   return data.filter(v => v.id !== 'CONFIG_NUBE');
 }
 
+// Link predecible de la nube: base + nombre SIN espacios + .mp4 (RLL 004 -> RLL004.mp4)
+function buildNubeLink(nombre) {
+  if (!window.NUBE_INBOX || !nombre) return '';
+  return window.NUBE_INBOX.replace(/\/$/,'') + '/' + nombre.replace(/\s+/g,'') + '.mp4';
+}
+
 function actualizarBotonNube() {
   const hay = !!window.NUBE_INBOX;
   const btn = document.getElementById('nube-upload-btn');
@@ -1092,7 +1098,7 @@ async function addVideo() {
 
   if (!cat || !nombre) { showToast('Completa categoría y nombre'); return; }
 
-  const vid = { id: 'v'+Date.now(), tanda, fecha, categoria: cat, nombre, estado, creador: creator, link: '', tiktok: link, notas: '', vistas: document.getElementById('new-vistas').value.trim(), descripcion: document.getElementById('new-descripcion').value.trim() };
+  const vid = { id: 'v'+Date.now(), tanda, fecha, categoria: cat, nombre, estado, creador: creator, link: buildNubeLink(nombre), tiktok: link, notas: '', vistas: document.getElementById('new-vistas').value.trim(), descripcion: document.getElementById('new-descripcion').value.trim() };
   videos.push(vid);
   await insertVideo(vid);
   closeModal('add-modal');
@@ -1342,7 +1348,7 @@ async function saveBulk() {
   const newVids = codes.map((nombre, i) => ({
     id: 'v' + (Date.now() + i),
     tanda, fecha, categoria: cat, nombre,
-    estado, creador: creator, link: '', tiktok: '', notas: '', vistas: '', descripcion: '',
+    estado, creador: creator, link: buildNubeLink(nombre), tiktok: '', notas: '', vistas: '', descripcion: '',
   }));
 
   videos.push(...newVids);
