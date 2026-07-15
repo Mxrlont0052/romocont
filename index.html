@@ -1029,11 +1029,11 @@ function renderTable() {
       }</td>
       <td style="color:var(--text2);font-size:12px">${v.creador||'—'}</td>
       <td>${v.descripcion ? `<button class="link-btn" style="border-color:rgba(0,230,118,.4);color:var(--green)" onclick="copyDescFromTable('${v.id}')" title="${v.descripcion.replace(/"/g,'&quot;').slice(0,120)}">📝 copiar</button>` : `<button class="link-btn" onclick="openDetailModal('${v.id}')">+ descripción</button>`}</td>
-      <td>${v.link
-        ? (v.link.includes('/files/')
-          ? `<a class="link-btn" style="text-decoration:none;display:inline-flex;align-items:center;border-color:rgba(29,233,182,0.4);color:var(--teal)" href="${v.link}" target="_blank" title="Descargar de la nube ROMO">⬇ descargar</a>`
-          : `<a class="has-link" href="${v.link}" target="_blank">🔗 ver</a>`)
-        : '<span style="color:var(--text3);font-size:11px">—</span>'}</td>
+      <td>${v.link && v.link.includes('/files/')
+        ? `<a class="link-btn" style="text-decoration:none;display:inline-flex;align-items:center;border-color:rgba(29,233,182,0.4);color:var(--teal)" href="${v.link}" target="_blank" title="Descargar de la nube ROMO">⬇ descargar</a>`
+        : (window.NUBE_INBOX
+          ? `<a class="link-btn" style="text-decoration:none;display:inline-flex;align-items:center;border-color:rgba(255,171,0,0.35);color:var(--amber)" href="${window.NUBE_INBOX}" target="_blank" title="El video no está en la nube — súbelo a SUBIR AQUI con el código ${v.nombre}">📤 subir</a>`
+          : '<span style="color:var(--text3);font-size:11px">—</span>')}</td>
       <td><button class="action-btn" onclick="openDetailModal('${v.id}')">✎ editar</button></td>
     </tr>
   `).join('');
