@@ -508,8 +508,9 @@ async function apiGet() {
 
 // Link predecible de la nube: base + nombre SIN espacios + .mp4 (RLL 004 -> RLL004.mp4)
 function buildNubeLink(nombre) {
-  if (!window.NUBE_INBOX || !nombre) return '';
-  return window.NUBE_INBOX.replace(/\/$/,'') + '/' + nombre.replace(/\s+/g,'') + '.mp4';
+  if (!nombre) return '';
+  const base = window.NUBE_INBOX || NUBE_INBOX_DEFAULT; // nunca vacío
+  return base.replace(/\/$/,'') + '/' + nombre.replace(/\s+/g,'') + '.mp4';
 }
 
 function actualizarBotonNube() {
