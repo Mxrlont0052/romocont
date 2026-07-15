@@ -531,9 +531,10 @@ async function initData() {
     showToast('⚠ Error de conexión: ' + e.message);
     videos = [];
   }
+  populateFilterCat();
   renderDashboard();
   renderPending();
-  populateFilterCat();
+  renderTable();   // la pestaña visible al inicio es "Todos los videos": llenarla ya
   startRealtime();
 }
 
