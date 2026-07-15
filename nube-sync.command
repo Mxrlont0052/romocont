@@ -1,19 +1,14 @@
 #!/bin/bash
 # ============================================================
-# ROMO NUBE SYNC v3.1 — nube ↔ ROMO CONT (solo videos nuevos)
-# v3.1: la casilla LINK es 100% de la nube; los links de TikTok
-#       que la ocupaban se mudan solos a la casilla TIKTOK
+# ROMO NUBE SYNC v4.0 — nube ↔ ROMO CONT (simple: cruza por nombre)
 #
 # Qué hace (cada 5 minutos):
-#  1. ORGANIZA: lo que el equipo suba a la carpeta "SUBIR AQUI"
-#     lo mueve solo a su carpeta por categoría según el código:
-#     RLL034 → RELLENO, ES 137 → ESTUDIANTES, DM22 → DEMOSTRATIVAS...
-#  2. VINCULA: le pone el link de descarga en ROMO CONT a los
-#     videos organizados (NO escanea los discos completos —
-#     solo la carpeta ROMO CONT que maneja este script)
-#  3. Si el link del túnel cambió, refresca los links existentes
-#  4. Publica la carpeta "SUBIR AQUI" en ROMO CONT para que el
-#     botón "📤 Subir a la nube" siempre apunte al link vigente
+#  1. Mira los videos de la carpeta ROMO CONT (incluye SUBIR AQUI)
+#  2. Cruza el NOMBRE del archivo con el nombre del video en la hoja
+#     (por su código: ED001, RLL034, ES 137... CUALQUIER código)
+#  3. Le pone el link de descarga al que coincida — NO mueve archivos
+#  4. Si el link del túnel cambió, refresca los links existentes
+#  5. Publica la carpeta "SUBIR AQUI" para el botón "📤 Subir"
 #
 # Instalación en la MacBook Air (la de la nube):
 #  1. Pasa este archivo por AirDrop
@@ -69,21 +64,6 @@ def http_post(url, body):
 INBOX_NAME = 'SUBIR AQUI'
 CONFIG_ID = 'CONFIG_NUBE'
 
-# codigo -> carpeta de categoria
-CATEGORIAS = {
-    'RLL': 'RELLENO', 'RL': 'RELLENO',
-    'ES': 'ESTUDIANTES',
-    'DM': 'DEMOSTRATIVAS',
-    'RDJ': 'ROMO DJS',
-    'PDR': 'PEDRO ROMO',
-    'MDT': 'MINISTERIO DE TRABAJO',
-}
-def carpeta_de(prefijo, nombre_archivo):
-    if prefijo in CATEGORIAS: return CATEGORIAS[prefijo]
-    if prefijo.startswith('RR'): return 'ROMO ROOM'
-    if '360' in nombre_archivo.upper(): return 'VIDEOS 360'
-    return 'OTROS'
-
 def log(msg):
     print(time.strftime('[%H:%M] ') + msg)
     sys.stdout.flush()
@@ -116,39 +96,18 @@ COD = re.compile(r'([A-Z]{2,6})\s*0*(\d{1,4})')
 def codigos(texto):
     return set((p, int(n)) for p, n in COD.findall(texto.upper()))
 
-# ---- 1. ORGANIZAR: mover lo de SUBIR AQUI a su carpeta por categoria ----
-for fn in sorted(os.listdir(inbox)):
-    src = os.path.join(inbox, fn)
-    if fn.startswith('.') or not os.path.isfile(src): continue
-    if not fn.lower().endswith(VIDEO_EXT): continue
-    cods = codigos(os.path.splitext(fn)[0])
-    if not cods:
-        log('  ? %s no tiene codigo — lo dejo en SUBIR AQUI' % fn); continue
-    # esperar a que termine de subirse (tamano estable 5s)
-    try:
-        s1 = os.path.getsize(src); time.sleep(5); s2 = os.path.getsize(src)
-        if s1 != s2: log('  … %s aun subiendo, lo tomo en la proxima' % fn); continue
-    except OSError: continue
-    prefijo = sorted(cods)[0][0]
-    destino_dir = os.path.join(base_dir, carpeta_de(prefijo, fn))
-    if not os.path.isdir(destino_dir): os.makedirs(destino_dir)
-    destino = os.path.join(destino_dir, fn)
-    if os.path.exists(destino):
-        destino = os.path.join(destino_dir, os.path.splitext(fn)[0] + '_2' + os.path.splitext(fn)[1])
-    shutil.move(src, destino)
-    log('  📁 %s -> %s/' % (fn, carpeta_de(prefijo, fn)))
-
-# ---- 2. escanear SOLO la carpeta ROMO CONT (lo que este script organiza) ----
+# ---- escanear la carpeta ROMO CONT (incluye SUBIR AQUI) — sin mover nada ----
+# Simple: cada archivo se queda donde está; se cruza por codigo con la hoja.
 archivos = []
 for dirpath, dirs, files in os.walk(base_dir, followlinks=True):
-    dirs[:] = [d for d in dirs if not d.startswith('.') and d != INBOX_NAME]
+    dirs[:] = [d for d in dirs if not d.startswith('.')]
     for fn in files:
         if fn.lower().endswith(VIDEO_EXT) and not fn.startswith('.'):
             rel = os.path.relpath(os.path.join(dirpath, fn), RAIZ)
             cods = codigos(os.path.splitext(fn)[0])
             if cods:
                 archivos.append((rel, cods))
-log('Videos organizados en ROMO CONT: %d' % len(archivos))
+log('Videos en la carpeta ROMO CONT: %d' % len(archivos))
 
 # ---- 3. cruzar con ROMO CONT ----
 log('Descargando la base de ROMO CONT...')
