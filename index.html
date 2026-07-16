@@ -86,6 +86,27 @@
   .buffer-label.low { background:var(--amber-dim); color:var(--amber); }
   @keyframes pulseRed { 0%,100% { box-shadow:0 0 0 0 rgba(255,77,77,0); } 50% { box-shadow:0 0 0 4px rgba(255,77,77,0.12); } }
 
+  /* GUÍA */
+  .guia-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:1.4rem 1.5rem; animation:fadeSlideIn 0.3s ease both; }
+  .guia-h { font-size:13px; font-weight:800; letter-spacing:0.04em; color:var(--accent); margin-bottom:8px; }
+  .guia-p { font-size:13.5px; color:var(--text2); line-height:1.6; }
+  .guia-ok, .guia-bad { flex:1; min-width:180px; background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); padding:12px 14px; display:flex; flex-direction:column; gap:6px; }
+  .guia-ok { border-color:rgba(0,230,118,0.25); }
+  .guia-bad { border-color:rgba(255,77,77,0.25); }
+  .guia-ok .mono, .guia-bad .mono { font-family:var(--mono); font-size:14px; }
+  .guia-bad .mono { color:var(--text3); text-decoration:line-through; }
+  .guia-tag { font-family:var(--mono); font-size:11px; font-weight:700; letter-spacing:1px; margin-bottom:2px; }
+  .guia-catrow { display:flex; align-items:center; gap:10px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:9px 12px; }
+  .guia-catrow .code { min-width:44px; font-weight:700; }
+  .guia-cfg { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:9px 12px; display:flex; flex-direction:column; gap:2px; }
+  .guia-cfg span { font-size:10px; color:var(--text3); text-transform:uppercase; letter-spacing:0.08em; }
+  .guia-cfg b { font-family:var(--mono); font-size:14px; color:var(--text); }
+  .guia-step { display:flex; gap:12px; align-items:flex-start; margin-top:10px; font-size:13px; color:var(--text2); line-height:1.55; }
+  .guia-num { min-width:26px; height:26px; border-radius:50%; color:#000; font-weight:800; font-family:var(--mono); display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0; }
+  .guia-btn { font-family:var(--mono); font-size:13px; font-weight:700; padding:11px 18px; border-radius:var(--radius); border:1px solid var(--border2); background:var(--surface2); text-decoration:none; display:inline-flex; align-items:center; transition:transform 0.15s; }
+  .guia-btn:hover { transform:translateY(-2px); }
+  .guia-next-box { background:var(--accent-dim); border:1px solid rgba(200,255,0,0.3); border-radius:var(--radius); padding:16px 18px; display:flex; align-items:center; gap:18px; flex-wrap:wrap; }
+
   /* PENDING LIST */
   .pending-list { display:flex; flex-direction:column; gap:6px; }
   .pending-item { background:var(--surface); border:1px solid var(--border); border-left:3px solid var(--red); border-radius:var(--radius); padding:10px 14px; display:grid; grid-template-columns:1fr auto auto; gap:12px; align-items:center; transition:all 0.2s; animation:fadeSlideIn 0.25s ease both; }
@@ -249,6 +270,7 @@
       <button class="tab" onclick="switchTab(&#39;pendientes&#39;)">Pendientes</button>
       <button class="tab active" onclick="switchTab(&#39;videos&#39;)">Todos los videos</button>
       <button class="tab" onclick="switchTab(&#39;tanda&#39;)">+ Tanda masiva</button>
+      <button class="tab" onclick="switchTab(&#39;guia&#39;)">📋 Guía</button>
     </div>
 
     <!-- DASHBOARD -->
@@ -370,6 +392,67 @@ ES 136
           <div style="font-size:13px;font-weight:700;margin-bottom:12px;color:var(--text2)">Vista previa</div>
           <div id="bulk-preview-list"></div>
         </div>
+      </div>
+    </div>
+
+    <!-- GUÍA -->
+    <div id="tab-guia" style="display:none">
+      <div style="max-width:900px;margin:0 auto;display:flex;flex-direction:column;gap:22px">
+
+        <!-- 1. NOMENCLATURA -->
+        <div class="guia-card">
+          <div class="guia-h">1 · Regla de oro del nombre</div>
+          <p class="guia-p">Cada video se llama con el <b style="color:var(--text)">código de su categoría + 3 números, todo pegado</b>. Ese nombre tiene que ser <b style="color:var(--text)">idéntico</b> al registrar en ROMO CONT y al exportar en CapCut — así el link de descarga funciona 100%.</p>
+          <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:12px">
+            <div class="guia-ok"><div class="guia-tag" style="color:var(--green)">✅ ASÍ SÍ</div><span class="mono">RLL085</span><span class="mono">ES140</span><span class="mono">DM037</span></div>
+            <div class="guia-bad"><div class="guia-tag" style="color:var(--red)">❌ ASÍ NO</div><span class="mono">RLL 085</span><span class="mono">RLL0085</span><span class="mono">RLL85</span></div>
+          </div>
+          <div style="font-size:11px;color:var(--text3);margin-top:10px;font-family:var(--mono)">Sin espacios · siempre 3 números (nunca 4) · el mismo nombre en CapCut y en ROMO CONT</div>
+        </div>
+
+        <!-- 2. CATEGORÍAS -->
+        <div class="guia-card">
+          <div class="guia-h">2 · Qué significa cada código</div>
+          <div id="guia-cats" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px;margin-top:10px"></div>
+        </div>
+
+        <!-- 3. SIGUIENTE NÚMERO -->
+        <div class="guia-card">
+          <div class="guia-h">3 · ¿Qué número me toca?</div>
+          <p class="guia-p">Antes de editar, revisa cuál fue el último número de tu categoría. El sistema te dice el siguiente automáticamente:</p>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px">
+            <select id="guia-cat-select" class="form-input" style="max-width:280px" onchange="calcNext()"></select>
+          </div>
+          <div id="guia-next-result" style="margin-top:14px"></div>
+        </div>
+
+        <!-- 4. EXPORTAR CAPCUT -->
+        <div class="guia-card">
+          <div class="guia-h">4 · Cómo exportar en CapCut</div>
+          <p class="guia-p"><b style="color:var(--text)">Siempre</b> con esta configuración exacta:</p>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin:12px 0">
+            <div class="guia-cfg"><span>Resolución</span><b>1080P</b></div>
+            <div class="guia-cfg"><span>Tasa de bits</span><b>Recomendado</b></div>
+            <div class="guia-cfg"><span>Códec</span><b>H.264</b></div>
+            <div class="guia-cfg"><span>Formato</span><b>mp4</b></div>
+            <div class="guia-cfg"><span>FPS</span><b>30fps</b></div>
+          </div>
+          <div class="guia-h" style="font-size:12px;margin-top:16px">📤 Se exporta 2 VECES el mismo video:</div>
+          <div class="guia-step"><span class="guia-num" style="background:var(--teal)">1</span><div><b style="color:var(--text)">Con voz</b> — la versión completa: texto (técnica del cambio), el efecto en el cambio y el off "clase de DJ gratis para Quito". <br><span style="color:var(--teal)">→ Se sube normal a la nube (SUBIR AQUI).</span></div></div>
+          <div class="guia-step"><span class="guia-num" style="background:var(--amber)">2</span><div><b style="color:var(--text)">Sin voz</b> — el MISMO video pero quitando <b>todo lo que diga "Quito"</b> (el off o cualquier texto). Sirve para cuando la academia se expanda a otras ciudades. <br><span style="color:var(--amber)">→ Se sube a la carpeta SIN VOZ.</span></div></div>
+        </div>
+
+        <!-- 5. RECURSOS -->
+        <div class="guia-card">
+          <div class="guia-h">5 · Recursos y carpetas de la nube</div>
+          <p class="guia-p">Descarga los audios y recursos antes de editar. Y ten a mano las carpetas de subida:</p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
+            <a class="guia-btn" href="https://friendship-tampa-tension-frontier.trycloudflare.com/files/ROMODJ%20VAUL/Material%20Romo/" target="_blank" style="border-color:rgba(200,255,0,0.4);color:var(--accent)">🎵 Descargar audios y recursos</a>
+            <a class="guia-btn" href="https://friendship-tampa-tension-frontier.trycloudflare.com/files/ROMODJ%20VAUL/SIN%20VOZ/" target="_blank" style="border-color:rgba(255,171,0,0.4);color:var(--amber)">📁 Carpeta SIN VOZ</a>
+            <button class="guia-btn" onclick="openNubeModal()" style="border-color:rgba(29,233,182,0.4);color:var(--teal);background:transparent;cursor:pointer">📤 Subir videos (con voz)</button>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -654,16 +737,69 @@ function statusBadge(estado) {
 
 // ---- TABS ----
 function switchTab(tab) {
-  ['dashboard','pendientes','videos','tanda'].forEach(t => {
+  const tabs = ['dashboard','pendientes','videos','tanda','guia'];
+  tabs.forEach(t => {
     document.getElementById('tab-'+t).style.display = t===tab?'':'none';
   });
   document.querySelectorAll('.tab').forEach((el,i) => {
-    const tabs = ['dashboard','pendientes','videos','tanda'];
     el.classList.toggle('active', tabs[i]===tab);
   });
   if (tab==='dashboard') renderDashboard();
   if (tab==='pendientes') renderPending();
   if (tab==='videos') renderTable();
+  if (tab==='guia') renderGuia();
+}
+
+// ---- GUÍA ----
+function renderGuia() {
+  // Tabla de categorías
+  const cont = document.getElementById('guia-cats');
+  if (cont) {
+    cont.innerHTML = Object.entries(CATEGORIES).map(([name, c]) =>
+      `<div class="guia-catrow">
+        <span class="cat-dot" style="background:${c.color}"></span>
+        <span class="code" style="color:${c.color}">${c.prefix}</span>
+        <span style="font-size:12.5px">${name}</span>
+      </div>`).join('');
+  }
+  // Selector de categorías para el siguiente número
+  const sel = document.getElementById('guia-cat-select');
+  if (sel && !sel.dataset.filled) {
+    sel.innerHTML = '<option value="">Elige tu categoría...</option>' +
+      Object.keys(CATEGORIES).map(n => `<option value="${n}">${n} (${CATEGORIES[n].prefix})</option>`).join('');
+    sel.dataset.filled = '1';
+  }
+}
+
+// Calcula el siguiente número disponible de una categoría (formato PREFIJO+3 dígitos)
+function nextNumber(catName) {
+  const prefix = CATEGORIES[catName].prefix;
+  const re = new RegExp('^' + prefix.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '(\\d+)$');
+  let max = 0, count = 0;
+  videos.forEach(v => {
+    const n = (v.nombre || '').toUpperCase().replace(/\s+/g,'');
+    const m = n.match(re);
+    if (m) { count++; max = Math.max(max, parseInt(m[1])); }
+  });
+  return { prefix, last: max, count, next: prefix + String(max + 1).padStart(3, '0') };
+}
+
+function calcNext() {
+  const cat = document.getElementById('guia-cat-select').value;
+  const box = document.getElementById('guia-next-result');
+  if (!cat) { box.innerHTML = ''; return; }
+  const r = nextNumber(cat);
+  const color = getCatColor(cat);
+  box.innerHTML = `<div class="guia-next-box">
+    <div>
+      <div style="font-size:10px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.08em">Te toca hacer</div>
+      <div style="font-family:var(--mono);font-size:30px;font-weight:800;color:${color};line-height:1.1">${r.next}</div>
+    </div>
+    <div style="font-size:12px;color:var(--text2);font-family:var(--mono);line-height:1.7">
+      ${r.count ? `último registrado: <b style="color:var(--text)">${r.prefix}${String(r.last).padStart(3,'0')}</b><br>` : 'aún no hay videos con este formato<br>'}
+      exporta y nómbralo <b style="color:${color}">${r.next}</b>
+    </div>
+  </div>`;
 }
 
 // ---- DASHBOARD ----
