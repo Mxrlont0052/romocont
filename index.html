@@ -266,15 +266,15 @@
   </header>
   <main>
     <div class="tabs">
-      <button class="tab" onclick="switchTab(&#39;dashboard&#39;)">Dashboard</button>
+      <button class="tab active" onclick="switchTab(&#39;dashboard&#39;)">Dashboard</button>
       <button class="tab" onclick="switchTab(&#39;pendientes&#39;)">Pendientes</button>
-      <button class="tab active" onclick="switchTab(&#39;videos&#39;)">Todos los videos</button>
+      <button class="tab" onclick="switchTab(&#39;videos&#39;)">Todos los videos</button>
       <button class="tab" onclick="switchTab(&#39;tanda&#39;)">+ Tanda masiva</button>
       <button class="tab" onclick="switchTab(&#39;guia&#39;)">📋 Guía</button>
     </div>
 
     <!-- DASHBOARD -->
-    <div id="tab-dashboard" style="display: none;">
+    <div id="tab-dashboard" style="">
       <div class="summary-grid" id="summary-grid"></div>
       <div style="display:grid;grid-template-columns:1fr 340px;gap:24px;align-items:start">
         <div>
@@ -300,7 +300,7 @@
     </div>
 
     <!-- TODOS LOS VIDEOS -->
-    <div id="tab-videos" style="">
+    <div id="tab-videos" style="display:none">
       <div class="table-controls">
         <input class="search-input" type="text" placeholder="Buscar por nombre, código, creador..." id="search-input" oninput="renderTable()">
         <select class="filter-select" id="filter-cat" onchange="renderTable()"><option value="">Todas las categorías</option></select>
@@ -631,21 +631,41 @@ async function apiPost(action, payload) {
   return data;
 }
 
+// Dibuja SOLO la pestaña visible (arranque rápido: no pinta las 300+ filas si no se ven)
+function renderActiveTab() {
+  const el = document.querySelector('.tab.active');
+  const t = el ? el.textContent : '';
+  if (t.includes('Dashboard')) renderDashboard();
+  else if (t.includes('Pendientes')) renderPending();
+  else if (t.includes('videos') || t.includes('Videos')) renderTable();
+  else if (t.includes('Guía')) renderGuia();
+  else renderDashboard();
+}
+
 async function initData() {
   setSyncStatus('syncing');
+  window.NUBE_INBOX = window.NUBE_INBOX || NUBE_INBOX_DEFAULT;
+  // 1) Mostrar al instante lo último cacheado (se siente inmediato al abrir)
+  try {
+    const cache = localStorage.getItem('romocont_cache');
+    if (cache) {
+      videos = JSON.parse(cache);
+      populateFilterCat();
+      renderActiveTab();
+    }
+  } catch(e) {}
+  // 2) Traer los datos frescos y refrescar
   try {
     videos = await apiGet();
+    try { localStorage.setItem('romocont_cache', JSON.stringify(videos)); } catch(e) {}
     setSyncStatus('ok');
   } catch(e) {
     console.error('Sheets error:', e);
-    setSyncStatus('error');
-    showToast('⚠ Error de conexión: ' + e.message);
-    videos = [];
+    setSyncStatus(videos.length ? 'ok' : 'error');
+    if (!videos.length) { showToast('⚠ Error de conexión: ' + e.message); videos = []; }
   }
   populateFilterCat();
-  renderDashboard();
-  renderPending();
-  renderTable();   // la pestaña visible al inicio es "Todos los videos": llenarla ya
+  renderActiveTab();
   startRealtime();
 }
 
@@ -1476,12 +1496,15 @@ function populateCatSelect(selId) {
 
 function populateFilterCat() {
   const sel = document.getElementById('filter-cat');
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">Todas las categorías</option>';
   const cats = [...new Set(videos.map(v=>v.categoria))].sort();
   cats.forEach(c => {
     const opt = document.createElement('option');
     opt.value = c; opt.textContent = c;
     sel.appendChild(opt);
   });
+  sel.value = prev;
 }
 
 // ---- BULK TANDA ----
