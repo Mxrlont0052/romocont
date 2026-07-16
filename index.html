@@ -86,6 +86,16 @@
   .buffer-label.low { background:var(--amber-dim); color:var(--amber); }
   @keyframes pulseRed { 0%,100% { box-shadow:0 0 0 0 rgba(255,77,77,0); } 50% { box-shadow:0 0 0 4px rgba(255,77,77,0.12); } }
 
+  /* REPORTES */
+  .rep-toggle { font-family:var(--font); font-size:13px; font-weight:600; padding:8px 16px; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--text2); cursor:pointer; transition:all 0.2s; }
+  .rep-toggle.active { background:var(--accent); color:#000; border-color:var(--accent); }
+  .rep-row { display:flex; align-items:center; gap:12px; padding:11px 14px; border-radius:10px; background:var(--surface2); border:1px solid var(--border); }
+  .rep-row + .rep-row { margin-top:6px; }
+  .rep-row.mvp { border-color:rgba(255,215,0,0.4); background:linear-gradient(135deg,rgba(255,215,0,0.1),var(--surface2) 60%); }
+  .rep-av { width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:12px; flex-shrink:0; }
+  .rep-count { font-family:var(--mono); font-weight:800; font-size:22px; }
+  .rep-mini { height:5px; border-radius:3px; background:var(--surface3); overflow:hidden; margin-top:4px; }
+
   /* GUÍA */
   .guia-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:1.4rem 1.5rem; animation:fadeSlideIn 0.3s ease both; }
   .guia-h { font-size:13px; font-weight:800; letter-spacing:0.04em; color:var(--accent); margin-bottom:8px; }
@@ -271,6 +281,7 @@
       <button class="tab" onclick="switchTab(&#39;videos&#39;)">Todos los videos</button>
       <button class="tab" onclick="switchTab(&#39;tanda&#39;)">+ Tanda masiva</button>
       <button class="tab" onclick="switchTab(&#39;guia&#39;)">📋 Guía</button>
+      <button class="tab" onclick="switchTab(&#39;reportes&#39;)">📈 Reportes</button>
     </div>
 
     <!-- DASHBOARD -->
@@ -453,6 +464,18 @@ ES 136
           </div>
         </div>
 
+      </div>
+    </div>
+
+    <!-- REPORTES -->
+    <div id="tab-reportes" style="display:none">
+      <div style="max-width:920px;margin:0 auto">
+        <div style="display:flex;gap:8px;margin-bottom:20px;align-items:center;flex-wrap:wrap">
+          <span style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-right:4px">Reporte de</span>
+          <button id="rep-semana" class="rep-toggle active" onclick="setReporte('semana')">Esta semana</button>
+          <button id="rep-mes" class="rep-toggle" onclick="setReporte('mes')">Este mes</button>
+        </div>
+        <div id="reportes-body"></div>
       </div>
     </div>
 
@@ -639,6 +662,7 @@ function renderActiveTab() {
   else if (t.includes('Pendientes')) renderPending();
   else if (t.includes('videos') || t.includes('Videos')) renderTable();
   else if (t.includes('Guía')) renderGuia();
+  else if (t.includes('Reportes')) renderReportes();
   else renderDashboard();
 }
 
@@ -757,7 +781,7 @@ function statusBadge(estado) {
 
 // ---- TABS ----
 function switchTab(tab) {
-  const tabs = ['dashboard','pendientes','videos','tanda','guia'];
+  const tabs = ['dashboard','pendientes','videos','tanda','guia','reportes'];
   tabs.forEach(t => {
     document.getElementById('tab-'+t).style.display = t===tab?'':'none';
   });
@@ -768,6 +792,104 @@ function switchTab(tab) {
   if (tab==='pendientes') renderPending();
   if (tab==='videos') renderTable();
   if (tab==='guia') renderGuia();
+  if (tab==='reportes') renderReportes();
+}
+
+// ---- REPORTES ----
+let reportePeriodo = 'semana';
+
+function startOfWeek() {
+  const d = new Date(); d.setHours(0,0,0,0);
+  const lunes = (d.getDay() + 6) % 7; // 0 = lunes
+  d.setDate(d.getDate() - lunes);
+  return d;
+}
+
+// Cuenta videos ENVIADOS por creador en el periodo (por fecha de envío)
+function produccionEnPeriodo(periodo) {
+  const map = {};
+  const wk = startOfWeek();
+  const mes = getMonthKey(null, 0);
+  videos.forEach(v => {
+    const c = (v.creador || '').trim().toUpperCase();
+    if (!c) return;
+    let dentro;
+    if (periodo === 'semana') { const d = parseFecha(v.fecha); dentro = d && d >= wk; }
+    else { dentro = getVideoMonthKey(v) === mes; }
+    if (dentro) map[c] = (map[c] || 0) + 1;
+  });
+  return map;
+}
+
+function setReporte(p) {
+  reportePeriodo = p;
+  document.getElementById('rep-semana').classList.toggle('active', p === 'semana');
+  document.getElementById('rep-mes').classList.toggle('active', p === 'mes');
+  renderReportes();
+}
+
+function renderReportes() {
+  const body = document.getElementById('reportes-body');
+  if (!body) return;
+  const esSemana = reportePeriodo === 'semana';
+  const prod = produccionEnPeriodo(reportePeriodo);
+  const ordenado = Object.entries(prod).sort((a, b) => b[1] - a[1]);
+
+  // --- Producción del equipo (con MVP y meta de cuota) ---
+  let equipoHTML;
+  if (!ordenado.length) {
+    equipoHTML = `<div class="empty" style="padding:2rem">Nadie ha enviado videos ${esSemana ? 'esta semana' : 'este mes'} todavía</div>`;
+  } else {
+    const colores = ['#c8ff00','#448aff','#e040fb','#ff6d00','#1de9b6','#ff4081'];
+    equipoHTML = ordenado.map(([name, count], i) => {
+      const color = colores[i % colores.length];
+      const esMVP = i === 0 && count > 0;
+      const meta = QUOTA_MENSUAL[name] ? (esSemana ? QUOTA_MENSUAL[name] / 4 : QUOTA_MENSUAL[name]) : null;
+      const pct = meta ? Math.min(100, count / meta * 100) : 0;
+      const cumplido = meta && count >= meta;
+      return `<div class="rep-row ${esMVP ? 'mvp' : ''}">
+        <span style="font-family:var(--mono);color:var(--text3);width:22px;text-align:center">${esMVP ? '🏆' : '#' + (i + 1)}</span>
+        <div class="rep-av" style="background:${color}22;color:${color}">${name.slice(0,2)}</div>
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:14px">${name}</div>
+          ${meta ? `<div class="rep-mini"><div style="height:100%;width:${pct}%;background:${cumplido ? 'var(--green)' : color}"></div></div>
+            <div style="font-size:10px;font-family:var(--mono);color:${cumplido ? 'var(--green)' : 'var(--text3)'};margin-top:2px">meta ${esSemana ? 'semanal' : 'mensual'}: ${count}/${meta} ${cumplido ? '✅' : ''}</div>`
+            : `<div style="font-size:10px;font-family:var(--mono);color:var(--text3);margin-top:2px">sin meta fija</div>`}
+        </div>
+        <div style="text-align:right">
+          <div class="rep-count" style="color:${color}">${count}</div>
+          <div style="font-size:9px;color:var(--text3);font-family:var(--mono)">enviados</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // --- Categorías débiles / qué falta producir ---
+  const cats = [...new Set(videos.map(v => v.categoria))].filter(Boolean).map(cat => {
+    const cv = videos.filter(v => v.categoria === cat);
+    const pend = cv.filter(v => v.estado === 'PENDIENTE').length;
+    return { cat, pend, total: cv.length, buf: bufferLevel(pend) };
+  }).sort((a, b) => a.pend - b.pend);
+  const emoji = { crit: '🔴', low: '🟠', ok: '🟢' };
+  const bufColor = { crit: 'var(--red)', low: 'var(--amber)', ok: 'var(--green)' };
+  const debilesHTML = cats.map(c => `<div class="rep-row">
+      <span>${emoji[c.buf]}</span>
+      <span style="flex:1;font-weight:700;font-size:13px;color:${getCatColor(c.cat)}">${c.cat}</span>
+      <span style="font-family:var(--mono);font-size:12px;color:${bufColor[c.buf]}">${c.pend === 0 ? 'sin buffer' : c.pend + ' en buffer'}</span>
+      <button class="link-btn" onclick="filterByCat('${c.cat}')">ver →</button>
+    </div>`).join('');
+
+  body.innerHTML = `
+    <div class="guia-card" style="margin-bottom:22px">
+      <div class="guia-h">🏆 Producción del equipo — ${esSemana ? 'esta semana' : 'este mes'}</div>
+      <p class="guia-p" style="margin-bottom:14px">Cuántos videos envió cada quien${esSemana ? ' (semana desde el lunes)' : ' este mes'}. El de arriba es el MVP.</p>
+      ${equipoHTML}
+    </div>
+    <div class="guia-card">
+      <div class="guia-h">🚨 Qué falta producir — categorías más débiles</div>
+      <p class="guia-p" style="margin-bottom:14px">Ordenadas de la más urgente (sin buffer) a la más sana. Para repartir el trabajo y para la prioridad con Kike.</p>
+      ${debilesHTML}
+    </div>`;
 }
 
 // ---- GUÍA ----
