@@ -470,10 +470,13 @@ ES 136
     <!-- REPORTES -->
     <div id="tab-reportes" style="display:none">
       <div style="max-width:920px;margin:0 auto">
-        <div style="display:flex;gap:8px;margin-bottom:20px;align-items:center;flex-wrap:wrap">
-          <span style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-right:4px">Reporte de</span>
-          <button id="rep-semana" class="rep-toggle active" onclick="setReporte('semana')">Esta semana</button>
-          <button id="rep-mes" class="rep-toggle" onclick="setReporte('mes')">Este mes</button>
+        <div style="display:flex;gap:8px;margin-bottom:14px;align-items:center;flex-wrap:wrap">
+          <button id="rep-semana" class="rep-toggle active" onclick="setReporte('semana')">Semanal</button>
+          <button id="rep-mes" class="rep-toggle" onclick="setReporte('mes')">Mensual</button>
+          <div style="flex:1"></div>
+          <button class="rep-toggle" onclick="repNav(-1)" title="Anterior">‹</button>
+          <span id="rep-label" style="font-family:var(--mono);font-size:12px;color:var(--text);min-width:170px;text-align:center"></span>
+          <button id="rep-next" class="rep-toggle" onclick="repNav(1)" title="Siguiente">›</button>
         </div>
         <div id="reportes-body"></div>
       </div>
@@ -797,6 +800,7 @@ function switchTab(tab) {
 
 // ---- REPORTES ----
 let reportePeriodo = 'semana';
+let reporteOffset = 0; // 0 = actual, -1 = anterior, etc.
 
 function startOfWeek() {
   const d = new Date(); d.setHours(0,0,0,0);
@@ -805,26 +809,54 @@ function startOfWeek() {
   return d;
 }
 
+function semanaRango(offset) {
+  const start = startOfWeek();
+  start.setDate(start.getDate() + offset * 7);
+  const end = new Date(start); end.setDate(end.getDate() + 7);
+  return { start, end };
+}
+
 // Cuenta videos ENVIADOS por creador en el periodo (por fecha de envío)
-function produccionEnPeriodo(periodo) {
+function produccionEnPeriodo(periodo, offset) {
+  offset = offset || 0;
   const map = {};
-  const wk = startOfWeek();
-  const mes = getMonthKey(null, 0);
+  const rango = periodo === 'semana' ? semanaRango(offset) : null;
+  const mes = periodo === 'mes' ? getMonthKey(null, offset) : null;
   videos.forEach(v => {
     const c = (v.creador || '').trim().toUpperCase();
     if (!c) return;
     let dentro;
-    if (periodo === 'semana') { const d = parseFecha(v.fecha); dentro = d && d >= wk; }
+    if (periodo === 'semana') { const d = parseFecha(v.fecha); dentro = d && d >= rango.start && d < rango.end; }
     else { dentro = getVideoMonthKey(v) === mes; }
     if (dentro) map[c] = (map[c] || 0) + 1;
   });
   return map;
 }
 
+function periodoLabel() {
+  if (reportePeriodo === 'semana') {
+    const { start, end } = semanaRango(reporteOffset);
+    const fin = new Date(end); fin.setDate(fin.getDate() - 1);
+    const fmt = d => d.getDate() + ' ' + d.toLocaleString('es-ES', { month: 'short' }).replace('.', '');
+    const pre = reporteOffset === 0 ? 'Esta semana' : reporteOffset === -1 ? 'Semana pasada' : `Hace ${-reporteOffset} sem`;
+    return `${pre} · ${fmt(start)}–${fmt(fin)}`;
+  } else {
+    const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() + reporteOffset);
+    const pre = reporteOffset === 0 ? '' : reporteOffset === -1 ? 'Mes pasado · ' : '';
+    return pre + d.toLocaleString('es-ES', { month: 'long', year: 'numeric' });
+  }
+}
+
 function setReporte(p) {
   reportePeriodo = p;
+  reporteOffset = 0; // al cambiar de vista, volver al actual
   document.getElementById('rep-semana').classList.toggle('active', p === 'semana');
   document.getElementById('rep-mes').classList.toggle('active', p === 'mes');
+  renderReportes();
+}
+
+function repNav(dir) {
+  reporteOffset = Math.min(0, reporteOffset + dir); // no navegar al futuro
   renderReportes();
 }
 
@@ -832,7 +864,11 @@ function renderReportes() {
   const body = document.getElementById('reportes-body');
   if (!body) return;
   const esSemana = reportePeriodo === 'semana';
-  const prod = produccionEnPeriodo(reportePeriodo);
+  const lbl = document.getElementById('rep-label');
+  if (lbl) lbl.textContent = periodoLabel();
+  const nextBtn = document.getElementById('rep-next');
+  if (nextBtn) { nextBtn.style.opacity = reporteOffset === 0 ? '0.3' : '1'; nextBtn.style.pointerEvents = reporteOffset === 0 ? 'none' : 'auto'; }
+  const prod = produccionEnPeriodo(reportePeriodo, reporteOffset);
   const ordenado = Object.entries(prod).sort((a, b) => b[1] - a[1]);
 
   // --- Producción del equipo (con MVP y meta de cuota) ---
@@ -881,13 +917,13 @@ function renderReportes() {
 
   body.innerHTML = `
     <div class="guia-card" style="margin-bottom:22px">
-      <div class="guia-h">🏆 Producción del equipo — ${esSemana ? 'esta semana' : 'este mes'}</div>
-      <p class="guia-p" style="margin-bottom:14px">Cuántos videos envió cada quien${esSemana ? ' (semana desde el lunes)' : ' este mes'}. El de arriba es el MVP.</p>
+      <div class="guia-h">🏆 Producción del equipo — ${periodoLabel()}</div>
+      <p class="guia-p" style="margin-bottom:14px">Cuántos videos envió cada quien en ${esSemana ? 'la semana' : 'el mes'}. El de arriba es el MVP.</p>
       ${equipoHTML}
     </div>
     <div class="guia-card">
-      <div class="guia-h">🚨 Qué falta producir — categorías más débiles</div>
-      <p class="guia-p" style="margin-bottom:14px">Ordenadas de la más urgente (sin buffer) a la más sana. Para repartir el trabajo y para la prioridad con Kike.</p>
+      <div class="guia-h">🚨 Qué falta producir — categorías más débiles <span style="color:var(--text3);font-weight:500;letter-spacing:0">(ahora mismo)</span></div>
+      <p class="guia-p" style="margin-bottom:14px">Estado actual del buffer, de la más urgente (sin buffer) a la más sana. Para repartir el trabajo y para la prioridad con Kike.</p>
       ${debilesHTML}
     </div>`;
 }
