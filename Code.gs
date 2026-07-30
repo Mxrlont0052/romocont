@@ -246,14 +246,48 @@ function limpiarLinksViejos() {
   return { ok: true, limpiados: n };
 }
 
-// Deja las dos carpetas visibles para el equipo con solo el link.
-// EJECUTAR A MANO UNA VEZ: cambia quién puede ver esas carpetas.
-function compartirCarpetas() {
-  [DRIVE_LISTOS, DRIVE_SINVOZ].forEach(function (id) {
-    DriveApp.getFolderById(id).setSharing(DriveApp.Access.ANYONE_WITH_LINK,
-                                          DriveApp.Permission.VIEW);
+// NOTA: compartir las carpetas se hace A MANO desde Drive, con la cuenta de
+// ROMO que es la dueña (clic derecho → Compartir → Cualquier usuario con el
+// enlace → Lector). Este script corre con la cuenta personal de Marlon y solo
+// tiene permiso de LECTURA sobre Drive (ver appsscript.json): no puede —ni debe—
+// cambiar quién ve esas carpetas.
+
+// Con qué cuenta corre este script y qué alcanza a ver. Si getFolderById falla,
+// casi siempre es que el script corre con una cuenta de Google distinta a la
+// dueña de las carpetas (pasa con varias sesiones abiertas en el navegador).
+function diagnostico() {
+  const out = {};
+  try { out.cuenta = Session.getActiveUser().getEmail() || '(no visible)'; }
+  catch (e) { out.cuenta = 'ERROR: ' + e.message; }
+  try { out.hoja = SpreadsheetApp.getActiveSpreadsheet().getName(); }
+  catch (e) { out.hoja = 'ERROR (script suelto, no pegado a la hoja): ' + e.message; }
+  [['LISTOS', DRIVE_LISTOS], ['SIN VOZ', DRIVE_SINVOZ]].forEach(function (par) {
+    try { out[par[0]] = '✓ ' + DriveApp.getFolderById(par[1]).getName(); }
+    catch (e) { out[par[0]] = '✗ ' + e.message; }
   });
-  return { ok: true };
+  Logger.log(JSON.stringify(out, null, 2));
+  return out;
+}
+
+// Busca las carpetas POR NOMBRE en el Drive de esta cuenta y escupe sus IDs.
+// Sirve cuando el ID no vale porque las carpetas viven en otra cuenta o son una
+// copia distinta: los IDs que salgan aquí son los que hay que poner arriba.
+function buscarCarpetas() {
+  const out = [];
+  ['VIDEOS LISTOS PARA SUBIR', 'VIDEOS SIN VOZ'].forEach(function (nombre) {
+    const it = DriveApp.getFoldersByName(nombre);
+    let hallada = false;
+    while (it.hasNext()) {
+      const f = it.next();
+      const padres = f.getParents();
+      out.push(nombre + ' → ID ' + f.getId() +
+               (padres.hasNext() ? ' (dentro de ' + padres.next().getName() + ')' : ''));
+      hallada = true;
+    }
+    if (!hallada) out.push(nombre + ' → NO EXISTE en el Drive de esta cuenta');
+  });
+  Logger.log(out.join('\n'));
+  return out;
 }
 
 // Instala el robot cada 10 min (borra el anterior para no duplicarlo).
