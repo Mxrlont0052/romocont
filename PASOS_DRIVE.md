@@ -20,42 +20,68 @@ para reeditar, y no ensucia el dashboard.
 - IDs de las carpetas ya puestos en `server.py`, `drive.py` y `Code.gs`.
 - ROMO CAMBIOS sube los dos archivos y escribe el link al terminar cada render.
 
-## Lo que falta — 5 minutos, todo desde tu Google
+## ⚠️ Son DOS cuentas de Google
 
-Estos pasos necesitan tu sesión de Google, por eso los haces tú.
+Esto explica casi todos los tropiezos del montaje:
 
-### 1 · Actualizar el Apps Script
+- Las **carpetas de Drive** están en la cuenta de **ROMO** (es la que autorizó rclone).
+- La **hoja y su Apps Script** están en la cuenta **personal** (`marlonromero0052@gmail.com`).
 
-1. Abre la hoja **Romo cont** → *Extensiones* → *Apps Script*.
-2. Borra todo el contenido y pega el `Code.gs` de este repo.
-3. Guarda (💾).
+Por eso el script solo puede **leer** Drive, y compartir las carpetas se hace a
+mano desde la cuenta dueña. Si algún día falla algo de permisos, corre
+`diagnostico()` en el Apps Script: te dice con qué cuenta corre, si está pegado
+a la hoja y si ve cada carpeta.
+
+Y ojo con distinguir estos dos errores, que parecen lo mismo y no lo son:
+
+| Mensaje | Qué es de verdad |
+|---|---|
+| *"You do not have permission to call DriveApp…"* | Falta el scope en `appsscript.json`. Apps Script **no vuelve a pedir permiso solo** cuando el código empieza a usar un servicio nuevo. |
+| *"No item with the given ID could be found"* | La cuenta que corre el script no tiene acceso a esa carpeta. Falta compartirla. |
+
+## El montaje (hecho el 2026-07-30)
+
+### 1 · Compartir las carpetas — desde la cuenta de ROMO
+
+Clic derecho en cada carpeta (`VIDEOS LISTOS PARA SUBIR` y `VIDEOS SIN VOZ`) →
+*Compartir* → Acceso general: **Cualquier usuario que tenga el enlace**, rol
+**Lector**. Y agregar la cuenta personal como Lector, de cinturón de seguridad.
+
+Esto resuelve dos cosas de un golpe: que el equipo descargue sin pedir acceso, y
+que el Apps Script (que corre con la otra cuenta) pueda leer la carpeta.
+
+### 2 · Apps Script: el manifiesto
+
+Hoja **Romo cont** → *Extensiones* → *Apps Script* → ⚙️ *Configuración del
+proyecto* → marcar **"Mostrar el archivo de manifiesto appsscript.json"**.
+Pegar el `appsscript.json` de este repo. Lo que importa es `oauthScopes` con
+`drive.readonly`.
+
+### 3 · Apps Script: el código
+
+Pegar el `Code.gs` de este repo en `Código.gs` y guardar.
 
 > El script que estaba desplegado era una versión vieja: ni siquiera tenía la
-> acción `nube`, así que la app no habría podido escribir los links. Este paso
-> no es opcional.
+> acción `nube`, así que la app nunca habría podido escribir los links.
 
-### 2 · Correr tres funciones a mano (una sola vez)
-
-En el selector de funciones de arriba, elige y dale ▶ a cada una:
+### 4 · Correr dos funciones (una sola vez)
 
 | Función | Qué hace |
 |---|---|
-| `compartirCarpetas` | Deja las dos carpetas visibles **para cualquiera con el link**, para que Lizy y el equipo puedan descargar sin pedirte permiso cada vez. |
-| `limpiarLinksViejos` | Borra los 57 links muertos del túnel Cloudflare y apunta CONFIG_NUBE a la carpeta de Drive. |
-| `crearTriggerDrive` | Instala el robot que cada 10 min revisa la carpeta y completa los links que falten. |
+| `limpiarLinksViejos` | Borró los 57 links muertos del túnel Cloudflare y apuntó CONFIG_NUBE a la carpeta de Drive. |
+| `crearTriggerDrive` | Instaló el robot que cada 10 min revisa la carpeta y completa los links que falten. |
 
-La primera vez Google va a pedirte autorizar el script: *Revisar permisos* →
-tu cuenta → *Configuración avanzada* → *Ir a (no seguro)* → *Permitir*.
+Google pide autorizar: *Configuración avanzada* → *Ir a… (no seguro)* → *Permitir*.
 
-### 3 · Volver a desplegar
+### 5 · Volver a desplegar
 
-*Desplegar* → **Gestionar implementaciones** → ✏️ (editar) → *Versión: Nueva
-versión* → *Desplegar*.
+*Implementar* → **Gestionar implementaciones** → ✏️ (editar) → *Versión: Nueva
+versión* → *Implementar*.
 
 ⚠️ **Editar la implementación que ya existe, no crear una nueva.** Así la URL
 `/exec` sigue siendo la misma y no hay que tocar `index.html` ni `server.py`.
 
-### 4 · Publicar el dashboard
+### 6 · Publicar el dashboard
 
 ```bash
 cd ~/Documents/Cerebront/Marlont/romocont && git push
