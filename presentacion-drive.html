@@ -186,6 +186,104 @@
   .nota p { font-size:14px; color:var(--text2); }
   .nota b { color:var(--amber); }
 
+  /* ---- ROMO CAMBIOS a fondo ---- */
+  .sub-h {
+    font-family:var(--mono); font-size:11px; letter-spacing:2.5px; text-transform:uppercase;
+    color:var(--text2); margin:52px 0 18px; padding-bottom:12px; border-bottom:1px solid var(--border);
+  }
+
+  .fases { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:14px; }
+  .fase { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:22px 20px; }
+  .fase .n {
+    width:26px; height:26px; border-radius:8px; background:var(--surface3); color:var(--accent);
+    font-family:var(--mono); font-size:12px; display:flex; align-items:center; justify-content:center;
+    margin-bottom:13px;
+  }
+  .fase h3 { font-size:15.5px; margin-bottom:6px; }
+  .fase p { font-size:13px; }
+
+  /* teclas */
+  kbd {
+    font-family:var(--mono); font-size:12.5px; background:var(--surface3);
+    border:1px solid var(--border2); border-bottom-width:2px; border-radius:6px;
+    padding:4px 9px; color:var(--text); display:inline-block; min-width:28px; text-align:center;
+  }
+  .teclas { display:flex; flex-direction:column; gap:1px; background:var(--border); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; }
+  .tecla { display:grid; grid-template-columns:150px 1fr; gap:18px; align-items:center; background:var(--surface); padding:13px 20px; }
+  .tecla .k { display:flex; gap:6px; flex-wrap:wrap; }
+  .tecla .d { font-size:14px; color:var(--text2); }
+  .tecla .d b { color:var(--text); font-weight:700; }
+  @media (max-width:620px) { .tecla { grid-template-columns:1fr; gap:8px; } }
+
+  /* efectos */
+  .efectos { display:grid; grid-template-columns:repeat(auto-fill,minmax(158px,1fr)); gap:10px; }
+  .efecto {
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    padding:14px 16px;
+  }
+  .efecto .e-n { font-family:var(--mono); font-size:11px; color:var(--accent); letter-spacing:1px; margin-bottom:5px; }
+  .efecto .e-d { font-size:13px; color:var(--text2); line-height:1.45; }
+
+  /* plantillas por técnica */
+  .tecnicas { display:flex; gap:10px; flex-wrap:wrap; }
+  .tec {
+    flex:1 1 150px; background:var(--surface); border:1px solid var(--border);
+    border-radius:var(--radius); padding:18px 16px; text-align:center;
+  }
+  .tec .cuenta { font-size:30px; font-weight:800; color:var(--accent); line-height:1; }
+  .tec .nom { font-family:var(--mono); font-size:11px; letter-spacing:1.5px; color:var(--text2); margin-top:8px; }
+  .tec .tecla-min { font-family:var(--mono); font-size:10px; color:var(--text3); margin-top:5px; }
+
+  /* anti-tontos */
+  .avisos { display:flex; flex-direction:column; gap:12px; }
+  .aviso {
+    display:flex; gap:16px; align-items:flex-start; border-radius:var(--radius-lg);
+    padding:18px 22px; border:1px solid var(--border); background:var(--surface);
+  }
+  .aviso .ic { font-size:20px; flex-shrink:0; line-height:1.3; }
+  .aviso .t { font-weight:700; font-size:15px; margin-bottom:4px; }
+  .aviso p { font-size:14px; }
+  .aviso.malo { background:var(--red-dim); border-color:rgba(255,77,77,0.22); }
+  .aviso.malo .t { color:var(--red); }
+  .aviso.ok { background:var(--green-dim); border-color:rgba(0,230,118,0.22); }
+  .aviso.ok .t { color:var(--green); }
+
+  /* límite del lote */
+  .limite {
+    display:flex; align-items:center; gap:28px; flex-wrap:wrap;
+    background:linear-gradient(180deg,var(--amber-dim),transparent);
+    border:1px solid rgba(255,171,0,0.3); border-radius:var(--radius-lg); padding:30px 32px;
+  }
+  .limite .cifra { font-size:clamp(40px,7vw,64px); font-weight:800; color:var(--amber); line-height:1; }
+  .limite .cifra span { font-size:0.4em; display:block; font-family:var(--mono); letter-spacing:2px; color:var(--text2); font-weight:400; margin-top:8px; }
+
+  /* decisiones de Marlon */
+  .linea { display:flex; flex-direction:column; gap:0; margin-top:38px; }
+  .hito { display:grid; grid-template-columns:96px 1fr; gap:24px; position:relative; padding-bottom:30px; }
+  .hito::before {
+    content:''; position:absolute; left:103px; top:26px; bottom:-4px; width:1px; background:var(--border);
+  }
+  .hito:last-child::before { display:none; }
+  .hito .punto {
+    position:absolute; left:99px; top:16px; width:9px; height:9px; border-radius:50%;
+    background:var(--accent); box-shadow:0 0 0 4px var(--bg);
+  }
+  .hito .et {
+    font-family:var(--mono); font-size:10.5px; letter-spacing:1.5px; color:var(--text3);
+    text-transform:uppercase; text-align:right; padding-top:9px;
+  }
+  .hito h3 { font-size:16.5px; margin-bottom:7px; }
+  .hito p { font-size:14px; }
+  .hito .cita {
+    margin-top:10px; font-size:13.5px; color:var(--accent); font-style:italic; opacity:.85;
+  }
+  @media (max-width:640px) {
+    .hito { grid-template-columns:1fr; gap:6px; padding-left:22px; }
+    .hito .et { text-align:left; padding-top:0; }
+    .hito::before { left:4px; top:8px; }
+    .hito .punto { left:0; top:5px; }
+  }
+
   @media (max-width:700px) {
     .vs, .split { grid-template-columns:1fr; }
   }
@@ -233,8 +331,8 @@
 </svg>
     <div class="kicker">Content Team · Julio 2026</div>
     <h1>Los videos ahora llegan <span class="hl">solos</span>.</h1>
-    <p>Se acabó subir archivos a mano y perseguir links rotos. Editas un video y aparece
-       listo para descargar en el dashboard, con su nombre y su fila ya puestas.</p>
+    <p>Se acabó mandarlos por WhatsApp. Editas un video y aparece listo para descargar en el
+       dashboard —en calidad original, con su nombre y su fila ya puestas.</p>
     <div class="scroll-hint"><span>↓</span> &nbsp;Baja para ver cómo</div>
   </div>
 </header>
@@ -249,22 +347,22 @@
 
     <div class="vs">
       <div class="vs-col antes reveal">
-        <h3>Antes</h3>
+        <h3>Antes · el grupo de WhatsApp</h3>
         <ul>
-          <li>Había que subir cada video a mano a la nube, con el nombre exacto o el botón de descargar no servía</li>
-          <li>El link de la nube <strong>cambiaba cada vez que se reiniciaba</strong>: todos los links viejos quedaban muertos</li>
-          <li>Archivos de más de 100 MB simplemente no subían</li>
-          <li>La nube dependía de que una MacBook específica estuviera prendida</li>
-          <li>Había botones ⬇ que no llevaban a ningún lado</li>
+          <li>Los videos se mandaban por el <strong>grupo de WhatsApp</strong>, uno por uno</li>
+          <li>WhatsApp <strong>comprime el video</strong>: lo que se publicaba no era lo que se exportó</li>
+          <li>Los videos se perdían hacia arriba en el chat, entre mensajes y audios</li>
+          <li>Nadie sabía cuáles ya se habían mandado y cuáles no</li>
+          <li>El celular de Lizy se llenaba, y si alguien limpiaba el chat el video se iba</li>
         </ul>
       </div>
       <div class="vs-col ahora reveal">
-        <h3>Ahora</h3>
+        <h3>Ahora · Drive + el dashboard</h3>
         <ul>
-          <li>El video se sube solo apenas termina de renderizar</li>
-          <li>El link es de Google Drive: <strong>no se rompe nunca</strong></li>
-          <li>Sin límite de tamaño</li>
-          <li>5 TB de espacio, sin depender de ninguna computadora prendida</li>
+          <li>El video se sube solo apenas termina de renderizar. Nadie lo manda a nadie</li>
+          <li>Baja en <strong>calidad original</strong>, sin la compresión de WhatsApp</li>
+          <li>El dashboard dice exactamente cuáles están pendientes y cuáles ya se publicaron</li>
+          <li>5 TB de espacio y el archivo queda guardado, no depende de un chat</li>
           <li>Si ves un ⬇, el archivo existe. Siempre</li>
         </ul>
       </div>
@@ -349,6 +447,181 @@
         <h3>Deciden</h3>
         <p>El dashboard ya no miente: las categorías en rojo son huecos reales, no videos
            que existen pero nadie subió. El colchón que ves es el colchón que hay.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ ROMO CAMBIOS A FONDO ══ -->
+<section>
+  <div class="wrap">
+    <div class="kicker reveal">La herramienta</div>
+    <h2 class="reveal">ROMO CAMBIOS, a fondo</h2>
+    <p class="reveal">Entra un clip de cámara y salen dos videos con marca ROMO, en lote.
+       Se abre con doble clic en <strong>ROMO CAMBIOS.command</strong> y trabaja en cuatro
+       pasos. No hay que instalar nada más.</p>
+
+    <div class="sub-h reveal">Los cuatro pasos</div>
+    <div class="fases">
+      <div class="fase reveal">
+        <div class="n">1</div>
+        <h3>Cargar</h3>
+        <p>Eliges todos los clips de la tanda de una vez (⌘ o ⇧ para varios). Aquí también
+           defines el efecto, la intensidad y dónde va la voz.</p>
+      </div>
+      <div class="fase reveal">
+        <div class="n">2</div>
+        <h3>Marcar</h3>
+        <p>Video por video: marcas dónde ocurre el cambio, dices qué técnica es y de qué
+           categoría. Si quieres, recortas el clip.</p>
+      </div>
+      <div class="fase reveal">
+        <div class="n">3</div>
+        <h3>Renderizar</h3>
+        <p>La app hace todo sola: plantilla, efecto, voz, mezcla de audio, nombre, registro
+           en la hoja y subida a Drive.</p>
+      </div>
+      <div class="fase reveal">
+        <div class="n">4</div>
+        <h3>Revisar</h3>
+        <p>Ves los resultados y retocas volúmenes o tiempos sin rehacer todo el lote.</p>
+      </div>
+    </div>
+
+    <div class="sub-h reveal">Todos los atajos (paso 2)</div>
+    <div class="teclas">
+      <div class="tecla reveal">
+        <div class="k"><kbd>Espacio</kbd></div>
+        <div class="d">Reproduce o pausa el clip</div>
+      </div>
+      <div class="tecla reveal">
+        <div class="k"><kbd>M</kbd></div>
+        <div class="d"><b>Marca el cambio</b> justo donde está el video en ese segundo</div>
+      </div>
+      <div class="tecla reveal">
+        <div class="k"><kbd>←</kbd><kbd>→</kbd></div>
+        <div class="d">Avanza o retrocede <b>un solo frame</b>, para clavar el cambio exacto</div>
+      </div>
+      <div class="tecla reveal">
+        <div class="k"><kbd>I</kbd><kbd>O</kbd></div>
+        <div class="d">Recorta: <b>I</b> = que empiece aquí · <b>O</b> = que termine aquí</div>
+      </div>
+      <div class="tecla reveal">
+        <div class="k"><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd><kbd>4</kbd><kbd>5</kbd></div>
+        <div class="d">La <b>técnica</b>: corte · métrica · arrastre · stems · clase</div>
+      </div>
+      <div class="tecla reveal">
+        <div class="k"><kbd>Q</kbd><kbd>W</kbd><kbd>E</kbd></div>
+        <div class="d">La <b>categoría</b>: demostrativas · estudiantes · relleno</div>
+      </div>
+      <div class="tecla reveal">
+        <div class="k"><kbd>Enter</kbd></div>
+        <div class="d">Pasa al siguiente clip</div>
+      </div>
+    </div>
+    <div class="nota reveal">
+      <p><b>Por qué la técnica y la categoría están en filas distintas del teclado:</b>
+         los números arriba y QWE abajo. Antes se elegían con la misma tecla —primer toque
+         técnica, segundo categoría— y corregir la técnica te cambiaba la categoría sin que
+         te dieras cuenta.</p>
+    </div>
+
+    <div class="sub-h reveal">Los 10 efectos del cambio</div>
+    <p class="reveal">El efecto arranca <strong>exactamente donde marcaste</strong> el cambio y
+       sigue hasta que termina el video. Si dejas "aleatorio por video", cada uno sale con
+       uno distinto y la tanda no se ve repetida.</p>
+    <div class="efectos" style="margin-top:24px">
+      <div class="efecto reveal"><div class="e-n">LUCES</div><div class="e-d">Ráfaga de luces</div></div>
+      <div class="efecto reveal"><div class="e-n">FLASH</div><div class="e-d">Destellos lentos</div></div>
+      <div class="efecto reveal"><div class="e-n">ESTROBO</div><div class="e-d">Estrobo</div></div>
+      <div class="efecto reveal"><div class="e-n">PUNCH</div><div class="e-d">Zoom que no para</div></div>
+      <div class="efecto reveal"><div class="e-n">LATIDO</div><div class="e-d">Latido</div></div>
+      <div class="efecto reveal"><div class="e-n">TEMBLOR</div><div class="e-d">Cámara temblando</div></div>
+      <div class="efecto reveal"><div class="e-n">GLITCH</div><div class="e-d">Glitch RGB</div></div>
+      <div class="efecto reveal"><div class="e-n">DISCOTECA</div><div class="e-d">Luces de discoteca</div></div>
+      <div class="efecto reveal"><div class="e-n">SATURADO</div><div class="e-d">Color saturado</div></div>
+      <div class="efecto reveal"><div class="e-n">VIÑETA</div><div class="e-d">Viñeta que se cierra</div></div>
+    </div>
+    <p class="reveal" style="margin-top:18px">La <strong>intensidad</strong> es una sola perilla
+       para toda la tanda: de 0.4 (apenas se nota) a 1.6 (muy marcado).</p>
+
+    <div class="sub-h reveal">46 plantillas animadas</div>
+    <p class="reveal">Cada técnica tiene su propio repertorio. La app elige una al azar salvo
+       que tú fijes una desde el botón <em>Ver el repertorio</em>.</p>
+    <div class="tecnicas" style="margin-top:24px">
+      <div class="tec reveal"><div class="cuenta">11</div><div class="nom">CORTE</div><div class="tecla-min">tecla 1</div></div>
+      <div class="tec reveal"><div class="cuenta">12</div><div class="nom">MÉTRICA</div><div class="tecla-min">tecla 2</div></div>
+      <div class="tec reveal"><div class="cuenta">9</div><div class="nom">ARRASTRE</div><div class="tecla-min">tecla 3</div></div>
+      <div class="tec reveal"><div class="cuenta">6</div><div class="nom">STEMS</div><div class="tecla-min">tecla 4</div></div>
+      <div class="tec reveal"><div class="cuenta">8</div><div class="nom">CLASE</div><div class="tecla-min">tecla 5</div></div>
+    </div>
+
+    <div class="sub-h reveal">La voz en off</div>
+    <p class="reveal">La app tiene sus voces guardadas y elige una sola. La coloca donde quepa
+       sin pisar el efecto del cambio, y mientras la voz habla <strong>la música baja
+       sola</strong>. De ahí salen los dos archivos: el que lleva voz y el SV.</p>
+
+    <div class="sub-h reveal">Cuántos videos por tanda</div>
+    <div class="limite reveal">
+      <div class="cifra">30–40<span>POR LOTE</span></div>
+      <div style="flex:1 1 320px">
+        <p><strong>La app no tiene límite</strong> — puedes cargarle los que quieras. Pero la
+           recomendación de Marlon es no pasar de 30 o 40 por tanda.</p>
+        <p style="margin-top:10px">Un lote más grande son horas de render seguidas, y si algo
+           se cae a la mitad tienes que revisar demasiadas cosas para saber qué quedó bien.
+           Es más rápido hacer dos tandas de 35 que una de 70 y perseguir el error.</p>
+      </div>
+    </div>
+
+    <div class="sub-h reveal">Lo que sí o sí no hay que hacer</div>
+    <div class="avisos">
+      <div class="aviso malo reveal">
+        <div class="ic">🚫</div>
+        <div>
+          <div class="t">No cierres la app mientras diga "Subiendo a Drive"</div>
+          <p>No se pierde nada —retoma sola al abrirla de nuevo— pero el video no le llega a
+             Lizy hasta que vuelvas a abrirla. Espera a que el aviso desaparezca.</p>
+        </div>
+      </div>
+      <div class="aviso malo reveal">
+        <div class="ic">🚫</div>
+        <div>
+          <div class="t">No renombres los archivos a mano después</div>
+          <p>El nombre que puso la app es el que cruza con la hoja. Si lo cambias, el video
+             queda huérfano y hay que arreglarlo a mano.</p>
+        </div>
+      </div>
+      <div class="aviso malo reveal">
+        <div class="ic">🚫</div>
+        <div>
+          <div class="t">No abras dos ROMO CAMBIOS a la vez</div>
+          <p>Las dos ventanas pelean por el mismo puerto y la segunda no arranca. Si te sale
+             un error raro al abrir, cierra todo y vuelve a empezar.</p>
+        </div>
+      </div>
+      <div class="aviso ok reveal">
+        <div class="ic">✓</div>
+        <div>
+          <div class="t">Sí: revisa que en ⚙︎ esté TU nombre</div>
+          <p>Ese nombre es el que queda como creador en la hoja. Si dice otro, el trabajo se
+             lo anotan a otra persona.</p>
+        </div>
+      </div>
+      <div class="aviso ok reveal">
+        <div class="ic">✓</div>
+        <div>
+          <div class="t">Sí: marca el cambio con las flechas</div>
+          <p>Con <kbd>←</kbd> <kbd>→</kbd> te mueves frame por frame. El efecto arranca justo
+             ahí, así que medio segundo tarde se nota.</p>
+        </div>
+      </div>
+      <div class="aviso ok reveal">
+        <div class="ic">✓</div>
+        <div>
+          <div class="t">Sí: si algo salió raro, usa el paso 4</div>
+          <p>En Revisar se retocan volúmenes y tiempos sin rehacer el lote entero. No borres
+             y vuelvas a empezar.</p>
+        </div>
       </div>
     </div>
   </div>
@@ -480,6 +753,142 @@
   </div>
 </section>
 
+<!-- ══ LAS DECISIONES DE MARLON ══ -->
+<section>
+  <div class="wrap">
+    <div class="kicker reveal">Cómo se llegó hasta aquí</div>
+    <h2 class="reveal">Las decisiones de Marlon</h2>
+    <p class="reveal">Nada de esto salió así a la primera. Estas son las decisiones que
+       cambiaron el rumbo del proyecto — todas de <strong>Marlon (MARLONT)</strong>, y casi
+       todas nacidas de ver algo que no funcionaba en el día a día del equipo.</p>
+
+    <div class="linea">
+      <div class="hito reveal">
+        <div class="punto"></div>
+        <div class="et">El dashboard</div>
+        <div>
+          <h3>La hoja de cálculo es la base de datos</h3>
+          <p>El sistema anterior guardaba los videos en otro lado y se duplicaron 153 filas.
+             Decidió mover todo a la hoja de Google, donde el equipo ya sabía trabajar y
+             donde cualquiera puede arreglar un dato a mano sin pedirle permiso a nadie.</p>
+        </div>
+      </div>
+
+      <div class="hito reveal">
+        <div class="punto"></div>
+        <div class="et">El dashboard</div>
+        <div>
+          <h3>Las alertas van dentro de las tarjetas, no en un panel aparte</h3>
+          <p>Cuando faltan videos de una categoría, la tarjeta se pinta de rojo con
+             "PRODUCIR YA". Rechazó el panel separado: una alerta en una esquina se ignora,
+             una tarjeta roja en la cara no.</p>
+        </div>
+      </div>
+
+      <div class="hito reveal">
+        <div class="punto"></div>
+        <div class="et">Las plantillas</div>
+        <div>
+          <h3>Fuera las 150 plantillas de texto</h3>
+          <p>Había 150 plantillas generadas con texto y se veían genéricas. Las retiró todas
+             y las reemplazó por <strong>46 animadas</strong> hechas una por una. Menos
+             opciones, pero ninguna que dé pena publicar.</p>
+        </div>
+      </div>
+
+      <div class="hito reveal">
+        <div class="punto"></div>
+        <div class="et">Las plantillas</div>
+        <div>
+          <h3>Reglas duras, no sugerencias</h3>
+          <p>Margen intocable, el bloque de texto siempre a la misma altura, la misma sombra
+             en todas, el texto siempre relleno —nunca hueco— y todas entran <em>y</em> salen
+             con animación. Está programado así: no se puede saltar aunque uno quiera.</p>
+          <div class="cita">"Que ninguna aparezca y se desvanezca."</div>
+        </div>
+      </div>
+
+      <div class="hito reveal">
+        <div class="punto"></div>
+        <div class="et">El efecto</div>
+        <div>
+          <h3>El efecto no se detiene</h3>
+          <p>Antes el efecto duraba unos pulsos y se apagaba. Decidió que arranque en el
+             cambio y siga <strong>hasta el final del video</strong>. De paso mandó a quitar
+             los controles de pulsos y BPM de la pantalla: ya no significaban nada y solo
+             daban en qué equivocarse.</p>
+        </div>
+      </div>
+
+      <div class="hito reveal">
+        <div class="punto"></div>
+        <div class="et">Los atajos</div>
+        <div>
+          <h3>Técnica y categoría en filas separadas del teclado</h3>
+          <p>La primera versión usaba la misma tecla para las dos cosas. Al corregir la
+             técnica se cambiaba la categoría sin que nadie lo viera. Lo mandó a filas
+             físicamente distintas: números arriba, <kbd>Q</kbd><kbd>W</kbd><kbd>E</kbd> abajo.</p>
+        </div>
+      </div>
+
+      <div class="hito reveal">
+        <div class="punto"></div>
+        <div class="et">La numeración</div>
+        <div>
+          <h3>Nombres pegados, con tres cifras, y una serie por categoría</h3>
+          <p><strong>DM055</strong>, nunca "DM 55" ni "DM055 final". Y cada categoría lleva su
+             propia cuenta, así que una tanda mezclada consume dos series a la vez sin
+             pisarse. Es la regla que hace posible que un archivo encuentre su fila solo.</p>
+        </div>
+      </div>
+
+      <div class="hito reveal">
+        <div class="punto"></div>
+        <div class="et">La entrega</div>
+        <div>
+          <h3>Dejar el grupo de WhatsApp</h3>
+          <p>Mandar los videos por chat los comprimía y los perdía. Se probó una nube privada
+             montada en una MacBook, pero el link cambiaba solo y no le gustó cómo quedó.
+             Decidió cortar por lo sano e irse a <strong>Google Drive</strong>.</p>
+        </div>
+      </div>
+
+      <div class="hito reveal">
+        <div class="punto"></div>
+        <div class="et">La entrega</div>
+        <div>
+          <h3>Borrar los links muertos, no dejarlos ahí</h3>
+          <p>Quedaban 57 links de la nube vieja que ya no llevaban a ningún lado. Podían
+             quedarse sin molestar a nadie. Prefirió borrarlos: mejor que el dashboard diga
+             "súbelo" a que te mande a una puerta cerrada.</p>
+        </div>
+      </div>
+
+      <div class="hito reveal">
+        <div class="punto"></div>
+        <div class="et">La entrega</div>
+        <div>
+          <h3>Solo el video con voz entra al dashboard</h3>
+          <p>Los dos archivos se guardan, pero únicamente el que lleva voz deja link en la
+             hoja. El SV es material de trabajo y no tiene por qué aparecer en la lista de
+             lo que hay que publicar.</p>
+        </div>
+      </div>
+
+      <div class="hito reveal">
+        <div class="punto"></div>
+        <div class="et">El equipo</div>
+        <div>
+          <h3>Que la herramienta sea del equipo, no de su Mac</h3>
+          <p>Pidió un instalador para que Daniel y Tipan puedan conectar sus computadoras
+             solos, y un repertorio de plantillas compartido. La app no sirve de nada si
+             solo corre en una máquina.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ══ CIERRE ══ -->
 <section class="cierre">
   <div class="wrap">
@@ -498,15 +907,36 @@
   // La animación se activa solo si hay JS: sin él, todo queda visible desde el
   // principio en vez de una página en blanco.
   document.documentElement.classList.add('js');
-  const io = new IntersectionObserver((entradas) => {
-    entradas.forEach((e) => {
-      if (e.isIntersecting) { e.target.classList.add('on'); io.unobserve(e.target); }
-    });
-  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
-  document.querySelectorAll('.reveal').forEach((el, i) => {
+
+  const porRevelar = [...document.querySelectorAll('.reveal')];
+  porRevelar.forEach((el, i) => {
     el.style.transitionDelay = Math.min(i % 5, 4) * 60 + 'ms';
-    io.observe(el);
   });
+
+  // Se revela por posición y no con IntersectionObserver: el observador no
+  // dispara cuando el scroll SALTA de golpe (llegar por un ancla, recargar a
+  // mitad de página, rotar el celular) y la sección se quedaba en blanco.
+  // Esto mide siempre y no tiene ese punto ciego.
+  let pedido = false;
+  function revisar() {
+    pedido = false;
+    const limite = window.innerHeight - 40;
+    for (let i = porRevelar.length - 1; i >= 0; i--) {
+      const el = porRevelar[i];
+      if (el.getBoundingClientRect().top < limite) {
+        el.classList.add('on');
+        porRevelar.splice(i, 1); // ya no se vuelve a medir
+      }
+    }
+  }
+  function agendar() {
+    if (!pedido) { pedido = true; requestAnimationFrame(revisar); }
+  }
+  addEventListener('scroll', agendar, { passive: true });
+  addEventListener('resize', agendar);
+  addEventListener('orientationchange', agendar);
+  addEventListener('load', agendar);
+  revisar();
 </script>
 </body>
 </html>
