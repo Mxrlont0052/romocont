@@ -16,6 +16,11 @@
  */
 
 const SHEET_NAME = 'VIDEOS';
+
+// Carpetas del Drive de 5TB (ROMOCONT/). Solo LISTOS genera links en la hoja:
+// el SV es material de trabajo, no algo que el equipo baje para publicar.
+const DRIVE_LISTOS = '1RkbNGYLg6RZaTDhCs7sxThXwMJc-T767'; // VIDEOS LISTOS PARA SUBIR
+const DRIVE_SINVOZ = '1EwH6F6YbSBHkoCqHfnp9jLI3nD79HN8L'; // VIDEOS SIN VOZ
 // Orden exacto de columnas en el Sheet:
 // link = archivo en la nube ROMO (lo maneja nube-sync) · tiktok = link del video publicado (lo maneja el equipo)
 const FIELDS = ['id','tanda','fecha','categoria','nombre','estado','creador','link','notas','vistas','created_at','descripcion','tiktok'];
@@ -151,12 +156,113 @@ function doPost(e) {
       return jsonOut({ ok: true, action: 'nube', linked: linked, archivos: items.length });
     }
 
+    if (req.action === 'drive') {
+      // Sincronización a pedido desde el botón de la página.
+      return jsonOut(sincronizarDrive());
+    }
+
     throw new Error('Acción desconocida: ' + req.action);
   } catch (err) {
     return jsonOut({ error: err.message });
   } finally {
     lock.releaseLock();
   }
+}
+
+// ===========================================================================
+// DRIVE — el robot que mantiene la columna LINK al día
+// ===========================================================================
+// ROMO CAMBIOS ya escribe el link al terminar de subir cada video, así que esto
+// es la red de abajo: recoge lo que se subió a mano a la carpeta, lo que se
+// subió con la hoja aún sin la fila, y lo que falló por internet. Corre solo
+// cada 10 minutos (ver crearTriggerDrive) y es idempotente: solo escribe cuando
+// el link cambia, así que sobra con que corra de más.
+
+// Link que baja el archivo directo, sin pasar por el visor de Drive.
+function driveLink(id) {
+  return 'https://drive.google.com/uc?export=download&id=' + id;
+}
+
+// "RLL 004.mp4" y "rll004" son el mismo video: así cruzan la hoja y el archivo.
+function normCodigo(s) {
+  return String(s || '').toUpperCase().replace(/\.[A-Z0-9]{2,4}$/, '').replace(/\s+/g, '');
+}
+
+function sincronizarDrive() {
+  const sheet = getSheet();
+  const linkCol = FIELDS.indexOf('link') + 1;
+  const data = sheet.getDataRange().getValues();
+
+  // 1) Todo lo que hay en LISTOS PARA SUBIR, por código.
+  const porCodigo = {};
+  const it = DriveApp.getFolderById(DRIVE_LISTOS).getFiles();
+  while (it.hasNext()) {
+    const f = it.next();
+    const code = normCodigo(f.getName());
+    if (code) porCodigo[code] = driveLink(f.getId());
+  }
+
+  // 2) Pegar el link en cada fila que le corresponda.
+  let escritos = 0, limpiados = 0;
+  for (let r = 1; r < data.length; r++) {
+    if (String(data[r][0]) === 'CONFIG_NUBE') continue;
+    const code = normCodigo(data[r][4]); // NOMBRE
+    const actual = String(data[r][linkCol - 1] || '');
+    const nuevo = code ? porCodigo[code] : null;
+    if (nuevo) {
+      if (actual !== nuevo) { sheet.getRange(r + 1, linkCol).setValue(nuevo); escritos++; }
+    } else if (esLinkMuerto(actual)) {
+      // El archivo no está en Drive y el link apunta a la nube vieja: dejarlo
+      // en blanco hace que el dashboard muestre "📤 subir" en vez de un ⬇ que
+      // falla. Un link de Drive sin archivo NO se toca: puede estar en otra
+      // carpeta y borrarlo perdería información buena.
+      sheet.getRange(r + 1, linkCol).setValue(''); limpiados++;
+    }
+  }
+  return { ok: true, archivos: Object.keys(porCodigo).length, escritos: escritos, limpiados: limpiados };
+}
+
+// Links de la nube privada que ya no existe (túneles Cloudflare / localhost.run).
+function esLinkMuerto(u) {
+  return /trycloudflare\.com|localhost\.run|lhr\.life|pinggy/i.test(String(u || ''));
+}
+
+// Barre de una vez todos los links muertos de la nube vieja.
+function limpiarLinksViejos() {
+  const sheet = getSheet();
+  const linkCol = FIELDS.indexOf('link') + 1;
+  const data = sheet.getDataRange().getValues();
+  let n = 0;
+  for (let r = 1; r < data.length; r++) {
+    if (esLinkMuerto(data[r][linkCol - 1])) { sheet.getRange(r + 1, linkCol).setValue(''); n++; }
+  }
+  // La fila CONFIG_NUBE guardaba el link del "SUBIR AQUI" del túnel: ahora el
+  // destino es la carpeta de Drive, y la página la lee de ahí igual que antes.
+  const cfgRow = data.findIndex(f => String(f[0]) === 'CONFIG_NUBE');
+  const inbox = 'https://drive.google.com/drive/folders/' + DRIVE_LISTOS;
+  if (cfgRow > 0) sheet.getRange(cfgRow + 1, linkCol).setValue(inbox);
+  else sheet.appendRow(FIELDS.map(f =>
+    f === 'id' ? 'CONFIG_NUBE' : f === 'nombre' ? 'CONFIG NUBE' : f === 'link' ? inbox : ''));
+  return { ok: true, limpiados: n };
+}
+
+// Deja las dos carpetas visibles para el equipo con solo el link.
+// EJECUTAR A MANO UNA VEZ: cambia quién puede ver esas carpetas.
+function compartirCarpetas() {
+  [DRIVE_LISTOS, DRIVE_SINVOZ].forEach(function (id) {
+    DriveApp.getFolderById(id).setSharing(DriveApp.Access.ANYONE_WITH_LINK,
+                                          DriveApp.Permission.VIEW);
+  });
+  return { ok: true };
+}
+
+// Instala el robot cada 10 min (borra el anterior para no duplicarlo).
+function crearTriggerDrive() {
+  ScriptApp.getProjectTriggers().forEach(function (t) {
+    if (t.getHandlerFunction() === 'sincronizarDrive') ScriptApp.deleteTrigger(t);
+  });
+  ScriptApp.newTrigger('sincronizarDrive').timeBased().everyMinutes(10).create();
+  return { ok: true };
 }
 
 function findRowById(sheet, id) {

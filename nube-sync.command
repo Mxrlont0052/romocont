@@ -1,4 +1,11 @@
 #!/bin/bash
+# ⚠️ OBSOLETO (jul-2026). Servía a la nube privada de la MacBook Air
+# (FileBrowser + túnel Cloudflare). Ahora los videos van a Google Drive: los sube
+# ROMO CAMBIOS y los links los mantiene el Apps Script. Ver PASOS_DRIVE.md.
+# Se deja como referencia; NO correrlo: pisaría los links de Drive con links de
+# un túnel que ya no existe.
+exit 0
+
 # ============================================================
 # ROMO NUBE SYNC v5.0 — la Air solo manda la lista de archivos
 #
