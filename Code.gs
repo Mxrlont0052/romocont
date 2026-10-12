@@ -23,7 +23,29 @@ const DRIVE_LISTOS = '1RkbNGYLg6RZaTDhCs7sxThXwMJc-T767'; // VIDEOS LISTOS PARA 
 const DRIVE_SINVOZ = '1EwH6F6YbSBHkoCqHfnp9jLI3nD79HN8L'; // VIDEOS SIN VOZ
 // Orden exacto de columnas en el Sheet:
 // link = archivo en la nube ROMO (lo maneja nube-sync) · tiktok = link del video publicado (lo maneja el equipo)
-const FIELDS = ['id','tanda','fecha','categoria','nombre','estado','creador','link','notas','vistas','created_at','descripcion','tiktok'];
+// tema / formato / oferta = la ficha del video para saber de dónde vienen los leads (12-10-2026).
+// Van AL FINAL para que las columnas viejas no se muevan.
+const FIELDS = ['id','tanda','fecha','categoria','nombre','estado','creador','link','notas','vistas','created_at','descripcion','tiktok','tema','formato','oferta'];
+const HEADERS_NUEVOS = { tema: 'TEMA', formato: 'FORMATO', oferta: 'OFERTA' };
+
+// Pone el encabezado de las columnas nuevas si todavía no existe. No toca nada más.
+function asegurarEncabezados(sheet) {
+  const faltan = FIELDS.length - sheet.getMaxColumns();
+  if (faltan > 0) sheet.insertColumnsAfter(sheet.getMaxColumns(), faltan);
+  FIELDS.forEach((f, i) => {
+    if (!HEADERS_NUEVOS[f]) return;
+    const cell = sheet.getRange(1, i + 1);
+    if (!String(cell.getValue()).trim()) cell.setValue(HEADERS_NUEVOS[f]);
+  });
+}
+
+// Un campo que NO viene en el pedido se conserva (antes se borraba). Así la
+// página vieja, ROMO CAMBIOS o nube-sync no pisan la ficha nueva al guardar.
+function mezclarFila(current, v) {
+  return FIELDS.map((f, i) =>
+    f === 'created_at' || v[f] === undefined ? (current[i] == null ? '' : current[i])
+      : (v[f] == null ? '' : String(v[f])));
+}
 
 function getSheet() {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
@@ -73,6 +95,7 @@ function doPost(e) {
   try {
     const req = JSON.parse(e.postData.contents);
     const sheet = getSheet();
+    asegurarEncabezados(sheet);
 
     if (req.action === 'insert') {
       const v = req.video || {};
@@ -87,11 +110,9 @@ function doPost(e) {
       const v = req.video || {};
       const row = findRowById(sheet, v.id);
       if (!row) throw new Error('No existe el video ' + v.id);
-      // No sobrescribir created_at
+      // No sobrescribir created_at ni lo que no venga en el pedido
       const current = sheet.getRange(row, 1, 1, FIELDS.length).getValues()[0];
-      const values = FIELDS.map((f, i) =>
-        f === 'created_at' ? current[i] : (v[f] == null ? '' : String(v[f])));
-      sheet.getRange(row, 1, 1, FIELDS.length).setValues([values]);
+      sheet.getRange(row, 1, 1, FIELDS.length).setValues([mezclarFila(current, v)]);
       return jsonOut({ ok: true, action: 'update', id: v.id });
     }
 
@@ -113,9 +134,7 @@ function doPost(e) {
         const row = rowById[String(v.id)];
         if (!row) return;
         const current = sheet.getRange(row, 1, 1, FIELDS.length).getValues()[0];
-        const values = FIELDS.map((f, i) =>
-          f === 'created_at' ? current[i] : (v[f] == null ? '' : String(v[f])));
-        sheet.getRange(row, 1, 1, FIELDS.length).setValues([values]);
+        sheet.getRange(row, 1, 1, FIELDS.length).setValues([mezclarFila(current, v)]);
         updated++;
       });
       return jsonOut({ ok: true, action: 'bulk', updated: updated });
