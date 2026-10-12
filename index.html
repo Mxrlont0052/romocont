@@ -532,7 +532,10 @@ function descState(d,id){if(!d||!d.trim())return{ok:false,msg:'Falta pegar la de
   const fl=firstLine(d),dup=videos.find(x=>x.id!==id&&esDescReal(x.descripcion)&&firstLine(x.descripcion)===fl);
   if(dup)return{ok:false,dup:true,msg:`Empieza igual que la de ${dup.nombre}. Cambia la primera línea para que Peter las distinga.`};return{ok:true,msg:'Descripción única ✓'}}
 const fichaOk=(v,f)=>f==='tiktok'?linkOk(v.tiktok):f==='descripcion'?descState(v.descripcion,v.id).ok:!!v[f];
-const FICHA=['tiktok','tema','formato','oferta','descripcion'],FL={tiktok:'link de TikTok',tema:'tema',formato:'formato',oferta:'oferta',descripcion:'descripción'};
+// Interruptor: tema/formato/oferta necesitan el Code.gs nuevo (Code-ficha-completa.gs) desplegado en Apps Script.
+// Mientras sea false, la ficha es link de TikTok + descripción, que ya se guardan con el backend de siempre.
+const FICHA_COMPLETA=false;
+const FICHA=FICHA_COMPLETA?['tiktok','tema','formato','oferta','descripcion']:['tiktok','descripcion'],FL={tiktok:'link de TikTok',tema:'tema',formato:'formato',oferta:'oferta',descripcion:'descripción'};
 const fichaN=v=>FICHA.filter(f=>fichaOk(v,f)).length;
 
 /* ===================== ESTADO ===================== */
@@ -571,7 +574,7 @@ function catsStats(){return allCats().filter(cat=>videos.some(v=>v.categoria===c
   return{cat,total:cv.length,pub:cv.length-p,pend:p,buf:bufferLevel(p)}}).sort((a,b)=>({crit:0,low:1,ok:2}[a.buf]-{crit:0,low:1,ok:2}[b.buf])||a.pend-b.pend)}
 function rInicio(){
   const total=videos.length,pub=videos.filter(v=>v.estado==='PUBLICADO').length,pend=total-pub;
-  const pubs=videos.filter(v=>v.estado==='PUBLICADO'),comp=pubs.filter(v=>fichaN(v)===5).length,conDesc=pubs.filter(v=>esDescReal(v.descripcion)).length;
+  const pubs=videos.filter(v=>v.estado==='PUBLICADO'),comp=pubs.filter(v=>fichaN(v)===FICHA.length).length,conDesc=pubs.filter(v=>esDescReal(v.descripcion)).length;
   const cats=catsStats(),alertas=cats.filter(c=>c.buf!=='ok');
   $('#main').innerHTML=`
   <div class="page-h"><div class="kicker">Content Team</div><div class="h1">Dashboard</div></div>
@@ -603,8 +606,8 @@ function rInicio(){
   <section class="b-mes"><div class="sec"><h2>Por mes</h2><span>meta ${META} publicados</span></div>
   <div class="nav-mes"><button class="arrow" onclick="mesOff--;rInicioMes()" aria-label="Mes anterior">‹</button><b id="mes-lbl"></b><button class="arrow" id="mes-next" onclick="mesOff++;rInicioMes()" aria-label="Mes siguiente">›</button></div>
   <div class="card" id="mes"></div></section>
-  <section class="b-data"><div class="sec"><h2>Data para Peter</h2><span>con ficha</span></div>
-  <div class="card">${rDataPeter()}</div></section></div>`;
+  ${FICHA_COMPLETA?`<section class="b-data"><div class="sec"><h2>Data para Peter</h2><span>con ficha</span></div>
+  <div class="card">${rDataPeter()}</div></section>`:''}</div>`;
   rInicioMes();animate();
 }
 function rCreadores(){
@@ -647,10 +650,10 @@ function rowVideo(v,opts={}){const n=fichaN(v);
     :(opts.subir?`<a class="btn btn-gray btn-sm l3" href="${esc(NUBE_INBOX)}" target="_blank" rel="noopener" title="No está en Drive: súbelo a VIDEOS LISTOS PARA SUBIR">📤</a>`:'');
   const copy=esDescReal(v.descripcion)?`<button class="btn btn-gray btn-sm" onclick="copyDesc('${esc(v.id)}')" title="Copiar descripción" aria-label="Copiar descripción de ${esc(v.nombre)}">📋</button>`:'';
   const main=v.estado==='PENDIENTE'?`<button class="btn btn-red btn-sm" onclick="openEditor('${esc(v.id)}','publicar')">Publicar</button>`
-    :`<button class="btn btn-gray btn-sm" onclick="openEditor('${esc(v.id)}','editar')">${n===5?'Editar':'Ficha'}</button>`;
+    :`<button class="btn btn-gray btn-sm" onclick="openEditor('${esc(v.id)}','editar')">${n===FICHA.length?'Editar':'Ficha'}</button>`;
   return `<div class="row"><span class="dot" style="background:${catColor(v.categoria)}"></span>
     <div class="grow"><div class="t">${esc(v.nombre)}</div><div class="m trunc">${esc(v.categoria)} · ${esc(who(v)||'sin creador')} · ${esc(fmtFecha(v.fecha))}</div>
-    <div class="fill-dots" title="Ficha ${n}/5">${FICHA.map(f=>`<i class="${fichaOk(v,f)?'on':''}"></i>`).join('')}</div></div>
+    <div class="fill-dots" title="Ficha ${n}/${FICHA.length}">${FICHA.map(f=>`<i class="${fichaOk(v,f)?'on':''}"></i>`).join('')}</div></div>
     <div class="desk-col desk-desc">${esDescReal(v.descripcion)?esc(firstLine(v.descripcion)):`<span class="l3">${v.descripcion?esc(v.descripcion):'Sin descripción'}</span>`}</div>
     <div class="desk-col desk-est">${v.estado==='PUBLICADO'?'<span class="tag ok">Publicado</span>':'<span class="tag org">Pendiente</span>'}</div>
     <div class="vid-act">${file}${copy}${main}${v.estado==='PENDIENTE'?`<button class="btn btn-gray btn-sm" onclick="openEditor('${esc(v.id)}','editar')" title="Editar" aria-label="Editar ${esc(v.nombre)}">✎</button>`:''}</div></div>`}
@@ -669,7 +672,7 @@ function rPend(){
 
 /* ===================== VIDEOS ===================== */
 function rVideos(){
-  const f=filtro;let list=videos.filter(v=>(!f.cat||v.categoria===f.cat)&&(f.est==='todos'||(f.est==='pub'&&v.estado==='PUBLICADO')||(f.est==='pend'&&v.estado==='PENDIENTE')||(f.est==='sinficha'&&v.estado==='PUBLICADO'&&fichaN(v)<5))&&(!f.q||(v.nombre+' '+(v.descripcion||'')+' '+who(v)+' '+v.categoria).toLowerCase().includes(f.q)));
+  const f=filtro;let list=videos.filter(v=>(!f.cat||v.categoria===f.cat)&&(f.est==='todos'||(f.est==='pub'&&v.estado==='PUBLICADO')||(f.est==='pend'&&v.estado==='PENDIENTE')||(f.est==='sinficha'&&v.estado==='PUBLICADO'&&fichaN(v)<FICHA.length))&&(!f.q||(v.nombre+' '+(v.descripcion||'')+' '+who(v)+' '+v.categoria).toLowerCase().includes(f.q)));
   const ts=v=>{const d=parseFecha(v.fecha);return d?d.getTime():0};
   if(f.orden==='nuevos')list=list.slice().reverse();
   else if(f.orden==='fecha')list=list.slice().sort((a,b)=>ts(b)-ts(a));
@@ -722,10 +725,10 @@ const pillsHtml=(arr,k,cur)=>`<div class="pills" role="radiogroup">${arr.map(o=>
 const stepHtml=(n,k,q,inner)=>`<div class="step" data-step="${k}"><span class="n">${n}</span><div class="grow"><div class="q">${q}</div>${inner}</div></div>`;
 function fichaHtml(cur,tecnica){return `
   ${stepHtml(1,'tiktok','Link del TikTok',`<div style="display:flex;gap:8px"><input class="field" id="f-tk" inputmode="url" autocomplete="off" placeholder="tiktok.com/@romo…/video/…" value="${esc(cur.tiktok||'')}"><button type="button" class="btn btn-gray" id="f-tkp">Pegar</button></div><div class="st idle" id="s-tk"></div>`)}
-  ${stepHtml(2,'tema','¿De qué trata?',pillsHtml(TEMAS,'tema',cur))}
+  ${FICHA_COMPLETA?`${stepHtml(2,'tema','¿De qué trata?',pillsHtml(TEMAS,'tema',cur))}
   ${stepHtml(3,'formato','¿Cómo está hecho?',pillsHtml(FORMATOS,'formato',cur))}
-  ${stepHtml(4,'oferta','¿Qué ofrece al final?',pillsHtml(OFERTAS,'oferta',cur))}
-  ${stepHtml(5,'descripcion','Descripción tal cual se publicó',`${tecnica?`<div class="m" style="margin-bottom:8px">Técnica que puso ROMO CAMBIOS: <b style="color:var(--blanco)">${esc(tecnica)}</b> · se guarda en notas</div>`:''}<textarea class="field" id="f-ds" rows="5" placeholder="Pega el texto completo del post">${esc(cur.descripcion||'')}</textarea><div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start"><div class="st idle" id="s-ds"></div><button type="button" class="btn btn-gray btn-sm" id="f-dsp" style="margin-top:6px">Pegar</button></div>`)}`}
+  ${stepHtml(4,'oferta','¿Qué ofrece al final?',pillsHtml(OFERTAS,'oferta',cur))}`:''}
+  ${stepHtml(FICHA_COMPLETA?5:2,'descripcion','Descripción tal cual se publicó',`${tecnica?`<div class="m" style="margin-bottom:8px">Técnica que puso ROMO CAMBIOS: <b style="color:var(--blanco)">${esc(tecnica)}</b> · se guarda en notas</div>`:''}<textarea class="field" id="f-ds" rows="5" placeholder="Pega el texto completo del post">${esc(cur.descripcion||'')}</textarea><div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start"><div class="st idle" id="s-ds"></div><button type="button" class="btn btn-gray btn-sm" id="f-dsp" style="margin-top:6px">Pegar</button></div>`)}`}
 function bindFicha(cur,onChange){
   const tk=$('#f-tk'),ds=$('#f-ds');
   tk.oninput=()=>{cur.tiktok=tk.value.trim();onChange()};ds.oninput=()=>{cur.descripcion=ds.value;onChange()};
@@ -780,7 +783,7 @@ function updEditor(){
   const c=ed.cur;updFicha(c);
   const miss=FICHA.filter(f=>!fichaOk(c,f)).map(f=>FL[f]),bloquea=vaAPublicar()&&miss.length;
   const dupe=c.descripcion&&c.descripcion.trim()&&descState(c.descripcion,c.id).dup;
-  $('#f-miss').textContent=bloquea?'Falta: '+miss.join(', '):dupe?'La descripción se repite con otro video':miss.length&&c.estado==='PUBLICADO'?`Ficha ${5-miss.length}/5 · falta ${miss.join(', ')}`:'';
+  $('#f-miss').textContent=bloquea?'Falta: '+miss.join(', '):dupe?'La descripción se repite con otro video':miss.length&&c.estado==='PUBLICADO'?`Ficha ${FICHA.length-miss.length}/${FICHA.length} · falta ${miss.join(', ')}`:'';
   $('#f-miss').style.color=bloquea||dupe?'var(--naranja)':'var(--l2)';
   const b=$('#f-save');b.disabled=!!(bloquea||dupe);b.textContent=vaAPublicar()?'Marcar publicado':'Guardar cambios';
 }
@@ -794,7 +797,7 @@ async function guardarEditor(){
   const d=(c.descripcion||'').trim();
   if(!d)v.descripcion=o.descripcion||''; // sin descripción nueva: se queda la que había
   else{v.descripcion=d;if(ed.tecnica&&!v.notas.toUpperCase().includes(ed.tecnica.toUpperCase()))v.notas=(v.notas?v.notas+' · ':'')+'Técnica: '+ed.tecnica}
-  if(v.estado==='PUBLICADO'&&o.estado!=='PUBLICADO'&&fichaN(v)<5){toast('Completa la ficha antes de publicar');return}
+  if(v.estado==='PUBLICADO'&&o.estado!=='PUBLICADO'&&fichaN(v)<FICHA.length){toast('Completa la ficha antes de publicar');return}
   const otro=videos.find(x=>x.id!==v.id&&normCod(x.nombre)===normCod(v.nombre));
   if(otro&&normCod(v.nombre)!==normCod(o.nombre)){toast(`⚠ Ya existe un video con el código ${otro.nombre}`);return}
   b.disabled=true;b.textContent='Guardando…';
