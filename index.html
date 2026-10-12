@@ -528,6 +528,9 @@ const DESC_MIN=40; // menos que esto es una etiqueta (ROMO CAMBIOS pone la técn
 const linkOk=u=>/tiktok\.com\/@[^/]+\/video\/\d{10,}|v[mt]\.tiktok\.com\/\w+/.test(u||'');
 const firstLine=s=>((s||'').split('\n').find(l=>l.trim())||'').trim().toLowerCase();
 const esDescReal=s=>(s||'').trim().length>=DESC_MIN;
+// Etiquetas que ROMO CAMBIOS escribía en DESCRIPCION hasta el 12-10-2026. No son descripción: se limpian al guardar.
+const TECNICAS=['CLASE DE DJ GRATIS','MEZCLA MÉTRICA','MEZCLA METRICA','MEZCLA DE CORTE','MEZCLA DE ARRASTRE','MEZCLA CON STEMS'];
+const esTecnica=s=>TECNICAS.includes((s||'').trim().toUpperCase());
 function descState(d,id){if(!d||!d.trim())return{ok:false,msg:'Falta pegar la descripción'};if(d.trim().length<DESC_MIN)return{ok:false,msg:'Muy corta: pega la descripción completa del post'};
   const fl=firstLine(d),dup=videos.find(x=>x.id!==id&&esDescReal(x.descripcion)&&firstLine(x.descripcion)===fl);
   if(dup)return{ok:false,dup:true,msg:`Empieza igual que la de ${dup.nombre}. Cambia la primera línea para que Peter las distinga.`};return{ok:true,msg:'Descripción única ✓'}}
@@ -728,7 +731,7 @@ function fichaHtml(cur,tecnica){return `
   ${FICHA_COMPLETA?`${stepHtml(2,'tema','¿De qué trata?',pillsHtml(TEMAS,'tema',cur))}
   ${stepHtml(3,'formato','¿Cómo está hecho?',pillsHtml(FORMATOS,'formato',cur))}
   ${stepHtml(4,'oferta','¿Qué ofrece al final?',pillsHtml(OFERTAS,'oferta',cur))}`:''}
-  ${stepHtml(FICHA_COMPLETA?5:2,'descripcion','Descripción tal cual se publicó',`${tecnica?`<div class="m" style="margin-bottom:8px">Técnica que puso ROMO CAMBIOS: <b style="color:var(--blanco)">${esc(tecnica)}</b> · se guarda en notas</div>`:''}<textarea class="field" id="f-ds" rows="5" placeholder="Pega el texto completo del post">${esc(cur.descripcion||'')}</textarea><div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start"><div class="st idle" id="s-ds"></div><button type="button" class="btn btn-gray btn-sm" id="f-dsp" style="margin-top:6px">Pegar</button></div>`)}`}
+  ${stepHtml(FICHA_COMPLETA?5:2,'descripcion','Descripción tal cual se publicó',`<textarea class="field" id="f-ds" rows="5" placeholder="Pega el texto completo del post">${esc(cur.descripcion||'')}</textarea><div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start"><div class="st idle" id="s-ds"></div><button type="button" class="btn btn-gray btn-sm" id="f-dsp" style="margin-top:6px">Pegar</button></div>`)}`}
 function bindFicha(cur,onChange){
   const tk=$('#f-tk'),ds=$('#f-ds');
   tk.oninput=()=>{cur.tiktok=tk.value.trim();onChange()};ds.oninput=()=>{cur.descripcion=ds.value;onChange()};
@@ -746,7 +749,7 @@ function updFicha(cur){
 let ed=null;
 function openEditor(id,modo){
   const v=videos.find(x=>x.id===id);if(!v)return;
-  const tecnica=(v.descripcion&&!esDescReal(v.descripcion))?v.descripcion.trim():'';
+  const tecnica=esTecnica(v.descripcion)?v.descripcion.trim():'';
   ed={orig:v,modo,tecnica,cur:{...v,descripcion:tecnica?'':(v.descripcion||''),fechaIso:(()=>{const d=parseFecha(v.fecha);return d?isoDe(d):''})()}};
   if(modo==='publicar')ed.cur.estado='PUBLICADO';
   const c=ed.cur,cats=allCats();
@@ -795,8 +798,8 @@ async function guardarEditor(){
   const fe=$('#e-fec').value.trim();v.fecha=(c.fechaIso&&fe===c.fechaIso)?o.fecha:(fe||o.fecha); // si no se tocó, la fecha queda igual que estaba
   v.vistas=$('#e-vis').value.trim();v.tanda=$('#e-tan').value.trim();v.notas=$('#e-not').value.trim();
   const d=(c.descripcion||'').trim();
-  if(!d)v.descripcion=o.descripcion||''; // sin descripción nueva: se queda la que había
-  else{v.descripcion=d;if(ed.tecnica&&!v.notas.toUpperCase().includes(ed.tecnica.toUpperCase()))v.notas=(v.notas?v.notas+' · ':'')+'Técnica: '+ed.tecnica}
+  // Sin descripción nueva se queda la que había, salvo que fuera la etiqueta de técnica de ROMO CAMBIOS: esa se limpia.
+  v.descripcion=d||(ed.tecnica?'':(o.descripcion||''));
   if(v.estado==='PUBLICADO'&&o.estado!=='PUBLICADO'&&fichaN(v)<FICHA.length){toast('Completa la ficha antes de publicar');return}
   const otro=videos.find(x=>x.id!==v.id&&normCod(x.nombre)===normCod(v.nombre));
   if(otro&&normCod(v.nombre)!==normCod(o.nombre)){toast(`⚠ Ya existe un video con el código ${otro.nombre}`);return}
