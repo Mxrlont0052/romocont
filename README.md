@@ -14,7 +14,9 @@ GitHub Pages (index.html)  ←→  Apps Script Web App  ←→  Google Sheet "VI
 
 | Archivo | Qué es |
 |---|---|
-| `index.html` | La página completa (dashboard, pendientes, tabla, registro por tanda) |
+| `index.html` | La página completa, celular + escritorio (dashboard, pendientes, videos, tanda, guía, reportes). Diseño ROMO, 12-10-2026 |
+| `index-anterior.html` | La versión de antes del rediseño, por si hay que volver |
+| `Code-ficha-completa.gs` | Backend con TEMA / FORMATO / OFERTA, listo para desplegar cuando se active la ficha completa (`FICHA_COMPLETA=true`) |
 | `Code.gs` | Backend — se pega en Apps Script del Google Sheet |
 | `data_limpia.csv` | Los 311 videos limpios (sin duplicados) para sembrar el Sheet |
 
