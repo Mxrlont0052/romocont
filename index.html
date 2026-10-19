@@ -512,6 +512,9 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const who=v=>(v.creador||'').trim().toUpperCase();
 const normCod=s=>String(s||'').toUpperCase().replace(/\s+/g,'');
 const allCats=()=>[...new Set([...Object.keys(CATEGORIES).filter(c=>c!=='VIDEOS IA'),...videos.map(v=>v.categoria)])].filter(c=>c&&c!=='CONFIG');
+/* Campaña: etiqueta opcional (MINISTERIO DE TRABAJO, EDICION DE AUDIO…). Antes era "tanda". */
+const campanas=()=>[...new Set(['MINISTERIO DE TRABAJO','EDICION DE AUDIO',...videos.map(v=>(v.campana||'').trim().toUpperCase())])].filter(Boolean).sort();
+const dlCamp=id=>`<datalist id="${id}">${campanas().map(n=>`<option value="${esc(n)}">`).join('')}</datalist>`;
 const creadores=()=>[...new Set(['MARLONT','DANIEL','TIPAN','WLADO','KIKE','LIZY',...videos.map(who)])].filter(Boolean).sort();
 // Siguiente número libre de una categoría (PREFIJO + 3 dígitos, pegado)
 function nextNumber(cat){const c=CATEGORIES[cat];if(!c)return null;const re=new RegExp('^'+c.prefix.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'0*(\\d+)$');let max=0,count=0;
@@ -765,7 +768,7 @@ function openEditor(id,modo){
           <div class="f2"><label class="fl"><span>Creador</span><input class="field" id="e-cre" list="dl-cre" value="${esc(who(c))}" autocomplete="off"></label>
           <label class="fl"><span>Fecha de envío</span>${c.fechaIso?`<input class="field" type="date" id="e-fec" value="${c.fechaIso}">`:`<input class="field" id="e-fec" value="${esc(c.fecha||'')}" placeholder="2026-10-12">`}</label></div>
           <div class="f2"><label class="fl"><span>Vistas</span><input class="field" type="number" min="0" id="e-vis" value="${esc(c.vistas||'')}" placeholder="0"></label>
-          <label class="fl"><span>Tanda</span><input class="field" id="e-tan" value="${esc(c.tanda||'')}"></label></div>
+          <label class="fl"><span>Campaña (opcional)</span><input class="field" id="e-tan" list="dl-camp" autocomplete="off" value="${esc(c.campana||'')}"></label></div>
           <label class="fl"><span>Notas</span><textarea class="field" id="e-not" rows="2">${esc(c.notas||'')}</textarea></label>
           ${esArchivo(v.link)?`<a class="m" href="${esc(v.link)}" target="_blank" rel="noopener" style="color:var(--cyan)">⬇ Archivo en Drive</a>`:''}
           <button type="button" class="btn-del" onclick="borrarVideo()">Eliminar video</button>
@@ -773,7 +776,7 @@ function openEditor(id,modo){
       </details>
     </div>
     <div class="sh-foot"><div class="miss" id="f-miss"></div><button class="btn btn-red btn-wide" id="f-save"></button></div>
-    <datalist id="dl-cre">${creadores().map(n=>`<option value="${esc(n)}">`).join('')}</datalist>`);
+    <datalist id="dl-cre">${creadores().map(n=>`<option value="${esc(n)}">`).join('')}</datalist>${dlCamp('dl-camp')}`);
   bindFicha(c,updEditor);
   const seg=$('#e-est');segPlace(seg);seg.querySelectorAll('button').forEach(b=>b.onclick=()=>{c.estado=b.dataset.v;seg.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));segPlace(seg);updEditor()});
   $('#f-save').onclick=guardarEditor;
@@ -796,7 +799,7 @@ async function guardarEditor(){
   v.estado=c.estado;v.tiktok=c.tiktok||'';v.tema=c.tema||'';v.formato=c.formato||'';v.oferta=c.oferta||'';
   v.categoria=$('#e-cat').value;v.nombre=$('#e-nom').value.trim()||o.nombre;v.creador=$('#e-cre').value.trim().toUpperCase();
   const fe=$('#e-fec').value.trim();v.fecha=(c.fechaIso&&fe===c.fechaIso)?o.fecha:(fe||o.fecha); // si no se tocó, la fecha queda igual que estaba
-  v.vistas=$('#e-vis').value.trim();v.tanda=$('#e-tan').value.trim();v.notas=$('#e-not').value.trim();
+  v.vistas=$('#e-vis').value.trim();v.campana=$('#e-tan').value.trim().toUpperCase();v.notas=$('#e-not').value.trim();
   const d=(c.descripcion||'').trim();
   // Sin descripción nueva se queda la que había, salvo que fuera la etiqueta de técnica de ROMO CAMBIOS: esa se limpia.
   v.descripcion=d||(ed.tecnica?'':(o.descripcion||''));
@@ -833,7 +836,7 @@ function openNuevo(){
       <label class="fl"><span>Estado</span><div class="seg seg-in" id="n-est"><i class="th"></i><button type="button" data-v="PENDIENTE" aria-pressed="true">Pendiente</button><button type="button" data-v="PUBLICADO" aria-pressed="false">Publicado</button></div></label>
       <div class="f2"><label class="fl"><span>Creador</span><input class="field" id="n-cre" list="dl-cre2" autocomplete="off" placeholder="MARLONT, DANIEL…"></label>
       <label class="fl"><span>Fecha de envío</span><input class="field" type="date" id="n-fec" value="${hoyIso()}"></label></div>
-      <div class="f2"><label class="fl"><span>Tanda</span><input class="field" id="n-tan"></label><label class="fl"><span>Vistas</span><input class="field" type="number" min="0" id="n-vis" placeholder="0"></label></div>
+      <div class="f2"><label class="fl"><span>Campaña (opcional)</span><input class="field" id="n-tan" list="dl-camp2" autocomplete="off"></label>${dlCamp('dl-camp2')}<label class="fl"><span>Vistas</span><input class="field" type="number" min="0" id="n-vis" placeholder="0"></label></div>
     </div>
     <div id="n-ficha" hidden>${fichaHtml(nv,'')}</div></div>
     <div class="sh-foot"><div class="miss" id="f-miss"></div><button class="btn btn-red btn-wide" id="f-save">Guardar video</button></div>
@@ -852,7 +855,7 @@ function updNuevo(){
   $('#f-save').disabled=!!(dup||miss.length);
 }
 async function guardarNuevo(){
-  const b=$('#f-save');const v={id:'v'+Date.now(),tanda:$('#n-tan').value.trim(),fecha:$('#n-fec').value,categoria:$('#n-cat').value,nombre:$('#n-nom').value.trim(),estado:nv.estado,
+  const b=$('#f-save');const v={id:'v'+Date.now(),campana:$('#n-tan').value.trim().toUpperCase(),fecha:$('#n-fec').value,categoria:$('#n-cat').value,nombre:$('#n-nom').value.trim(),estado:nv.estado,
     creador:$('#n-cre').value.trim().toUpperCase(),link:'',tiktok:nv.estado==='PUBLICADO'?nv.tiktok:'',notas:'',vistas:$('#n-vis').value.trim(),descripcion:nv.estado==='PUBLICADO'?(nv.descripcion||'').trim():'',
     tema:nv.estado==='PUBLICADO'?nv.tema:'',formato:nv.estado==='PUBLICADO'?nv.formato:'',oferta:nv.estado==='PUBLICADO'?nv.oferta:''};
   b.disabled=true;b.textContent='Guardando…';
@@ -871,7 +874,7 @@ function rTanda(){
       <div class="m" id="t-warn" style="color:var(--naranja)"></div>
       <div class="f2"><label class="fl"><span>Creador</span><input class="field" id="t-cre" list="dl-cre3" autocomplete="off" placeholder="MARLONT, DANIEL…"></label>
       <label class="fl"><span>Fecha de envío</span><input class="field" type="date" id="t-fec" value="${hoyIso()}"></label></div>
-      <label class="fl"><span>Tanda #</span><input class="field" id="t-tan" placeholder="Número de tanda"></label>
+      <label class="fl"><span>Campaña (opcional)</span><input class="field" id="t-tan" list="dl-camp3" autocomplete="off" placeholder="MINISTERIO DE TRABAJO, EDICION DE AUDIO…"></label>${dlCamp('dl-camp3')}
       <label class="fl"><span>Códigos — uno por línea *</span><textarea class="field" id="t-cod" rows="9" placeholder="ES140\nES141\nES142"></textarea></label>
       <div style="display:flex;justify-content:space-between" class="m"><span id="t-count">0 videos</span><span id="t-next"></span></div>
       <button class="btn btn-red btn-wide" id="t-save" disabled>Registrar tanda</button>
@@ -892,10 +895,10 @@ function updTanda(){
 }
 async function guardarTanda(){
   const cat=$('#t-cat').value,ok=tandaCodigos().filter(x=>!x.ex&&!x.rep),b=$('#t-save');if(!cat||!ok.length)return;
-  const base=Date.now(),cre=$('#t-cre').value.trim().toUpperCase(),fec=$('#t-fec').value,tan=$('#t-tan').value.trim();
+  const base=Date.now(),cre=$('#t-cre').value.trim().toUpperCase(),fec=$('#t-fec').value,tan=$('#t-tan').value.trim().toUpperCase();
   b.disabled=true;let n=0;
   for(const [i,x] of ok.entries()){b.textContent=`Guardando ${i+1} de ${ok.length}…`;
-    const v={id:'v'+(base+i),tanda:tan,fecha:fec,categoria:cat,nombre:x.c,estado:tandaEst,creador:cre,link:'',tiktok:'',notas:'',vistas:'',descripcion:'',tema:'',formato:'',oferta:''};
+    const v={id:'v'+(base+i),campana:tan,fecha:fec,categoria:cat,nombre:x.c,estado:tandaEst,creador:cre,link:'',tiktok:'',notas:'',vistas:'',descripcion:'',tema:'',formato:'',oferta:''};
     if(await insertVideo(v)){videos.push(v);n++}}
   _hash=hashVideos(videos);toast(`✓ ${n} videos registrados — ahora súbelos a Drive 📤`);$('#t-cod').value='';updTanda();render();
 }
