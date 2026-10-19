@@ -34,3 +34,14 @@ Desde ahora `Code.gs` lee por **nombre de columna**: se pueden mover columnas si
 4. Subir la página nueva (`git push`) para que "Tanda" pase a llamarse "Campaña (opcional)".
 
 ROMO CAMBIOS, la Fábrica, el revisor y nube-sync siguen funcionando igual: mandan los datos por nombre.
+
+## Paso 3 — Guiones por línea, TESTIMONIOS y vistas (19-10-2026, segunda pasada)
+
+1. **Romo cont** → Extensiones → Apps Script → pegar `Code.gs` nuevo → guardar.
+2. Ejecutar **`actualizar`** (NO `reorganizar` otra vez). Hace:
+   - ROMO DJS → TESTIMONIOS (los códigos RDJ no cambian)
+   - Categorías IA VIRAL (IAV), IA EDICION DE AUDIO (IAE), IA MDT (IAM) en LISTAS
+   - Pestañas **GUIONES VIRAL / GUIONES EA / GUIONES MDT**: al escribir el título, el CÓDIGO se pone solo
+   - Una pestaña **▸ categoría** por cada categoría (pendientes arriba; se edita en VIDEOS, no ahí)
+3. Implementar → Gestionar implementaciones → ✎ → Nueva versión → Implementar.
+4. Después (lo hace Claude): `modal deploy` de la Fábrica y `git push` de la página.

@@ -11,6 +11,8 @@
  *   LISTAS  → categorías, creadores, estados y campañas (menús de la hoja)
  *   PANEL   → resumen con fórmulas, solo se lee
  *   CONFIG  → ajustes (carpeta de subidas). Antes era una fila dentro de VIDEOS
+ *   GUIONES VIRAL / EA / MDT → guiones de la Fábrica, uno por línea de IA (ver LINEAS_IA)
+ *   ▸ <categoría> → vista de solo lectura de cada categoría, pendientes arriba
  *
  * ORDENAR LA HOJA (una sola vez): correr reorganizar() desde el editor.
  * Después: Desplegar → Gestionar implementaciones → ✎ → Versión: Nueva → Desplegar
@@ -55,9 +57,29 @@ const FIELDS = COLS.map(c => c[0]);
 // Lo que aparece en los menús de LISTAS la primera vez (después se editan en la hoja).
 const CATEGORIAS = [
   ['ESTUDIANTES', 'ES'], ['DEMOSTRATIVAS', 'DM'], ['RELLENO', 'RLL'], ['ROMO ROOM', 'RR'],
-  ['ROMO DJS', 'RDJ'], ['IA INFORMATIVO', 'IA'], ['MINISTERIO DE TRABAJO', 'MDT'],
+  ['TESTIMONIOS', 'RDJ'], ['IA VIRAL', 'IAV'], ['IA EDICION DE AUDIO', 'IAE'], ['IA MDT', 'IAM'],
+  ['IA INFORMATIVO', 'IA'], ['MINISTERIO DE TRABAJO', 'MDT'],
   ['EDICION DE AUDIO', 'EA'], ['PEDRO ROMO', 'PDR'], ['VIDEOS 360', '360'],
 ];
+
+// Videos de IA por línea (19-10-2026). El código nace con el guion: al escribir el
+// título en su pestaña, la hoja le pone el siguiente libre (IAV001, IAE001, IAM001…).
+// IA001–IA048 se quedan como historial en IA INFORMATIVO.
+// IAM = video de IA sobre MDT; no confundir con MDT### (videos reales de DJs certificados).
+const LINEAS_IA = [
+  { linea: 'VIRAL', hoja: 'GUIONES VIRAL', categoria: 'IA VIRAL', prefijo: 'IAV', para: 'DJ hobby: comunidad, polémica, traer gente a la demo' },
+  { linea: 'EA', hoja: 'GUIONES EA', categoria: 'IA EDICION DE AUDIO', prefijo: 'IAE', para: 'Productores (primero DJ, después productor)' },
+  { linea: 'MDT', hoja: 'GUIONES MDT', categoria: 'IA MDT', prefijo: 'IAM', para: 'DJ pro, certificación' },
+];
+// Columnas de un guion: CÓDIGO y Estado + lo que lee la Fábrica (romo-reel/fabrica/hoja.py), por encabezado.
+const GUION_HEADS = ['CÓDIGO', 'Estado', 'Título', 'Estilo', 'Puerta', 'Tono',
+  '1 Conflicto · voz', '1 · ceja', '1 · titular', '1 · sub',
+  '2 Antes del PERO · ceja', '2 Antes del PERO · titular', '2 PERO · voz', '2 · ceja', '2 · titular', '2 · sub',
+  '3 POR LO TANTO · voz', '3 · ceja', '3 · titular', '3 · sub',
+  '4 Pregunta · voz', '4 · titular', '4 · sub', 'Mito · frase', 'Mito · sello',
+  'Chat · contacto', 'Chat · mensajes del problema', 'Chat · mensajes de la solución', 'Notas'];
+// borrador → listo (la Fábrica lo puede tomar) → en fábrica → hecho (aprobado, en Drive y en VIDEOS) / descartado
+const GUION_ESTADOS = ['borrador', 'listo', 'en fábrica', 'hecho', 'descartado'];
 const ESTADOS = ['PENDIENTE', 'PUBLICADO'];
 const CREADORES = ['MARLONT', 'DANIEL', 'TIPAN', 'WLADO', 'KIKE', 'LIZY'];
 const CAMPANAS = ['MINISTERIO DE TRABAJO', 'EDICION DE AUDIO'];
@@ -137,9 +159,10 @@ function setConfig(clave, valor, paraQue) {
   else sh.appendRow([clave, valor, paraQue || '']);
 }
 
-// ===== GET: devolver todos los videos =====
-function doGet() {
+// ===== GET: devolver todos los videos (o los guiones con ?guiones=1) =====
+function doGet(e) {
   try {
+    if (e && e.parameter && e.parameter.guiones) return jsonOut(leerGuiones());
     const sheet = getSheet();
     const m = colMap(sheet);
     const data = sheet.getDataRange().getValues();
@@ -261,6 +284,15 @@ function doPost(e) {
       // Guardar el link de SUBIR AQUI para el botón 📤 de la página
       if (req.inbox) setConfig('CARPETA_SUBIDAS', req.inbox, 'Botón 📤 de la página');
       return jsonOut({ ok: true, action: 'nube', linked: linked, archivos: items.length });
+    }
+
+    if (req.action === 'guion') {
+      // La Fábrica avisa en qué va cada guion: en fábrica / hecho / descartado / listo
+      if (GUION_ESTADOS.indexOf(req.estado) < 0) throw new Error('Estado de guion no válido: ' + req.estado);
+      const g = buscarGuion(req.codigo);
+      if (!g) throw new Error('No existe el guion ' + req.codigo);
+      g.sheet.getRange(g.fila, g.cols.indexOf('ESTADO') + 1).setValue(req.estado);
+      return jsonOut({ ok: true, action: 'guion', codigo: req.codigo, estado: req.estado });
     }
 
     if (req.action === 'drive') {
@@ -450,6 +482,200 @@ function darFormatoVideos(sheet, n) {
   ]);
 
   sheet.getRange(1, 1, n + 1, COLS.length).createFilter();
+}
+
+// ===========================================================================
+// GUIONES — una pestaña por línea de IA
+// ===========================================================================
+function hojaGuion(ss, l) {
+  let sh = ss.getSheetByName(l.hoja);
+  if (!sh) {
+    sh = ss.insertSheet(l.hoja);
+    sh.getRange(1, 1, 1, GUION_HEADS.length).setValues([GUION_HEADS]);
+  }
+  return sh;
+}
+
+// Encabezados normalizados de una pestaña de guiones.
+const cabGuion = sh => sh.getRange(1, 1, 1, Math.max(1, sh.getLastColumn())).getValues()[0].map(normHead);
+
+// Número más alto usado con ese prefijo, en VIDEOS y en las pestañas de guiones.
+function ultimoNumero(ss, prefijo) {
+  const re = new RegExp('^' + prefijo + '\\s*0*(\\d+)$', 'i');
+  let top = 0;
+  const mira = c => { const x = String(c || '').trim().match(re); if (x) top = Math.max(top, +x[1]); };
+  const v = getSheet(), m = colMap(v);
+  if (v.getLastRow() > 1) v.getRange(2, m.nombre + 1, v.getLastRow() - 1, 1).getValues().forEach(f => mira(f[0]));
+  LINEAS_IA.forEach(l => {
+    const sh = ss.getSheetByName(l.hoja);
+    if (!sh || sh.getLastRow() < 2) return;
+    const i = cabGuion(sh).indexOf('CODIGO');
+    if (i >= 0) sh.getRange(2, i + 1, sh.getLastRow() - 1, 1).getValues().forEach(f => mira(f[0]));
+  });
+  return top;
+}
+
+// Todo guion con título y sin código recibe el siguiente libre de su línea. Idempotente.
+function asignarCodigos(soloHoja) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let n = 0;
+  LINEAS_IA.forEach(l => {
+    if (soloHoja && soloHoja !== l.hoja) return;
+    const sh = ss.getSheetByName(l.hoja);
+    if (!sh || sh.getLastRow() < 2) return;
+    const cab = cabGuion(sh), iC = cab.indexOf('CODIGO'), iT = cab.indexOf('TITULO'), iE = cab.indexOf('ESTADO');
+    if (iC < 0 || iT < 0) return;
+    const data = sh.getRange(2, 1, sh.getLastRow() - 1, cab.length).getValues();
+    let top = null;
+    data.forEach((f, r) => {
+      if (!String(f[iT]).trim() || String(f[iC]).trim()) return;
+      if (top == null) top = ultimoNumero(ss, l.prefijo);
+      top++;
+      sh.getRange(r + 2, iC + 1).setValue(l.prefijo + String(top).padStart(3, '0'));
+      if (iE >= 0 && !String(f[iE]).trim()) sh.getRange(r + 2, iE + 1).setValue('borrador');
+      n++;
+    });
+  });
+  return n;
+}
+
+// Se dispara solo al editar la hoja: escribir el título de un guion le da su código al instante.
+function onEdit(e) {
+  try {
+    const nombre = e && e.range && e.range.getSheet().getName();
+    if (LINEAS_IA.some(l => l.hoja === nombre)) asignarCodigos(nombre);
+  } catch (err) { /* nunca bloquear la edición */ }
+}
+
+// Todos los guiones, con su línea, para la Fábrica. Las llaves son los encabezados tal cual.
+function leerGuiones() {
+  asignarCodigos();
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const out = [];
+  LINEAS_IA.forEach(l => {
+    const sh = ss.getSheetByName(l.hoja);
+    if (!sh || sh.getLastRow() < 2) return;
+    const data = sh.getDataRange().getValues();
+    const cab = data[0].map(h => String(h).trim());
+    for (let r = 1; r < data.length; r++) {
+      if (!data[r].some(x => String(x).trim())) continue;
+      const g = { linea: l.linea, categoria: l.categoria, fila: r + 1 };
+      cab.forEach((h, i) => { if (h) g[h] = celda(data[r][i]).trim(); });
+      out.push(g);
+    }
+  });
+  return out;
+}
+
+function buscarGuion(codigo) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const want = normCodigo(codigo);
+  for (const l of LINEAS_IA) {
+    const sh = ss.getSheetByName(l.hoja);
+    if (!sh || sh.getLastRow() < 2) continue;
+    const cols = cabGuion(sh), iC = cols.indexOf('CODIGO');
+    const data = sh.getRange(2, iC + 1, sh.getLastRow() - 1, 1).getValues();
+    const r = data.findIndex(f => normCodigo(f[0]) === want);
+    if (r >= 0) return { sheet: sh, fila: r + 2, cols: cols };
+  }
+  return null;
+}
+
+function formatoGuiones(ss) {
+  const listas = ss.getSheetByName(LISTAS_SHEET);
+  LINEAS_IA.forEach((l, k) => {
+    const sh = hojaGuion(ss, l);
+    sh.setFrozenRows(1); sh.setFrozenColumns(3);
+    sh.getRange(1, 1, 1, sh.getLastColumn()).setFontWeight('bold').setFontColor('#FFFFFF').setBackground('#000000');
+    sh.getRange(1, 1, 1, 2).setBackground('#E8001D');
+    sh.getRange('A1').setNote(l.categoria + ' — ' + l.para + '. El CÓDIGO se pone solo al escribir el título. ' +
+      'Estado: borrador → listo (la Fábrica lo toma) → en fábrica → hecho / descartado.');
+    const est = sh.getRange(2, 2, Math.max(sh.getMaxRows() - 1, 1), 1);
+    est.setDataValidation(SpreadsheetApp.newDataValidation()
+      .requireValueInRange(listas.getRange('J2:J' + (GUION_ESTADOS.length + 1)), true).setAllowInvalid(false).build());
+    sh.setConditionalFormatRules([
+      ['listo', '#D7F5E3', '#1B5E20'], ['en fábrica', '#FFE0B2', '#E65100'],
+      ['hecho', '#E0F7FA', '#006064'], ['descartado', '#EEEEEE', '#9E9E9E'],
+    ].map(([t, bg, fg]) => SpreadsheetApp.newConditionalFormatRule().whenTextEqualTo(t)
+      .setBackground(bg).setFontColor(fg).setRanges([est]).build()));
+    sh.setColumnWidth(1, 90); sh.setColumnWidth(2, 100); sh.setColumnWidth(3, 240);
+    sh.setTabColor(['#E8001D', '#00FFFF', '#FFFFFF'][k]);
+  });
+}
+
+// ===========================================================================
+// VISTAS — una pestaña por categoría, pendientes arriba. Se calculan solas: se edita en VIDEOS.
+// ===========================================================================
+function crearVistas(ss) {
+  const listas = ss.getSheetByName(LISTAS_SHEET);
+  const cats = listas.getRange('A2:A').getValues().map(f => String(f[0]).trim()).filter(Boolean);
+  const L = c => String.fromCharCode(64 + FIELDS.indexOf(c) + 1);
+  const cols = ['nombre', 'campana', 'estado', 'creador', 'fecha', 'link', 'tiktok', 'descripcion', 'vistas', 'notas'].map(L).join(',');
+  cats.forEach(cat => {
+    const nombre = '▸ ' + cat;
+    let sh = ss.getSheetByName(nombre);
+    if (!sh) sh = ss.insertSheet(nombre);
+    sh.clear();
+    sh.getRange('A1').setFormula(`=QUERY(VIDEOS!A:Q,"select ${cols} where ${L('categoria')} = '${cat.replace(/'/g, "")}' order by ${L('estado')} asc, ${L('nombre')} asc",1)`);
+    sh.setFrozenRows(1);
+    sh.getRange(1, 1, 1, 10).setFontWeight('bold').setFontColor('#FFFFFF').setBackground('#1A1A1A');
+    sh.getRange('E2:E').setNumberFormat('yyyy-mm-dd');
+    sh.setTabColor('#333333');
+  });
+}
+
+// ===========================================================================
+// ACTUALIZAR (19-10-2026) — correr UNA vez después de reorganizar(). No reordena ni borra nada.
+// ===========================================================================
+//  1. ROMO DJS → TESTIMONIOS (los 8 videos conservan su código RDJ)
+//  2. LISTAS: categorías IA VIRAL / IA EDICION DE AUDIO / IA MDT y estados de guion
+//  3. Pestañas GUIONES VIRAL / GUIONES EA / GUIONES MDT
+//  4. Una pestaña ▸ por categoría (pendientes arriba)
+//  5. PANEL al día y pestañas en orden
+function actualizar() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = getSheet(), m = colMap(sheet);
+  const informe = { testimonios: 0, categoriasNuevas: [], guiones: [], vistas: 0 };
+
+  // 1. Testimonios
+  if (sheet.getLastRow() > 1) {
+    const rg = sheet.getRange(2, m.categoria + 1, sheet.getLastRow() - 1, 1);
+    const vals = rg.getValues();
+    vals.forEach(f => { if (String(f[0]).trim().toUpperCase() === 'ROMO DJS') { f[0] = 'TESTIMONIOS'; informe.testimonios++; } });
+    rg.setValues(vals);
+  }
+
+  // 2. LISTAS (sin borrar lo que se haya agregado a mano)
+  const listas = ss.getSheetByName(LISTAS_SHEET);
+  const colA = listas.getRange('A2:B').getValues();
+  const iRdj = colA.findIndex(f => String(f[0]).trim() === 'ROMO DJS');
+  if (iRdj >= 0) listas.getRange(iRdj + 2, 1).setValue('TESTIMONIOS');
+  const tiene = new Set(listas.getRange('A2:A').getValues().map(f => String(f[0]).trim()));
+  LINEAS_IA.forEach(l => {
+    if (tiene.has(l.categoria)) return;
+    listas.getRange(listas.getRange('A:A').getValues().filter(f => String(f[0]).trim()).length + 1, 1, 1, 2)
+      .setValues([[l.categoria, l.prefijo]]);
+    informe.categoriasNuevas.push(l.categoria);
+  });
+  listas.getRange(1, 10, GUION_ESTADOS.length + 1, 1).setValues([['ESTADO GUION']].concat(GUION_ESTADOS.map(x => [x])));
+  listas.getRange('J1').setFontWeight('bold').setBackground('#000000').setFontColor('#FFFFFF');
+
+  // 3. Guiones
+  LINEAS_IA.forEach(l => { hojaGuion(ss, l); informe.guiones.push(l.hoja); });
+  formatoGuiones(ss);
+
+  // 4 y 5
+  crearVistas(ss);
+  informe.vistas = listas.getRange('A2:A').getValues().filter(f => String(f[0]).trim()).length;
+  crearPanel(ss);
+  const orden = [SHEET_NAME].concat(LINEAS_IA.map(l => l.hoja));
+  orden.forEach((n, i) => { const sh = ss.getSheetByName(n); ss.setActiveSheet(sh); ss.moveActiveSheet(i + 1); });
+  ss.getSheets().filter(sh => /^▸ /.test(sh.getName())).forEach((sh, i) => { ss.setActiveSheet(sh); ss.moveActiveSheet(orden.length + i + 1); });
+  [PANEL_SHEET, LISTAS_SHEET, CONFIG_SHEET].forEach(n => { const sh = ss.getSheetByName(n); if (sh) { ss.setActiveSheet(sh); ss.moveActiveSheet(ss.getSheets().length); } });
+  ss.setActiveSheet(sheet);
+
+  Logger.log(JSON.stringify(informe, null, 2));
+  return informe;
 }
 
 // PANEL: resumen que se calcula solo. No se escribe a mano.
