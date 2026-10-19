@@ -93,8 +93,19 @@ const MOVER_CATEGORIA = {
 // ===========================================================================
 // Encabezados: de nombre de columna a número de columna
 // ===========================================================================
-const normHead = s => String(s || '').toUpperCase().trim()
-  .normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ');
+// Texto dañado al pegar el código con el portapapeles en MacRoman (19-10-2026): "C√ìDIGO" → "CÓDIGO".
+// Se escribe con escapes \u para que este arreglo no se dañe igual al pegarlo.
+const MOJIBAKE = [
+  ['\u221A\u00EC', '\u00D3'], ['\u221A\u00E7', '\u00CD'], ['\u221A\u00EB', '\u00D1'], ['\u221A\u00C5', '\u00C1'],
+  ['\u221A\u00E2', '\u00C9'], ['\u221A\u00F6', '\u00DA'], ['\u221A\u00FA', '\u00DC'], ['\u221A\u00B0', '\u00E1'],
+  ['\u221A\u00A9', '\u00E9'], ['\u221A\u2260', '\u00ED'], ['\u221A\u2265', '\u00F3'], ['\u221A\u222B', '\u00FA'],
+  ['\u221A\u00B1', '\u00F1'], ['\u221A\u00BA', '\u00FC'], ['\u00AC\u2211', '\u00B7'], ['\u201A\u00C4\u00EE', '\u2014'],
+  ['\u201A\u00F1\u220F', '\u25B8'], ['\u00AC\u00F8', '\u00BF'], ['\u00AC\u00B0', '\u00A1'], ['\u201A\u00DC\u00ED', '\u2192'],
+  ['\u201A\u00FA\u00EC', '\u2713'], ['\uF8FF\u00FC\u00EC\u00A7', '\uD83D\uDCE4'],
+];
+const arreglar = s => MOJIBAKE.reduce((t, [mal, bien]) => t.split(mal).join(bien), String(s == null ? '' : s));
+const normHead = s => arreglar(s).toUpperCase().trim()
+  .normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ');
 
 // { campo: índice 0-based } según la fila 1 de la hoja. Un campo que no tiene
 // columna en la hoja simplemente no se lee ni se escribe.
@@ -635,7 +646,22 @@ function crearVistas(ss) {
 function actualizar() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = getSheet(), m = colMap(sheet);
-  const informe = { testimonios: 0, categoriasNuevas: [], guiones: [], vistas: 0 };
+  const informe = { tildesArregladas: 0, testimonios: 0, categoriasNuevas: [], guiones: [], vistas: 0 };
+
+  // 0. Tildes dañadas en encabezados y textos fijos (VIDEOS fila 1, LISTAS fila 1, CONFIG)
+  const cab = sheet.getRange(1, 1, 1, sheet.getLastColumn());
+  const heads = cab.getValues()[0];
+  const nuevos = heads.map(h => { const f = COLS.find(([, hh, al]) => [hh].concat(al).map(normHead).includes(normHead(h))); return f ? f[1] : arreglar(h); });
+  informe.tildesArregladas += nuevos.filter((h, i) => h !== heads[i]).length;
+  cab.setValues([nuevos]);
+  [LISTAS_SHEET, CONFIG_SHEET].forEach(n => {
+    const sh = ss.getSheetByName(n);
+    if (!sh || !sh.getLastRow()) return;
+    const rg = sh.getDataRange(), v = rg.getValues();
+    const a = v.map(f => f.map(x => typeof x === 'string' ? arreglar(x) : x));
+    informe.tildesArregladas += a.flat().filter((x, i) => x !== v.flat()[i]).length;
+    rg.setValues(a);
+  });
 
   // 1. Testimonios
   if (sheet.getLastRow() > 1) {
