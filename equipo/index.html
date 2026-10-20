@@ -1,0 +1,753 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<title>ROMO CONT · Equipo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap">
+<script src="https://accounts.google.com/gsi/client" async></script>
+<style>
+/* ROMO CENTRAL · Subir + ROMO EDITS (opción A, aprobada 20-10-2026). Mismos tokens que el RomoCont aprobado (../index.html). */
+:root{
+  --negro:#000; --card:#0D0D0D; --card-2:#151515; --borde:#1A1A1A;
+  --blanco:#fff; --l2:rgba(255,255,255,.62); --l3:rgba(255,255,255,.34);
+  --rojo:#FF0000; --cyan:#00FFFF; --verde:#30D158; --naranja:#FF9230;
+  --fill:rgba(120,120,128,.24); --sep:rgba(84,84,88,.6);
+  --font:"Montserrat",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; --tap:44px;
+  --spring:linear(0, 0.060 4.2%, 0.186 8.3%, 0.329 12.5%, 0.464 16.7%, 0.583 20.8%, 0.681 25.0%, 0.759 29.2%, 0.820 33.3%, 0.866 37.5%, 0.902 41.7%, 0.928 45.8%, 0.948 50.0%, 0.962 54.2%, 0.973 58.3%, 0.981 62.5%, 0.986 66.7%, 0.990 70.8%, 0.993 75.0%, 0.995 79.2%, 0.996 83.3%, 0.997 87.5%, 0.998 91.7%, 0.999 95.8%, 1);
+}
+@supports not (transition-timing-function: linear(0, 1)){:root{--spring:cubic-bezier(.25,.1,.25,1)}}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--negro)}
+body{color:var(--blanco);font-family:var(--font);-webkit-font-smoothing:antialiased;font-size:16px;line-height:1.35}
+button,input,select{font:inherit;color:inherit;-webkit-tap-highlight-color:transparent}
+button{cursor:pointer;border:0;background:none}
+button:focus{outline:none} button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.hidden{display:none!important}
+
+/* Entrar */
+.login{min-height:100vh;display:grid;place-items:center;padding:24px}
+.login-box{width:100%;max-width:380px;text-align:center}
+.login-box img{height:44px;margin-bottom:28px}
+.login-box .h1{font-size:28px;line-height:32px}
+.login-box .sub{margin:10px 0 26px}
+#gbtn{display:flex;justify-content:center;min-height:44px}
+.dev{margin-top:22px;display:flex;gap:8px}
+.dev input{flex:1;min-width:0;height:var(--tap);border-radius:12px;background:var(--card-2);border:0;padding:0 12px;outline:none}
+
+/* Cascarón (escritorio de RomoCont: barra lateral) */
+.app{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+.side{position:sticky;top:0;height:100vh;border-right:1px solid var(--borde);padding:18px 12px;display:flex;flex-direction:column;gap:4px}
+.side .logo{padding:6px 10px 18px}
+.side .logo img{height:28px;display:block}
+.side .grp{font:800 11px/1 var(--font);letter-spacing:.14em;color:var(--l3);text-transform:uppercase;padding:16px 10px 8px}
+.side a{display:flex;align-items:center;gap:10px;height:40px;padding:0 10px;border-radius:10px;font:700 14px/1 var(--font);color:var(--l2);text-decoration:none;cursor:pointer;transition:background-color .3s}
+.side a:hover{background:var(--card)}
+.side a.on{background:var(--card-2);color:#fff}
+.side a .n{margin-left:auto;font:800 11px/1 var(--font);background:var(--rojo);color:#fff;border-radius:6px;padding:4px 6px}
+.me{margin-top:auto;display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;background:var(--card)}
+.av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--card-2);font:900 12px/1 var(--font);box-shadow:inset 0 0 0 1.5px var(--borde);flex:none;overflow:hidden}
+.av img{width:100%;height:100%;object-fit:cover}
+.me b{font:800 13px/16px var(--font);display:block}
+.me small{display:block;font:600 11px/14px var(--font);color:var(--l2)}
+.me button{margin-left:auto;font:700 11px/1 var(--font);color:var(--l2)}
+.main{padding:24px 32px 80px;max-width:1120px;min-width:0}
+
+.kicker{font:800 12px/16px var(--font);letter-spacing:.14em;text-transform:uppercase;color:var(--rojo)}
+.h1{font:900 34px/38px var(--font);text-transform:uppercase;margin-top:4px;letter-spacing:-.01em}
+.sub{font:500 15px/20px var(--font);color:var(--l2);margin-top:6px}
+.sec{display:flex;align-items:baseline;justify-content:space-between;margin:28px 0 10px}
+.sec h2{font:800 13px/18px var(--font);letter-spacing:.12em;text-transform:uppercase}
+.sec span{font:500 13px/18px var(--font);color:var(--l2)}
+.card{border-radius:20px;background:var(--card);box-shadow:inset 0 0 0 1px var(--borde);overflow:hidden}
+.row{position:relative;display:flex;align-items:center;gap:14px;min-height:56px;padding:12px 16px}
+.row + .row::before{content:"";position:absolute;top:0;right:0;left:16px;height:.5px;background:var(--sep)}
+.grow{flex:1;min-width:0}
+.t{font:700 15px/20px var(--font)}
+.m{font:500 13px/18px var(--font);color:var(--l2)}
+.m b{color:#fff}
+.trunc{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.empty{padding:22px 16px;color:var(--l2);font:500 14px/20px var(--font);text-align:center}
+.tag{display:inline-flex;align-items:center;font:800 10px/1 var(--font);letter-spacing:.1em;text-transform:uppercase;border-radius:6px;padding:4px 6px;white-space:nowrap}
+.tag.red{background:var(--rojo);color:#fff}.tag.org{background:rgba(255,146,48,.16);color:var(--naranja)}.tag.ok{background:rgba(48,209,88,.14);color:var(--verde)}.tag.cy{background:rgba(0,255,255,.12);color:var(--cyan)}.tag.gr{background:var(--fill);color:var(--l2)}
+.btn{border-radius:980px;min-height:var(--tap);padding:0 20px;font:800 15px/1 var(--font);display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:filter .35s,opacity .35s,background-color .35s;white-space:nowrap}
+.btn:active{transition:none}
+.btn-red{background:var(--rojo);color:#fff;text-transform:uppercase}
+.btn-red:active{filter:brightness(.82)}
+.btn-red:disabled{background:var(--fill);color:var(--l3);filter:none;cursor:default}
+.btn-gray{background:var(--card-2)}
+.btn-gray:active{opacity:.4}
+.btn-gray:disabled{opacity:.35;cursor:default}
+.btn-sm{min-height:34px;padding:0 14px;font-size:13px}
+.pbar{height:5px;border-radius:3px;background:var(--fill);overflow:hidden;margin-top:8px}
+.pbar i{display:block;height:100%;border-radius:3px;background:var(--rojo);transition:width .4s}
+.pbar i.ok{background:var(--verde)}
+.thumb{width:54px;height:96px;border-radius:10px;flex:none;background:#111 center/cover no-repeat;box-shadow:inset 0 0 0 1px var(--borde)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{height:34px;border-radius:980px;padding:0 14px;background:var(--card-2);font:700 13px/1 var(--font);display:flex;align-items:center;gap:6px}
+.chip[aria-pressed=true]{background:#fff;color:#000}
+.chip:active{opacity:.45;transition:none}
+kbd{font:700 11px/1 var(--font);background:var(--card-2);border-radius:5px;padding:3px 6px;color:var(--l2)}
+select.sel{height:36px;border-radius:10px;background:var(--card-2);border:0;padding:0 10px;font:700 13px/1 var(--font);outline:none;max-width:100%}
+
+/* Subir */
+.drop{border-radius:24px;border:2px dashed #333;padding:44px 20px;text-align:center;background:var(--card);transition:border-color .3s,background-color .3s}
+.drop.over{border-color:var(--rojo);background:#140707}
+.drop .big{font:900 26px/30px var(--font);text-transform:uppercase}
+.drop .m{margin-top:8px}
+
+/* ROMO EDITS: 3 botones */
+.big3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:22px}
+.bigb{border-radius:24px;background:var(--card);box-shadow:inset 0 0 0 1px var(--borde);padding:22px;text-align:left;display:flex;flex-direction:column;gap:10px;min-height:250px;position:relative;overflow:hidden;transition:background-color .3s}
+.bigb:hover{background:var(--card-2)}
+.bigb:active{filter:brightness(.85);transition:none}
+.bigb .ic{font:900 34px/1 var(--font)}
+.bigb .nm{font:900 24px/28px var(--font);text-transform:uppercase}
+.bigb .ds{font:500 14px/20px var(--font);color:var(--l2)}
+.bigb .ft{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:10px;position:relative;z-index:1}
+.bigb.main1{box-shadow:inset 0 0 0 2px var(--rojo)}
+.bigb.main1::after{content:"";position:absolute;right:-70px;top:-70px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(255,0,0,.28),transparent 70%);pointer-events:none}
+.bigb.soon{opacity:.4;cursor:default}
+.bigb.soon:hover{background:var(--card)}
+.cnt{font:900 44px/1 var(--font);letter-spacing:-.02em}
+.cnt small{font:700 12px/1 var(--font);color:var(--l2);letter-spacing:.06em;margin-left:6px}
+
+/* ROMO CAMBIOS · opción A «3 columnas» (aprobada 20-10-2026): todo en una pantalla, sin bajar */
+.main.fija{height:100vh;overflow:hidden;padding:16px 20px;max-width:none;display:flex;flex-direction:column}
+.main.fija > section{flex:1;min-height:0;display:flex;flex-direction:column}
+.ctop{display:flex;align-items:center;gap:16px;padding-bottom:14px;flex-wrap:wrap}
+.ctop .grow{min-width:200px}
+.ctop .h1{font-size:24px;line-height:28px}
+.pill{display:flex;align-items:center;gap:6px;height:36px;padding:0 6px 0 14px;border-radius:980px;background:var(--card);box-shadow:inset 0 0 0 1px var(--borde);font:700 12px/1 var(--font);color:var(--l2);white-space:nowrap}
+.pill b{color:#fff}
+.pill .btn{margin-left:4px}
+.steps{display:flex;gap:3px;background:var(--fill);border-radius:12px;padding:3px;width:max-content}
+.steps button{height:30px;padding:0 14px;border-radius:9px;font:700 13px/1 var(--font);color:var(--l2)}
+.steps button[aria-pressed=true]{background:#fff;color:#000}
+.cbody{flex:1;display:grid;grid-template-columns:190px auto minmax(340px,440px);gap:18px;min-height:0}
+.cola{display:flex;flex-direction:column;gap:6px;min-height:0;overflow:auto}
+.cola button{display:flex;align-items:center;gap:10px;padding:6px;border-radius:12px;text-align:left;transition:background-color .3s}
+.cola button:hover{background:var(--card)}
+.cola button.on{background:var(--card-2);box-shadow:inset 0 0 0 1.5px var(--rojo)}
+.cola .thumb{width:34px;height:60px;border-radius:6px}
+.vcol{display:flex;flex-direction:column;gap:8px;min-height:0;width:calc((100vh - 250px) * 9 / 16);min-width:260px}
+.vcol video{display:block;width:100%;flex:1;min-height:0;border-radius:16px;background:#050505;object-fit:contain;cursor:pointer}
+.track{position:relative;height:40px;flex:none;border-radius:10px;background:var(--card-2);cursor:pointer;overflow:hidden;touch-action:none}
+.track .wave{position:absolute;inset:9px 6px;background:repeating-linear-gradient(90deg,rgba(255,255,255,.22) 0 2px,transparent 2px 5px);-webkit-mask:linear-gradient(transparent,#000 35%,#000 65%,transparent);mask:linear-gradient(transparent,#000 35%,#000 65%,transparent)}
+.track .play{position:absolute;left:0;top:0;bottom:0;background:rgba(255,255,255,.08)}
+.track .cut{position:absolute;top:0;bottom:0;background:rgba(0,0,0,.65)}
+.track .mk{position:absolute;top:0;bottom:0;width:3px;margin-left:-1px;background:var(--rojo)}
+.track .mk::before{content:"CAMBIO";position:absolute;top:3px;left:6px;font:900 9px/1 var(--font);color:var(--rojo);letter-spacing:.1em}
+.track .head{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:#fff}
+.ptime{display:flex;justify-content:space-between;gap:8px;font:700 12px/1 var(--font);font-variant-numeric:tabular-nums;color:var(--l2)}
+.ptime b{color:#fff}
+.ptime button{font:700 12px/1 var(--font);color:var(--l2)}
+.panel{display:flex;flex-direction:column;gap:14px;border-radius:20px;background:var(--card);box-shadow:inset 0 0 0 1px var(--borde);padding:16px;min-height:0;overflow:auto}
+.paso{display:flex;flex-direction:column;gap:8px}
+.lbl{font:800 11px/14px var(--font);letter-spacing:.12em;text-transform:uppercase;color:var(--l2)}
+.lbl b{color:var(--rojo);margin-right:6px}
+.lbl span{color:var(--l3);letter-spacing:0;text-transform:none;font-weight:600}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:var(--fill);border-radius:12px;padding:3px;gap:3px}
+.seg button{height:36px;border-radius:9px;font:700 13px/1 var(--font);color:var(--l2);display:flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap}
+.seg button[aria-pressed=true]{background:#fff;color:#000}
+.seg button[aria-pressed=true] kbd{background:rgba(0,0,0,.12);color:#000}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.grid3 label{display:flex;flex-direction:column;gap:5px;min-width:0}
+.grid3 .sel{width:100%}
+.fin{margin-top:auto;display:flex;flex-direction:column;gap:8px}
+.estado1{display:flex;align-items:center;gap:10px;font:700 14px/18px var(--font)}
+.estado1 button{font:700 12px/1 var(--font);color:var(--l2);margin-left:auto}
+
+/* Revisar · mismo esquema de 3 columnas que Marcar (20-10-2026) */
+.vcol .wait{flex:1;min-height:0;border-radius:16px;background:#0a0a0a center/cover no-repeat;display:grid;place-items:center;text-align:center;padding:20px;position:relative}
+.vcol .wait::before{content:"";position:absolute;inset:0;background:rgba(0,0,0,.62);border-radius:16px}
+.vcol .wait > div{position:relative}
+.sl{display:grid;grid-template-columns:92px 1fr 52px;align-items:center;gap:10px;font:700 12px/1 var(--font);color:var(--l2)}
+.sl input{width:100%;accent-color:var(--rojo)}
+.sl output{text-align:right;font-variant-numeric:tabular-nums;color:#fff}
+.aviso{border-radius:12px;background:rgba(255,146,48,.14);color:var(--naranja);font:600 13px/18px var(--font);padding:10px 12px}
+.error{border-radius:12px;background:rgba(255,0,0,.14);color:#ff6b6b;font:600 13px/18px var(--font);padding:10px 12px;word-break:break-word;max-height:120px;overflow:auto}
+.toast{position:fixed;left:50%;top:20px;transform:translate(-50%,-14px);opacity:0;z-index:90;background:#2C2C2E;border-radius:980px;padding:11px 18px;font:700 14px/18px var(--font);white-space:nowrap;transition:transform .5s var(--spring),opacity .2s;pointer-events:none;max-width:92%}
+.toast.show{transform:translate(-50%,0);opacity:1}
+
+@media (max-width:900px){
+  .app{grid-template-columns:1fr}
+  .side{position:static;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center;padding:12px 16px;border-right:0;border-bottom:1px solid var(--borde)}
+  .side .grp{display:none}
+  .side .logo{padding:0 8px 0 0}
+  .me{margin:0 0 0 auto;padding:6px 10px}
+  .main{padding:20px 16px 80px}
+  .big3{grid-template-columns:1fr}
+  .bigb{min-height:180px}
+  .main.fija{height:auto;overflow:visible}
+  .cbody{grid-template-columns:1fr}
+  .vcol{width:100%;height:70vh}
+}
+</style>
+</head>
+<body>
+
+<!-- ENTRAR -->
+<section id="vLogin" class="login hidden">
+  <div class="login-box">
+    <img src="../logo-romo.svg" alt="ROMO DJ Academy">
+    <div class="kicker">Equipo de contenido</div>
+    <div class="h1">Entra con tu Google</div>
+    <div class="sub">Con tu cuenta sabemos quién subió, quién editó y quién publicó cada video.</div>
+    <div id="gbtn"></div>
+    <div class="dev hidden" id="devBox"><input id="devCorreo" placeholder="correo de prueba"><button class="btn btn-gray btn-sm" id="devEntrar">Entrar (prueba)</button></div>
+  </div>
+</section>
+
+<!-- APP -->
+<div class="app hidden" id="vApp">
+  <aside class="side">
+    <div class="logo"><img src="../logo-romo.svg" alt="ROMO"></div>
+    <div class="grp">Equipo</div>
+    <a data-nav="subir">⬆︎ Subir videos</a>
+    <a data-nav="edits" data-rol="edita">✂︎ ROMO EDITS <span class="n hidden" id="navN"></span></a>
+    <div class="grp" data-rol="dash">Data</div>
+    <a href="../" data-rol="dash">▤ Dashboard</a>
+    <div class="me"><div class="av" id="meAv"></div><div class="grow"><b id="meNom"></b><small id="meRol"></small></div><button id="salir" title="Salir">Salir</button></div>
+  </aside>
+
+  <main class="main">
+
+    <!-- SUBIR -->
+    <section data-v="subir" class="hidden">
+      <div class="kicker">Subidas</div>
+      <div class="h1">Subir videos</div>
+      <div class="sub">Cambios de estudiantes. Se guardan en el Drive y les salen solos a los editores.</div>
+      <label class="drop" id="drop" style="display:block;margin-top:22px;cursor:pointer">
+        <div class="big">Suelta aquí los videos</div>
+        <div class="m">o toca para elegirlos del iPhone / la compu · varios a la vez</div>
+        <div style="margin-top:18px"><span class="btn btn-red">Elegir videos</span></div>
+        <input type="file" id="archivos" accept="video/*,.mov,.mp4,.m4v" multiple hidden>
+      </label>
+      <div id="subiendoWrap" class="hidden">
+        <div class="sec"><h2>Subiendo ahora</h2><span id="subiendoCuenta"></span></div>
+        <div class="card" id="subiendo"></div>
+      </div>
+      <div class="sec"><h2>Lo que subiste</h2><span id="misCuenta"></span></div>
+      <div class="card" id="mias"><div class="empty">Cargando…</div></div>
+    </section>
+
+    <!-- ROMO EDITS · inicio -->
+    <section data-v="edits" class="hidden">
+      <div class="kicker" id="hola">ROMO EDITS</div>
+      <div class="h1">¿Qué vas a hacer?</div>
+      <div class="big3">
+        <button class="bigb main1" id="irCambios">
+          <div class="ic">✂︎</div>
+          <div class="nm">ROMO CAMBIOS</div>
+          <div class="ds">Editar los cambios de estudiantes que subieron. Se abren ya cargados, listos para marcar.</div>
+          <div class="ft"><div class="cnt" id="teTocan">–<small>TE TOCAN</small></div><span class="btn btn-red btn-sm">Empezar a editar</span></div>
+        </button>
+        <button class="bigb" id="irIA">
+          <div class="ic">✦</div>
+          <div class="nm">ROMO IA</div>
+          <div class="ds">Generar videos con IA: eliges la línea (Viral, EA o MDT) y cuántos.</div>
+          <div class="ft"><span class="m">Se abre la Fábrica</span><span class="btn btn-gray btn-sm">Generar</span></div>
+        </button>
+        <button class="bigb soon" disabled>
+          <div class="ic">◎</div>
+          <div class="nm">ROMO 360</div>
+          <div class="ds">Videos de la Insta360 que se editan solos. Tú solo revisas.</div>
+          <div class="ft"><span class="tag gr">Pronto</span></div>
+        </button>
+      </div>
+      <div class="sec"><h2>Preparándose</h2><span id="prepTxt"></span></div>
+      <div class="m" id="prepInfo">Los videos recién subidos tardan 1–2 minutos en estar listos para marcar.</div>
+    </section>
+
+    <!-- ROMO CAMBIOS · opción A -->
+    <section data-v="cambios" class="hidden">
+      <div class="ctop">
+        <div class="grow"><div class="kicker" id="cKicker">ROMO CAMBIOS</div><div class="h1" id="cTitulo">Marcar el cambio</div></div>
+        <div class="pill" id="reparto"></div>
+        <div class="steps" role="group"><button data-paso="marcar" aria-pressed="true">1 · Marcar</button><button data-paso="revisar" aria-pressed="false">2 · Revisar <span id="revN"></span></button></div>
+      </div>
+
+      <div id="pMarcar" class="cbody">
+        <div class="cola" id="cola"></div>
+        <div class="vcol" id="vcol">
+          <video id="vid" playsinline preload="auto"></video>
+          <div class="track" id="track"><div class="wave"></div><div class="play" id="tPlay"></div><div class="cut" id="tCutA"></div><div class="cut" id="tCutB"></div><div class="mk hidden" id="tMk"></div><div class="head" id="tHead"></div></div>
+          <div class="ptime"><b id="tNow">0:00.00</b><span id="tMarca"></span></div>
+          <button class="btn btn-red" id="bMarcar">Marcar cambio <kbd>M</kbd></button>
+          <div style="display:flex;gap:6px"><button class="btn btn-gray btn-sm" style="flex:1" id="bIn">Recortar inicio <kbd>I</kbd></button><button class="btn btn-gray btn-sm" style="flex:1" id="bOut">Final <kbd>O</kbd></button></div>
+        </div>
+        <div class="panel" id="panelM">
+          <div class="paso"><div class="lbl"><b>1</b>¿Dónde está el cambio?</div><div class="estado1" id="oCambio"></div><div class="m trunc" id="oSubio"></div></div>
+          <div class="paso"><div class="lbl"><b>2</b>Tipo de mezcla</div><div class="seg" id="cTipo"></div></div>
+          <div class="paso"><div class="lbl"><b>3</b>Categoría</div><div class="seg" id="cCat"></div></div>
+          <div class="paso"><div class="lbl">Estilo <span>· opcional, si no tocas sale aleatorio</span></div>
+            <div class="grid3">
+              <label><span class="m">Efecto</span><select class="sel" id="cEfecto"></select></label>
+              <label><span class="m">Plantilla</span><select class="sel" id="cPlantilla"><option value="-1">Aleatoria</option></select></label>
+              <label><span class="m">Voz en off</span><select class="sel" id="cVoz"></select></label>
+            </div></div>
+          <div class="fin">
+            <div style="display:flex;gap:8px"><button class="btn btn-gray" id="bPrev" title="Anterior">←</button><button class="btn btn-gray" style="flex:1" id="bNext">Siguiente video <kbd>enter</kbd></button></div>
+            <button class="btn btn-red" style="min-height:48px" id="bRender">Renderizar</button>
+          </div>
+        </div>
+        <div id="sinVideos" class="card hidden" style="grid-column:1/-1;align-self:start"><div class="empty">No tienes videos por marcar. Cuando suban más te salen aquí.</div></div>
+      </div>
+
+      <div id="pRevisar" class="cbody hidden">
+        <div class="cola" id="rcola"></div>
+        <div class="vcol" id="rvcol"></div>
+        <div class="panel" id="rpanel"></div>
+        <div id="rVacio" class="card hidden" style="grid-column:1/-1;align-self:start"><div class="empty">Aquí salen los videos cuando los mandes a renderizar.</div></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ROMO CENTRAL · página del equipo. Backend: romo-central/backend/app.py (Modal). */
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const QS = new URLSearchParams(location.search);
+const LOCAL = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+// ?api=dev → backend de prueba (modal serve con ROMO_DEV=1)
+// ?api=dev → backend de prueba (modal serve con ROMO_DEV=1) · ?api=http://localhost:… → simulador local
+const API_PROD = 'https://marlonromero0052--romo-central-web.us-east.modal.run';
+const API = QS.get('api') === 'dev' ? API_PROD.replace('-web.', '-web-dev.')
+          : (LOCAL && /^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(QS.get('api') || '')) ? QS.get('api') : API_PROD;
+const CLIENT_ID = '990413100667-00gss32u9av3o187bs6gks78eo6l5dq4.apps.googleusercontent.com';
+const FABRICA_URL = 'https://marlonromero0052--romo-fabrica-web.modal.run/';
+const TIPOS = [['CORTE','Corte'],['METRICA','Métrica'],['ARRASTRE','Arrastre'],['STEMS','Stems'],['CLASE','Clase gratis']];
+const CATS = [['ESTUDIANTES','Estudiantes','W'],['DEMOSTRATIVAS','Demostrativas','Q'],['RELLENO','Relleno','E']];
+const VOCES = [['auto','Donde quepa'],['start','Inicio'],['end','Final'],['none','Sin voz']];
+const NOMBRE_EFECTO = {luces:'Ráfaga de luces',flash:'Destellos lentos',estrobo:'Estrobo',punch:'Zoom que no para',latido:'Latido',temblor:'Cámara temblando',glitch:'Glitch RGB',discoteca:'Luces de discoteca',saturado:'Color saturado',vineta:'Viñeta que se cierra'};
+const FPS = 30;
+
+const guardado = { get(k){ try { return localStorage.getItem(k) } catch { return null } },
+                   set(k,v){ try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k,v) } catch {} } };
+let TOKEN = guardado.get('rc_token' + (QS.get('api') === 'dev' ? '_dev' : ''));
+const guardarToken = t => { TOKEN = t; guardado.set('rc_token' + (QS.get('api') === 'dev' ? '_dev' : ''), t); };
+let YO = null;
+
+function toast(t){ const e = $('#toast'); e.textContent = t; e.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => e.classList.remove('show'), 2800); }
+
+async function api(ruta, body, metodo){
+  const r = await fetch(API + ruta, { method: metodo || (body ? 'POST' : 'GET'),
+    headers: Object.assign({ 'Authorization': 'Bearer ' + (TOKEN || '') }, body ? { 'Content-Type': 'application/json' } : {}),
+    body: body ? JSON.stringify(body) : undefined });
+  let d = {}; try { d = await r.json() } catch {}
+  if (r.status === 401) { salir(true); throw new Error(d.detail || 'Entra de nuevo'); }
+  if (!r.ok) throw new Error(d.detail || ('Error ' + r.status));
+  return d;
+}
+const media = (id, n) => `${API}/media/${id}/${n}?t=${encodeURIComponent(TOKEN)}`;
+const fmt = s => { s = Math.max(0, s || 0); const m = Math.floor(s / 60), r = s - m * 60; return m + ':' + r.toFixed(2).padStart(5, '0'); };
+const fecha = iso => { const d = new Date(iso); if (isNaN(d)) return ''; const hoy = new Date(); const h = d.toLocaleTimeString('es-EC', {hour:'2-digit', minute:'2-digit'});
+  return d.toDateString() === hoy.toDateString() ? 'hoy ' + h : d.toLocaleDateString('es-EC', {day:'numeric', month:'short'}) + ' ' + h; };
+const edita = () => YO && (YO.rol === 'EDITOR' || YO.rol === 'ADMIN');
+
+/* ───── entrar / salir ───── */
+function pantallaLogin(){
+  $('#vApp').classList.add('hidden'); $('#vLogin').classList.remove('hidden');
+  if (QS.get('api')) $('#devBox').classList.remove('hidden');
+  const pinta = () => {
+    if (!window.google || !google.accounts) return setTimeout(pinta, 200);
+    google.accounts.id.initialize({ client_id: CLIENT_ID, callback: r => entrar({ credential: r.credential }) });
+    google.accounts.id.renderButton($('#gbtn'), { theme: 'filled_black', size: 'large', shape: 'pill', text: 'signin_with', locale: 'es', width: 300 });
+  };
+  pinta();
+}
+async function entrar(body){
+  try { const d = await fetch(API + '/api/entrar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const j = await d.json(); if (!d.ok) throw new Error(j.detail || 'No se pudo entrar');
+    guardarToken(j.token); YO = j.yo; arrancar(); }
+  catch (e) { toast(e.message); }
+}
+$('#devEntrar').onclick = () => entrar({ dev_correo: $('#devCorreo').value.trim(), dev_nombre: $('#devCorreo').value.split('@')[0] });
+function salir(silencio){ guardarToken(null); YO = null; if (!silencio) toast('Saliste'); pantallaLogin(); }
+$('#salir').onclick = () => salir();
+
+const ROL_TXT = { ADMIN: 'Admin', PUBLICADOR: 'Publicador', EDITOR: 'Editor', SUBIDOR: 'Subidor' };
+function arrancar(){
+  $('#vLogin').classList.add('hidden'); $('#vApp').classList.remove('hidden');
+  $('#meNom').textContent = YO.nombre; $('#meRol').textContent = (ROL_TXT[YO.rol] || YO.rol) + ' · ' + YO.correo;
+  $('#meAv').innerHTML = YO.foto ? `<img src="${esc(YO.foto)}" alt="">` : esc(YO.nombre.slice(0, 2));
+  $$('[data-rol="edita"]').forEach(e => e.classList.toggle('hidden', !edita()));
+  $$('[data-rol="dash"]').forEach(e => e.classList.toggle('hidden', !(YO.rol === 'ADMIN' || YO.rol === 'PUBLICADOR')));
+  const v = location.hash.slice(1);
+  ir(edita() && ['edits', 'cambios'].includes(v) ? v : (v === 'subir' || !edita()) ? 'subir' : 'edits');
+}
+
+/* ───── navegación ───── */
+let VISTA = '';
+function ir(v){
+  if (v === 'cambios' && !edita()) v = 'subir';
+  VISTA = v; history.replaceState(null, '', '#' + v);
+  $('.main').classList.toggle('fija', v === 'cambios');
+  $$('[data-v]').forEach(s => s.classList.toggle('hidden', s.dataset.v !== v));
+  $$('[data-nav]').forEach(a => a.classList.toggle('on', a.dataset.nav === (v === 'cambios' ? 'edits' : v)));
+  window.scrollTo(0, 0);
+  if (v === 'subir') cargarMias();
+  if (v === 'edits') cargarResumen();
+  if (v === 'cambios') empezar(false);
+}
+$$('[data-nav]').forEach(a => a.onclick = () => ir(a.dataset.nav));
+$$('[data-go]').forEach(b => b.onclick = () => ir(b.dataset.go));
+
+/* ───── SUBIR ───── */
+const ESTADO_TAG = { 'PREPARANDO': ['org','Preparando'], 'PARA EDITAR': ['org','Para editar'], 'RENDERIZANDO': ['cy','Editándose'],
+  'REVISAR': ['cy','Editándose'], 'LISTO': ['ok','Editado'], 'DESCARTADO': ['gr','Descartado'], 'ERROR': ['red','Error'] };
+async function cargarMias(){
+  try { const d = await api('/api/subir/mias');
+    $('#misCuenta').textContent = d.subidas.length ? d.subidas.length + ' videos' : '';
+    $('#mias').innerHTML = d.subidas.map(s => { const [c, t] = ESTADO_TAG[s.estado] || ['gr', s.estado];
+      const quien = s.codigo ? ` · editado por ${esc(s.editor)} → <b>${esc(s.codigo)}</b>` : s.editor ? ` · lo tiene ${esc(s.editor)}` : '';
+      return `<div class="row"><div class="grow"><div class="t trunc">${esc(s.archivo)}</div><div class="m">Subido ${esc(fecha(s.fecha))}${quien}</div></div><span class="tag ${c}">${t}</span></div>`;
+    }).join('') || '<div class="empty">Todavía no has subido nada.</div>';
+  } catch (e) { $('#mias').innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
+}
+
+const COLA = []; let SUBIENDO = false;
+const drop = $('#drop');
+['dragenter','dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', e => agregar([...e.dataTransfer.files]));
+$('#archivos').onchange = e => { agregar([...e.target.files]); e.target.value = ''; };
+window.addEventListener('beforeunload', e => { if (SUBIENDO) { e.preventDefault(); e.returnValue = ''; } });
+
+function agregar(files){
+  files = files.filter(f => /^video\//.test(f.type) || /\.(mov|mp4|m4v)$/i.test(f.name));
+  if (!files.length) return toast('Eso no es un video');
+  files.forEach(f => COLA.push({ f, estado: 'cola', prog: 0 }));
+  pintarCola(); if (!SUBIENDO) subirSiguiente();
+}
+function pintarCola(){
+  $('#subiendoWrap').classList.toggle('hidden', !COLA.length);
+  const listos = COLA.filter(c => c.estado === 'listo').length;
+  $('#subiendoCuenta').textContent = `${listos} de ${COLA.length} listos`;
+  $('#subiendo').innerHTML = COLA.map(c => {
+    const mb = (c.f.size / 1048576).toFixed(0) + ' MB';
+    const txt = c.estado === 'listo' ? 'listo' : c.estado === 'error' ? esc(c.error || 'falló') : c.estado === 'subiendo' ? `${Math.round(c.prog * 100)} %` : 'en cola';
+    const tag = { listo: ['ok','En EDITS'], error: ['red','Error'], subiendo: ['org','Subiendo'], cola: ['gr','En cola'] }[c.estado];
+    return `<div class="row"><div class="grow"><div class="t trunc">${esc(c.f.name)}</div><div class="m">${mb} · ${txt}</div><div class="pbar"><i class="${c.estado === 'listo' ? 'ok' : ''}" style="width:${c.estado === 'listo' ? 100 : Math.round(c.prog * 100)}%"></i></div></div><span class="tag ${tag[0]}">${tag[1]}</span>${c.estado === 'error' ? '<button class="btn btn-gray btn-sm" data-reint>Reintentar</button>' : ''}</div>`;
+  }).join('');
+  $$('#subiendo [data-reint]').forEach((b, i) => b.onclick = () => { COLA.filter(c => c.estado === 'error').forEach(c => { c.estado = 'cola'; c.prog = 0; }); pintarCola(); if (!SUBIENDO) subirSiguiente(); });
+}
+async function subirSiguiente(){
+  const c = COLA.find(c => c.estado === 'cola');
+  if (!c) { SUBIENDO = false; cargarMias(); return; }
+  SUBIENDO = true; c.estado = 'subiendo'; pintarCola();
+  try {
+    const s = await api('/api/subir/iniciar', { archivo: c.f.name, tam: c.f.size, tipo: c.f.type || 'video/quicktime' });
+    const driveId = await subirADrive(s.url, c);
+    await api('/api/subir/listo', { id: s.id, drive_id: driveId });
+    c.estado = 'listo';
+  } catch (e) { c.estado = 'error'; c.error = e.message; }
+  pintarCola(); subirSiguiente();
+}
+// Subida reanudable directa a Google Drive, en pedazos de 16 MB (múltiplos de 256 KB).
+async function subirADrive(url, c){
+  const PED = 64 * 256 * 1024, total = c.f.size;
+  let ini = 0, intentos = 0;
+  while (true) {
+    const fin = Math.min(ini + PED, total);
+    let r;
+    try {
+      r = await new Promise((ok, mal) => {
+        const x = new XMLHttpRequest(); x.open('PUT', url);
+        x.setRequestHeader('Content-Range', `bytes ${ini}-${fin - 1}/${total}`);
+        x.upload.onprogress = e => { c.prog = (ini + e.loaded) / total; pintarBarra(c); };
+        x.onload = () => ok(x); x.onerror = () => mal(new Error('Se cortó el internet'));
+        x.send(c.f.slice(ini, fin));
+      });
+    } catch (e) { if (++intentos > 5) throw e; await new Promise(z => setTimeout(z, 2000 * intentos)); continue; }
+    if (r.status === 200 || r.status === 201) { const j = JSON.parse(r.responseText || '{}'); if (!j.id) throw new Error('Drive no devolvió el archivo'); return j.id; }
+    if (r.status === 308) {
+      const rg = r.getResponseHeader('Range'); ini = rg ? +rg.split('-')[1] + 1 : fin; intentos = 0; c.prog = ini / total; pintarBarra(c); continue;
+    }
+    if (r.status >= 500 && ++intentos <= 5) { await new Promise(z => setTimeout(z, 2000 * intentos)); continue; }
+    throw new Error('Drive respondió ' + r.status);
+  }
+}
+function pintarBarra(c){ const i = COLA.indexOf(c), row = $('#subiendo').children[i]; if (!row) return;
+  row.querySelector('.pbar i').style.width = Math.round(c.prog * 100) + '%'; row.querySelector('.m').textContent = (c.f.size / 1048576).toFixed(0) + ' MB · ' + Math.round(c.prog * 100) + ' %'; }
+
+/* ───── ROMO EDITS · inicio ───── */
+async function cargarResumen(){
+  $('#hola').textContent = 'ROMO EDITS · Hola, ' + (YO.nombre.charAt(0) + YO.nombre.slice(1).toLowerCase());
+  try { const d = await api('/api/edits/resumen');
+    $('#teTocan').innerHTML = `${d.te_tocan}<small>TE TOCAN</small>`;
+    $('#navN').textContent = d.te_tocan; $('#navN').classList.toggle('hidden', !d.te_tocan);
+    $('#prepTxt').textContent = d.preparando ? d.preparando + ' videos' : '';
+    $('#prepInfo').textContent = d.preparando ? 'Hay videos recién subidos preparándose: en 1–2 minutos salen para marcar.' : 'Nada preparándose ahora.';
+  } catch (e) { toast(e.message); }
+}
+$('#irCambios').onclick = () => ir('cambios');
+$('#irIA').onclick = () => window.open(FABRICA_URL, '_blank', 'noopener');
+
+/* ───── ROMO CAMBIOS ───── */
+let ITEMS = [], I = 0, EFECTOS = [], PLANT = {}, VIVO = {};
+async function empezar(mas){
+  try {
+    const d = await api('/api/edits/empezar', { mas: !!mas });
+    ITEMS = d.items; VIVO = {};
+    ITEMS.forEach(it => { it.marca = Object.assign({ categoria: 'ESTUDIANTES', vo_pref: 'auto', effect: 'auto', template: -1 }, it.marca || {}); VIVO[it.id] = it.vivo || {}; });
+    REPARTO = d;
+    if (!EFECTOS.length) EFECTOS = await api('/api/efectos').catch(() => []);
+    I = Math.min(I, Math.max(0, porMarcar().length - 1));
+    paso(ITEMS.some(it => ['RENDERIZANDO','REVISAR'].includes(it.estado)) && !porMarcar().length ? 'revisar' : PASO);
+  } catch (e) { toast(e.message); }
+}
+let REPARTO = {};
+function pintarReparto(){
+  const d = REPARTO, otros = Object.entries(d.otros || {});
+  const nom = n => esc(n.charAt(0) + n.slice(1).toLowerCase());
+  $('#reparto').innerHTML = `Tú <b>${ITEMS.length}</b>` + otros.map(([n, k]) => ` · ${nom(n)} <b>${k}</b>`).join('')
+    + (d.libres ? ` · Bolsa <b>${d.libres}</b> <button class="btn btn-gray btn-sm" id="pedirMas">Tomar</button>` : '');
+  const pm = $('#pedirMas'); if (pm) pm.onclick = () => empezar(true);
+}
+const porMarcar = () => ITEMS.filter(it => it.estado === 'PARA EDITAR');
+const listoParaRender = it => it.marca && it.marca.marker != null && it.marca.type;
+let PASO = 'marcar';
+function paso(p){
+  PASO = p; $$('[data-paso]').forEach(b => b.setAttribute('aria-pressed', b.dataset.paso === p));
+  $('#pMarcar').classList.toggle('hidden', p !== 'marcar'); $('#pRevisar').classList.toggle('hidden', p !== 'revisar');
+  $('.main').classList.toggle('fija', VISTA === 'cambios');
+  const nrev = ITEMS.filter(it => it.estado !== 'PARA EDITAR').length; $('#revN').textContent = nrev ? `(${nrev})` : '';
+  $('#cTitulo').textContent = p === 'marcar' ? 'Marcar el cambio' : 'Revisar y aprobar';
+  pintarReparto();
+  if (p === 'marcar') pintarMarcar(); else pintarRevisar();
+}
+$$('[data-paso]').forEach(b => b.onclick = () => paso(b.dataset.paso));
+
+function pintarMarcar(){
+  const lista = porMarcar();
+  $('#sinVideos').classList.toggle('hidden', lista.length > 0);
+  ['#cola', '#vcol', '#panelM'].forEach(x => $(x).classList.toggle('hidden', !lista.length));
+  $('#cKicker').textContent = lista.length ? `ROMO CAMBIOS · ${I + 1} de ${lista.length}` : 'ROMO CAMBIOS';
+  $('#cola').innerHTML = lista.map((it, k) => `<button class="${k === I ? 'on' : ''}" data-k="${k}"><div class="thumb" style="background-image:url('${media(it.id, 'poster.jpg')}')"></div><div style="min-width:0"><div class="t trunc">${esc(it.archivo.replace(/\.[^.]+$/, ''))}</div><div class="m">${listoParaRender(it) ? '<span class="tag ok">Listo</span>' : it.marca.marker != null ? '<span class="tag org">Falta tipo</span>' : 'Sin marcar'}</div></div></button>`).join('');
+  $$('#cola [data-k]').forEach(b => b.onclick = () => { I = +b.dataset.k; pintarMarcar(); });
+  const n = lista.filter(listoParaRender).length;
+  $('#bRender').disabled = !n; $('#bRender').textContent = n ? `Renderizar ${n} ${n === 1 ? 'listo' : 'listos'}` : 'Renderizar';
+  if (!lista.length) return;
+  const it = lista[I], mk = it.marca;
+  if ($('#vid').dataset.id !== it.id) { $('#vid').src = media(it.id, 'proxy.mp4') + '#t=0.1'; $('#vid').dataset.id = it.id; }
+  $('#oCambio').innerHTML = mk.marker != null
+    ? `<span style="color:var(--verde)">✓ Cambio en ${fmt(mk.marker)}</span><button id="bQuitar">Quitar</button>`
+    : '<span style="color:var(--naranja)">Dale play y presiona M en el cambio</span>';
+  const q = $('#bQuitar'); if (q) q.onclick = () => cambiar({ marker: null });
+  $('#oSubio').innerHTML = `${esc(it.archivo)} · subió <b>${esc(it.subio)}</b> · ${esc(fecha(it.fecha))}${it.sin_audio ? ' · <span style="color:var(--naranja)">sin audio</span>' : ''}`;
+  $('#cTipo').innerHTML = TIPOS.map(([v, t], k) => `<button aria-pressed="${mk.type === v}" data-v="${v}" title="${t}"><kbd>${k + 1}</kbd>${t.replace(' gratis', '')}</button>`).join('');
+  $('#cCat').innerHTML = CATS.map(([v, t, key]) => `<button aria-pressed="${mk.categoria === v}" data-v="${v}"><kbd>${key}</kbd>${t}</button>`).join('');
+  $('#cEfecto').innerHTML = [['auto','Aleatorio']].concat(EFECTOS.map(e => [e, NOMBRE_EFECTO[e] || e])).map(([v, t]) => `<option value="${v}">${esc(t)}</option>`).join('');
+  $('#cEfecto').value = mk.effect || 'auto';
+  $('#cVoz').innerHTML = VOCES.map(([v, t]) => `<option value="${v}">${t}</option>`).join('');
+  $('#cVoz').value = mk.vo_pref || 'auto';
+  $$('#cTipo button').forEach(b => b.onclick = () => cambiar({ type: b.dataset.v, template: -1 }));
+  $$('#cCat button').forEach(b => b.onclick = () => cambiar({ categoria: b.dataset.v }));
+  pintarPlantillas(mk);
+  $('#bPrev').disabled = I === 0; $('#bNext').disabled = I >= lista.length - 1;
+  pintarPista();
+}
+$('#cEfecto').onchange = e => cambiar({ effect: e.target.value });
+$('#cVoz').onchange = e => cambiar({ vo_pref: e.target.value });
+async function pintarPlantillas(mk){
+  const sel = $('#cPlantilla');
+  if (!mk.type) { sel.innerHTML = '<option value="-1">Elige la mezcla</option>'; sel.disabled = true; return; }
+  sel.disabled = false;
+  if (!PLANT[mk.type]) PLANT[mk.type] = await api('/api/plantillas?tech=' + mk.type).catch(() => []);
+  sel.innerHTML = '<option value="-1">Aleatoria</option>' + PLANT[mk.type].map(p => `<option value="${p.id}">${esc(p.nombre)}</option>`).join('');
+  sel.value = String(mk.template == null ? -1 : mk.template);
+}
+$('#cPlantilla').onchange = e => cambiar({ template: +e.target.value });
+
+let guardaT = {};
+function cambiar(c, sinPintar){
+  const it = porMarcar()[I]; if (!it) return;
+  Object.assign(it.marca, c);
+  clearTimeout(guardaT[it.id]);
+  const id = it.id, marca = Object.assign({}, it.marca);
+  guardaT[id] = setTimeout(() => api('/api/edits/marcar', Object.assign({ id }, marca)).catch(e => toast(e.message)), 350);
+  if (!sinPintar) { pintarMarcar(); pintarReparto(); } else pintarPista();
+}
+
+/* reproductor + pista */
+const vid = $('#vid');
+function pintarPista(){
+  const it = porMarcar()[I]; if (!it) return;
+  const dur = vid.duration || it.duracion || 1, mk = it.marca, pc = x => (100 * x / dur) + '%';
+  $('#tPlay').style.width = pc(vid.currentTime); $('#tHead').style.left = pc(vid.currentTime);
+  $('#tNow').textContent = fmt(vid.currentTime);
+  const tin = mk.trim_in || 0, tout = mk.trim_out || dur;
+  $('#tCutA').style.cssText = `left:0;width:${pc(tin)}`; $('#tCutB').style.cssText = `left:${pc(tout)};right:0`;
+  $('#tMk').classList.toggle('hidden', mk.marker == null); if (mk.marker != null) $('#tMk').style.left = pc(mk.marker);
+  const rec = (tin > 0 || (mk.trim_out && mk.trim_out < dur - .01)) ? ` · recorte ${fmt(tin)}–${fmt(tout)}` : '';
+  $('#tMarca').innerHTML = rec ? `${rec.slice(3)} <button id="bTrim" title="Usar completo">✕</button>` : '';
+  const bt = $('#bTrim'); if (bt) bt.onclick = () => cambiar({ trim_in: 0, trim_out: 0 });
+}
+vid.addEventListener('timeupdate', pintarPista); vid.addEventListener('loadedmetadata', pintarPista);
+(function(){ let raf; const loop = () => { if (!vid.paused) pintarPista(); raf = requestAnimationFrame(loop); }; loop(); })();
+const track = $('#track');
+function buscarEn(e){ const r = track.getBoundingClientRect(); vid.currentTime = Math.min(Math.max((e.clientX - r.left) / r.width, 0), 1) * (vid.duration || 0); pintarPista(); }
+track.addEventListener('pointerdown', e => { track.setPointerCapture(e.pointerId); buscarEn(e); track.onpointermove = buscarEn; });
+track.addEventListener('pointerup', () => { track.onpointermove = null; });
+
+const marcar = () => cambiar({ marker: +vid.currentTime.toFixed(3) });
+$('#bMarcar').onclick = marcar;
+$('#bIn').onclick = () => cambiar({ trim_in: +vid.currentTime.toFixed(3) });
+$('#bOut').onclick = () => cambiar({ trim_out: +vid.currentTime.toFixed(3) });
+vid.addEventListener('click', () => vid.paused ? vid.play() : vid.pause());
+$('#bPrev').onclick = () => { if (I > 0) { I--; pintarMarcar(); } };
+$('#bNext').onclick = () => { if (I < porMarcar().length - 1) { I++; pintarMarcar(); } };
+
+document.addEventListener('keydown', e => {
+  if (VISTA !== 'cambios' || PASO !== 'marcar' || !porMarcar().length) return;
+  if (/^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName)) return;
+  const k = e.key.toLowerCase();
+  if (k === ' ') { e.preventDefault(); vid.paused ? vid.play() : vid.pause(); }
+  else if (k === 'm') marcar();
+  else if (k >= '1' && k <= '5') cambiar({ type: TIPOS[+k - 1][0], template: -1 });
+  else if (k === 'q') cambiar({ categoria: 'DEMOSTRATIVAS' });
+  else if (k === 'w') cambiar({ categoria: 'ESTUDIANTES' });
+  else if (k === 'e') cambiar({ categoria: 'RELLENO' });
+  else if (k === 'i') $('#bIn').click();
+  else if (k === 'o') $('#bOut').click();
+  else if (k === 'arrowleft') { e.preventDefault(); vid.pause(); vid.currentTime = Math.max(0, vid.currentTime - 1 / FPS); }
+  else if (k === 'arrowright') { e.preventDefault(); vid.pause(); vid.currentTime = Math.min(vid.duration || 0, vid.currentTime + 1 / FPS); }
+  else if (k === 'enter') { e.preventDefault(); $('#bNext').click(); }
+});
+
+$('#bRender').onclick = async () => {
+  const ids = porMarcar().filter(listoParaRender).map(it => it.id);
+  if (!ids.length) return;
+  $('#bRender').disabled = true;
+  try {
+    await Promise.all(ids.map(id => { clearTimeout(guardaT[id]); const it = ITEMS.find(x => x.id === id); return api('/api/edits/marcar', Object.assign({ id }, it.marca)); }));
+    await api('/api/edits/renderizar', { ids });
+    ids.forEach(id => { const it = ITEMS.find(x => x.id === id); it.estado = 'RENDERIZANDO'; VIVO[id] = { estado: 'renderizando', progreso: 0, fase: 'En cola' }; });
+    toast(`${ids.length} videos renderizándose 🔥`); I = 0; paso('revisar');
+  } catch (e) { toast(e.message); $('#bRender').disabled = false; }
+};
+
+/* revisar */
+let J = 0;
+const enRevisar = () => ITEMS.filter(it => it.estado !== 'PARA EDITAR');
+function estadoDe(it){ const v = VIVO[it.id] || {}; return v.estado || (it.estado === 'REVISAR' ? 'revisar' : it.estado === 'RENDERIZANDO' ? 'renderizando' : it.estado.toLowerCase()); }
+function tagDe(it){
+  const v = VIVO[it.id] || {}, est = estadoDe(it);
+  if (est === 'listo') return `<span class="tag ok">${esc(v.codigo || 'Aprobado')}</span>`;
+  if (est === 'revisar') return '<span class="tag cy">Para revisar</span>';
+  if (est === 'error') return '<span class="tag red">Error</span>';
+  if (est === 'aprobando') return '<span class="tag org">Subiendo</span>';
+  return `<span class="tag org">${Math.round(v.progreso || 0)} %</span>`;
+}
+function pintarRevisar(){
+  const lista = enRevisar();
+  $('#cKicker').textContent = lista.length ? `ROMO CAMBIOS · Revisar ${Math.min(J, lista.length - 1) + 1} de ${lista.length}` : 'ROMO CAMBIOS · Revisar';
+  $('#rVacio').classList.toggle('hidden', lista.length > 0);
+  ['#rcola', '#rvcol', '#rpanel'].forEach(x => $(x).classList.toggle('hidden', !lista.length));
+  if (!lista.length) return;
+  J = Math.min(J, lista.length - 1);
+  pintarColaRev();
+  const it = lista[J], v = VIVO[it.id] || {}, est = estadoDe(it), mk = it.marca || {}, rd = it.render || {};
+  // Centro: el video renderizado, o el póster con el progreso mientras se hace.
+  if (est === 'revisar') {
+    const src = media(it.id, mk.vo_pref === 'none' ? 'sv.mp4' : 'con_voz.mp4') + '&r=' + (rd.hecho || '');
+    const ya = $('#rvcol video');
+    if (!ya || ya.dataset.src !== src) $('#rvcol').innerHTML = `<video src="${src}#t=0.01" data-src="${src}" controls playsinline preload="metadata"></video>`;
+  } else {
+    const txt = est === 'listo' ? `<div class="cnt" style="font-size:40px;color:var(--verde)">${esc(v.codigo || '✓')}</div><div class="m">Aprobado · en el Drive y en la hoja para Lizy</div>`
+      : est === 'error' ? '<div class="t" style="color:#ff6b6b">Falló el render</div>'
+      : `<div class="t" data-fase>${esc(est === 'aprobando' ? 'Subiendo al Drive…' : (v.fase || 'En cola'))}</div><div class="pbar" style="width:180px;margin:10px auto 0"><i data-prog style="width:${Math.max(3, v.progreso || 0)}%"></i></div>`;
+    $('#rvcol').innerHTML = `<div class="wait" style="background-image:url('${media(it.id, 'poster.jpg')}')"><div>${txt}</div></div>`;
+  }
+  // Derecha: datos, retoques y la decisión.
+  const g = n => (mk[n] == null ? 0 : mk[n]);
+  const vo = +(mk.vo_locked ? mk.vo_at : (rd.vo_at || 0));
+  const puede = est === 'revisar';
+  $('#rpanel').innerHTML = `
+    <div class="paso"><div class="lbl">Video</div>
+      <div class="t trunc">${esc(it.archivo)}</div>
+      <div class="m">${esc(TIPOS.find(t => t[0] === mk.type)?.[1] || '')} · ${esc((CATS.find(c => c[0] === mk.categoria) || CATS[0])[1])} · cambio en ${fmt(mk.marker)} · subió <b>${esc(it.subio)}</b></div></div>
+    ${v.aviso || rd.warn ? `<div class="aviso">${esc(v.aviso || rd.warn)}</div>` : ''}
+    ${v.error ? `<div class="error">${esc(v.error)}</div>` : ''}
+    <div class="paso"><div class="lbl">Retoques <span>· opcional, solo rehace el audio</span></div>
+      <div class="sl"><span>Música</span><input type="range" min="-12" max="6" step="0.5" value="${g('music_gain')}" data-k="music_gain" ${puede ? '' : 'disabled'}><output>${g('music_gain')} dB</output></div>
+      <div class="sl"><span>Voz</span><input type="range" min="-12" max="6" step="0.5" value="${g('vo_gain')}" data-k="vo_gain" ${puede && mk.vo_pref !== 'none' ? '' : 'disabled'}><output>${g('vo_gain')} dB</output></div>
+      <div class="sl"><span>Voz empieza</span><input type="range" min="0" max="${(rd.duration || it.duracion || 30).toFixed(1)}" step="0.1" value="${vo}" data-k="vo_at" ${puede && mk.vo_pref !== 'none' ? '' : 'disabled'}><output>${vo.toFixed(1)} s</output></div>
+      <div style="display:flex;gap:8px"><button class="btn btn-gray btn-sm" style="flex:1" data-a="retocar" disabled>Aplicar retoque</button><button class="btn btn-gray btn-sm" style="flex:1" data-a="remarcar" ${est === 'listo' || est === 'aprobando' ? 'disabled' : ''}>Volver a marcar</button></div></div>
+    <div class="fin">
+      <div style="display:flex;gap:8px"><button class="btn btn-gray" data-a="prev" title="Anterior" ${J === 0 ? 'disabled' : ''}>←</button><button class="btn btn-gray" style="flex:1" data-a="next" ${J >= lista.length - 1 ? 'disabled' : ''}>Siguiente video</button></div>
+      <div style="display:flex;gap:8px"><button class="btn btn-gray" style="min-height:48px" data-a="descartar" ${puede || est === 'error' ? '' : 'disabled'}>✗ No sirve</button><button class="btn btn-red" style="flex:1;min-height:48px" data-a="aprobar" ${puede ? '' : 'disabled'}>✓ Aprobar</button></div>
+    </div>`;
+  enlazarPanel(it);
+}
+function pintarColaRev(){
+  $('#rcola').innerHTML = enRevisar().map((it, k) => `<button class="${k === J ? 'on' : ''}" data-j="${k}"><div class="thumb" style="background-image:url('${media(it.id, 'poster.jpg')}')"></div><div style="min-width:0"><div class="t trunc">${esc(it.archivo.replace(/\.[^.]+$/, ''))}</div><div class="m">${tagDe(it)}</div></div></button>`).join('');
+  $$('#rcola [data-j]').forEach(b => b.onclick = () => { J = +b.dataset.j; pintarRevisar(); });
+}
+function enlazarPanel(it){
+  const c = $('#rpanel'), ret = c.querySelector('[data-a="retocar"]');
+  c.querySelectorAll('input[type=range]').forEach(r => r.oninput = () => {
+    const k = r.dataset.k; r.nextElementSibling.textContent = k === 'vo_at' ? (+r.value).toFixed(1) + ' s' : r.value + ' dB';
+    it.marca[k] = +r.value; if (k === 'vo_at') it.marca.vo_locked = true; ret.disabled = false;
+  });
+  const act = (a, f) => { const b = c.querySelector(`[data-a="${a}"]`); if (b) b.onclick = f; };
+  act('prev', () => { J--; pintarRevisar(); });
+  act('next', () => { J++; pintarRevisar(); });
+  act('retocar', async () => {
+    try { await api('/api/edits/marcar', Object.assign({ id: it.id }, it.marca)); await api('/api/edits/renderizar', { ids: [it.id], solo_audio: true });
+      VIVO[it.id] = { estado: 'renderizando', progreso: 70, fase: 'Mezclando voz' }; it.estado = 'RENDERIZANDO'; pintarRevisar(); } catch (e) { toast(e.message); }
+  });
+  act('remarcar', () => { it.estado = 'PARA EDITAR'; VIVO[it.id] = {}; I = porMarcar().indexOf(it); paso('marcar'); });
+  act('aprobar', async () => {
+    try { await api('/api/edits/aprobar', { id: it.id }); VIVO[it.id] = { estado: 'aprobando', progreso: 10 }; toast('Aprobado: subiendo al Drive');
+      const sig = enRevisar().findIndex((x, k) => k > J && estadoDe(x) === 'revisar'); if (sig >= 0) J = sig; pintarRevisar(); } catch (e) { toast(e.message); }
+  });
+  act('descartar', async () => {
+    const motivo = prompt('¿Por qué no sirve? (se anota en la hoja)'); if (motivo == null) return;
+    try { await api('/api/edits/soltar', { id: it.id, descartar: true, motivo }); ITEMS = ITEMS.filter(x => x !== it); pintarRevisar(); toast('Descartado'); } catch (e) { toast(e.message); }
+  });
+}
+// Progreso en vivo de lo que se está renderizando o aprobando.
+setInterval(async () => {
+  if (VISTA !== 'cambios' || !TOKEN) return;
+  const ids = ITEMS.filter(it => it.estado !== 'PARA EDITAR').map(it => it.id);
+  if (!ids.length) return;
+  const enMarcha = ids.filter(id => !['revisar', 'listo', 'error'].includes((VIVO[id] || {}).estado));
+  if (!enMarcha.length) return;
+  try {
+    const d = await api('/api/edits/vivo?ids=' + enMarcha.join(','));
+    let cambio = false;
+    Object.entries(d).forEach(([id, v]) => {
+      const antes = (VIVO[id] || {}).estado; VIVO[id] = v;
+      const it = ITEMS.find(x => x.id === id);
+      if (v.estado === 'revisar') it.estado = 'REVISAR';
+      if (v.estado !== antes) cambio = true;
+      else if (PASO === 'revisar' && enRevisar()[J] === it) { const c = $('#rvcol [data-prog]'); if (c) c.style.width = Math.max(3, v.progreso || 0) + '%'; const t = $('#rvcol [data-fase]'); if (t && v.fase) t.textContent = v.fase; }
+    });
+    if (PASO === 'revisar' && !cambio) pintarColaRev();
+    if (cambio && PASO === 'revisar') {
+      // Al terminar un render se recargan los datos del video (voz, duración) sin perder lo demás.
+      const fr = await api('/api/edits/mios').catch(() => null);
+      if (fr) fr.items.forEach(n => { const it = ITEMS.find(x => x.id === n.id); if (it) { it.render = n.render; it.estado = n.estado === 'PARA EDITAR' && VIVO[n.id]?.estado === 'listo' ? 'LISTO' : n.estado; } });
+      pintarRevisar();
+    }
+  } catch {}
+}, 3000);
+
+/* ───── arranque ───── */
+(async function(){
+  if (!TOKEN) return pantallaLogin();
+  try { YO = await api('/api/yo'); arrancar(); } catch { pantallaLogin(); }
+})();
+</script>
+</body>
+</html>

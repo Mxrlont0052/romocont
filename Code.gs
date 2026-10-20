@@ -311,6 +311,11 @@ function doPost(e) {
       return jsonOut(sincronizarDrive());
     }
 
+    if (req.action === 'central') {
+      // ROMO CENTRAL (cont.romodj.com/equipo): login, subidas y ROMO EDITS. Ver la sección CENTRAL abajo.
+      return jsonOut(central(req));
+    }
+
     throw new Error('Acción desconocida: ' + req.action);
   } catch (err) {
     return jsonOut({ error: err.message });
@@ -877,4 +882,222 @@ function findRowById(sheet, id) {
     if (String(ids[r][0]) === String(id)) return r + 1; // fila 1-indexed
   }
   return 0;
+}
+
+// ===========================================================================
+// CENTRAL — ROMO CENTRAL (cont.romodj.com/equipo) · 20-10-2026
+// ===========================================================================
+// Solo la usa el backend de Modal «romo-central», con una clave propia. La clave se guarda
+// sola la primera vez en CONFIG › CLAVE_CENTRAL (la página pública nunca la ve).
+//
+//   EQUIPO   → quién es quién: NOMBRE · CORREO · ROL (ADMIN / PUBLICADOR / EDITOR / SUBIDOR) · ACTIVO
+//              Quien entra con Google y no está aquí queda anotado solo como SUBIDOR.
+//              "Por emparejar" = fila sin correo: al ponerle el correo, esa persona entra con ese rol.
+//   SUBIDAS  → una fila = un video crudo subido (cola de ROMO EDITS)
+//   VIDEOS   → al aprobar un cambio se crea su fila (con la columna SUBIÓ)
+const EQUIPO_SHEET = 'EQUIPO';
+const SUBIDAS_SHEET = 'SUBIDAS';
+const EQUIPO_HEADS = ['NOMBRE', 'CORREO', 'ROL', 'ACTIVO', 'ÚLTIMA VEZ'];
+const EQUIPO_INICIAL = [
+  ['MARLONT', 'marlonromero0052@gmail.com', 'ADMIN', 'SI', ''],
+  ['KIKE', 'lskike@gmail.com', 'ADMIN', 'SI', ''],
+  ['PETER', 'peter.romo@gmail.com', 'ADMIN', 'SI', ''],
+  ['LIZY', '', 'PUBLICADOR', 'SI', ''],
+  ['DANIEL', '', 'EDITOR', 'SI', ''],
+  ['TIPAN', '', 'EDITOR', 'SI', ''],
+];
+const ROLES = ['ADMIN', 'PUBLICADOR', 'EDITOR', 'SUBIDOR'];
+// [campo, encabezado]
+const SUBIDA_COLS = [
+  ['id', 'ID'], ['archivo', 'ARCHIVO'], ['drive_id', 'DRIVE ID'], ['subio', 'SUBIÓ'], ['correo', 'CORREO'],
+  ['fecha', 'FECHA'], ['estado', 'ESTADO'], ['editor', 'EDITOR'], ['tomado', 'TOMADO'],
+  ['categoria', 'CATEGORÍA'], ['codigo', 'CÓDIGO'], ['notas', 'NOTAS'],
+];
+// PREPARANDO → PARA EDITAR → RENDERIZANDO → REVISAR → LISTO · (DESCARTADO / ERROR)
+const SUBIDA_ESTADOS = ['PREPARANDO', 'PARA EDITAR', 'RENDERIZANDO', 'REVISAR', 'LISTO', 'DESCARTADO', 'ERROR'];
+const ABIERTOS = ['PARA EDITAR', 'RENDERIZANDO', 'REVISAR'];
+// Un video tomado y sin tocar en 48 h vuelve a la bolsa para que otro editor lo haga.
+const LIBERAR_HORAS = 48;
+// Prefijo que escribe cada categoría y patrón con el que lee (RLL acepta la fila vieja «RL»).
+const PREFIJO_CAT = {
+  'ESTUDIANTES': ['ES', /^ES\s*0*(\d+)$/i],
+  'DEMOSTRATIVAS': ['DM', /^DM\s*0*(\d+)$/i],
+  'RELLENO': ['RLL', /^RLL?\s*0*(\d+)$/i],
+};
+
+function central(req) {
+  const clave = getConfig('CLAVE_CENTRAL');
+  if (!req.clave || String(req.clave).length < 32) throw new Error('Falta la clave');
+  if (!clave) setConfig('CLAVE_CENTRAL', req.clave, 'ROMO CENTRAL (Modal). No compartir.');
+  else if (clave !== req.clave) throw new Error('Clave incorrecta');
+  asegurarCentral();
+  const op = req.op;
+  if (op === 'equipo') return { ok: true, equipo: leerTabla(EQUIPO_SHEET) };
+  if (op === 'entro') return entroAlguien(req.correo, req.nombre);
+  if (op === 'subidas') return { ok: true, subidas: leerSubidas() };
+  if (op === 'subida_nueva') return subidaNueva(req.subida || {});
+  if (op === 'subida_cambiar') return subidaCambiar(req.id, req.campos || {});
+  if (op === 'repartir') return repartir(req.editor, !!req.mas);
+  if (op === 'registrar_cambio') return registrarCambio(req);
+  throw new Error('Operación desconocida: ' + op);
+}
+
+// Crea EQUIPO, SUBIDAS y la columna SUBIÓ en VIDEOS si faltan. No toca nada que ya exista.
+function asegurarCentral() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let eq = ss.getSheetByName(EQUIPO_SHEET);
+  if (!eq) {
+    eq = ss.insertSheet(EQUIPO_SHEET);
+    eq.getRange(1, 1, 1, EQUIPO_HEADS.length).setValues([EQUIPO_HEADS]).setFontWeight('bold');
+    eq.getRange(2, 1, EQUIPO_INICIAL.length, EQUIPO_HEADS.length).setValues(EQUIPO_INICIAL);
+    eq.getRange('C2:C').setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(ROLES, true).build());
+    eq.getRange('D2:D').setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(['SI', 'NO'], true).build());
+    eq.setFrozenRows(1);
+  }
+  let su = ss.getSheetByName(SUBIDAS_SHEET);
+  if (!su) {
+    su = ss.insertSheet(SUBIDAS_SHEET);
+    su.getRange(1, 1, 1, SUBIDA_COLS.length).setValues([SUBIDA_COLS.map(c => c[1])]).setFontWeight('bold');
+    su.getRange('G2:G').setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(SUBIDA_ESTADOS, true).build());
+    su.setFrozenRows(1);
+  }
+  const v = getSheet();
+  const heads = v.getRange(1, 1, 1, v.getLastColumn()).getValues()[0].map(normHead);
+  if (heads.indexOf(normHead('SUBIÓ')) < 0) v.getRange(1, v.getLastColumn() + 1).setValue('SUBIÓ').setFontWeight('bold');
+}
+
+// Filas de una pestaña como objetos { ENCABEZADO: valor } (encabezados normalizados, sin tildes).
+function leerTabla(nombre) {
+  const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(nombre);
+  if (!sh || sh.getLastRow() < 2) return [];
+  const data = sh.getDataRange().getValues();
+  const cab = data[0].map(normHead);
+  return data.slice(1).filter(f => f.some(c => String(c).trim())).map(f => {
+    const o = {}; cab.forEach((h, i) => { if (h) o[h] = celdaHora(f[i]); }); return o;
+  });
+}
+const celdaHora = val => val instanceof Date ? val.toISOString() : String(val == null ? '' : val);
+
+function entroAlguien(correo, nombre) {
+  correo = String(correo || '').toLowerCase().trim();
+  if (!correo) throw new Error('Sin correo');
+  const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(EQUIPO_SHEET);
+  const data = sh.getDataRange().getValues();
+  for (let r = 1; r < data.length; r++) {
+    if (String(data[r][1]).toLowerCase().trim() === correo) {
+      sh.getRange(r + 1, 5).setValue(new Date());
+      return { ok: true, nuevo: false };
+    }
+  }
+  sh.appendRow([String(nombre || correo.split('@')[0]).toUpperCase(), correo, 'SUBIDOR', 'SI', new Date()]);
+  return { ok: true, nuevo: true };
+}
+
+function hojaSubidas() {
+  const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SUBIDAS_SHEET);
+  const cab = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0].map(normHead);
+  const col = {};
+  SUBIDA_COLS.forEach(([f, h]) => { const i = cab.indexOf(normHead(h)); if (i >= 0) col[f] = i; });
+  return { sh, col, ancho: cab.length };
+}
+
+function leerSubidas() {
+  const { sh, col } = hojaSubidas();
+  if (sh.getLastRow() < 2) return [];
+  return sh.getDataRange().getValues().slice(1).filter(f => String(f[col.id] || '').trim()).map(f => {
+    const o = {}; SUBIDA_COLS.forEach(([c]) => { o[c] = col[c] != null ? celdaHora(f[col[c]]) : ''; }); return o;
+  });
+}
+
+function filaSubida(sh, col, id) {
+  if (sh.getLastRow() < 2) return 0;
+  const ids = sh.getRange(2, col.id + 1, sh.getLastRow() - 1, 1).getValues();
+  for (let i = 0; i < ids.length; i++) if (String(ids[i][0]) === String(id)) return i + 2;
+  return 0;
+}
+
+function subidaNueva(s) {
+  const { sh, col, ancho } = hojaSubidas();
+  if (!s.id) throw new Error('Subida sin ID');
+  if (filaSubida(sh, col, s.id)) return { ok: true, id: s.id, repetida: true };
+  const fila = new Array(ancho).fill('');
+  s.fecha = new Date(); s.estado = s.estado || 'PREPARANDO';
+  SUBIDA_COLS.forEach(([c]) => { if (col[c] != null && s[c] != null) fila[col[c]] = s[c]; });
+  sh.appendRow(fila);
+  return { ok: true, id: s.id };
+}
+
+function subidaCambiar(id, campos) {
+  const { sh, col } = hojaSubidas();
+  const r = filaSubida(sh, col, id);
+  if (!r) throw new Error('No existe la subida ' + id);
+  if (campos.estado && SUBIDA_ESTADOS.indexOf(campos.estado) < 0) throw new Error('Estado no válido: ' + campos.estado);
+  Object.keys(campos).forEach(c => {
+    if (col[c] == null || c === 'id') return;
+    sh.getRange(r, col[c] + 1).setValue(c === 'tomado' && campos[c] === 'ahora' ? new Date() : campos[c]);
+  });
+  return { ok: true, id: id };
+}
+
+// Reparto justo y escalable: cada editor activo se queda con su parte de lo abierto
+// (ceil(abiertos / editores)). Si faltan editores, lo demás espera en la bolsa;
+// con «mas» se lleva lo que quede. Lo tomado y olvidado 48 h vuelve a la bolsa.
+function repartir(editor, mas) {
+  editor = String(editor || '').toUpperCase().trim();
+  if (!editor) throw new Error('Falta el editor');
+  const { sh, col } = hojaSubidas();
+  if (sh.getLastRow() < 2) return { ok: true, mios: [], libres: 0, editores: 0 };
+  const data = sh.getRange(2, 1, sh.getLastRow() - 1, sh.getLastColumn()).getValues();
+  const ahora = Date.now();
+  const editores = leerTabla(EQUIPO_SHEET)
+    .filter(e => e.ROL === 'EDITOR' && e.ACTIVO !== 'NO').map(e => String(e.NOMBRE).toUpperCase());
+  if (editores.indexOf(editor) < 0) editores.push(editor);  // un admin que edita también cuenta
+  const abierto = f => ABIERTOS.indexOf(String(f[col.estado])) >= 0;
+  data.forEach((f, i) => {
+    if (String(f[col.estado]) !== 'PARA EDITAR' || !f[col.editor]) return;
+    const t = f[col.tomado] instanceof Date ? f[col.tomado].getTime() : 0;
+    if (t && ahora - t > LIBERAR_HORAS * 3600e3) {
+      sh.getRange(i + 2, col.editor + 1).setValue(''); f[col.editor] = '';
+    }
+  });
+  const total = data.filter(abierto).length;
+  const mios = data.filter(f => abierto(f) && String(f[col.editor]).toUpperCase() === editor).length;
+  const libres = data.map((f, i) => [f, i]).filter(([f]) => String(f[col.estado]) === 'PARA EDITAR' && !f[col.editor]);
+  // Más viejo primero: lo que lleva más tiempo esperando se edita antes.
+  libres.sort((a, b) => new Date(a[0][col.fecha]) - new Date(b[0][col.fecha]));
+  const cupo = mas ? libres.length : Math.max(0, Math.ceil(total / editores.length) - mios);
+  libres.slice(0, cupo).forEach(([f, i]) => {
+    sh.getRange(i + 2, col.editor + 1).setValue(editor);
+    sh.getRange(i + 2, col.tomado + 1).setValue(new Date());
+  });
+  return { ok: true, tomados: Math.min(cupo, libres.length), libres: Math.max(0, libres.length - cupo), editores: editores.length };
+}
+
+// Al aprobar: siguiente código libre de la categoría + fila en VIDEOS + subida en LISTO. Todo bajo el candado de doPost.
+function registrarCambio(req) {
+  const cat = String(req.categoria || '').toUpperCase();
+  const pc = PREFIJO_CAT[cat];
+  if (!pc) throw new Error('Categoría no válida: ' + cat);
+  const v = getSheet(), m = colMap(v);
+  let top = 0;
+  if (v.getLastRow() > 1) v.getRange(2, m.nombre + 1, v.getLastRow() - 1, 1).getValues().forEach(f => {
+    const x = String(f[0] || '').trim().match(pc[1]); if (x) top = Math.max(top, +x[1]);
+  });
+  const codigo = pc[0] + String(top + 1).padStart(3, '0');
+  const fila = new Array(v.getLastColumn()).fill('');
+  const t = new Date();
+  const vals = {
+    id: 'v' + t.getTime(), nombre: codigo, categoria: cat, estado: 'PENDIENTE',
+    creador: String(req.editor || '').toUpperCase(),
+    fecha: t.getDate() + ' de ' + ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto',
+      'septiembre', 'octubre', 'noviembre', 'diciembre'][t.getMonth()] + ' ' + t.getFullYear(),
+    link: req.link || '', created_at: t.toISOString(),
+  };
+  FIELDS.forEach(f => { if (m[f] != null && vals[f] != null) fila[m[f]] = vals[f]; });
+  const heads = v.getRange(1, 1, 1, v.getLastColumn()).getValues()[0].map(normHead);
+  const iSubio = heads.indexOf(normHead('SUBIÓ'));
+  if (iSubio >= 0) fila[iSubio] = String(req.subio || '');
+  v.appendRow(fila);
+  if (req.subida) subidaCambiar(req.subida, { estado: 'LISTO', codigo: codigo, categoria: cat });
+  return { ok: true, codigo: codigo, id: vals.id };
 }
