@@ -530,7 +530,7 @@ function paso(p){
   $('#pMarcar').classList.toggle('hidden', p !== 'marcar'); $('#pRevisar').classList.toggle('hidden', p !== 'revisar');
   $('.main').classList.toggle('fija', VISTA === 'cambios');
   const nrev = ITEMS.filter(it => it.estado !== 'PARA EDITAR').length; $('#revN').textContent = nrev ? `(${nrev})` : '';
-  $('#cTitulo').textContent = p === 'marcar' ? 'Marcar el cambio' : 'Revisar y aprobar';
+  $('#cTitulo').textContent = p === 'marcar' ? 'Marcar el cambio' : 'Revisar';
   pintarReparto();
   if (p === 'marcar') pintarMarcar(); else pintarRevisar();
 }
@@ -544,7 +544,7 @@ function pintarMarcar(){
   $('#cola').innerHTML = lista.map((it, k) => `<button class="${k === I ? 'on' : ''}" data-k="${k}"><div class="thumb" style="background-image:url('${media(it.id, 'poster.jpg')}')"></div><div style="min-width:0"><div class="t trunc">${esc(it.archivo.replace(/\.[^.]+$/, ''))}</div><div class="m">${listoParaRender(it) ? '<span class="tag ok">Listo</span>' : it.marca.marker != null ? '<span class="tag org">Falta tipo</span>' : 'Sin marcar'}</div></div></button>`).join('');
   $$('#cola [data-k]').forEach(b => b.onclick = () => { I = +b.dataset.k; pintarMarcar(); });
   const n = lista.filter(listoParaRender).length;
-  $('#bRender').disabled = !n; $('#bRender').textContent = n ? `Renderizar ${n} ${n === 1 ? 'listo' : 'listos'}` : 'Renderizar';
+  $('#bRender').disabled = !n; $('#bRender').textContent = n ? `Renderizar y guardar ${n}` : 'Renderizar y guardar';
   if (!lista.length) return;
   const it = lista[I], mk = it.marca;
   if ($('#vid').dataset.id !== it.id) { $('#vid').src = media(it.id, 'proxy.mp4') + '#t=0.1'; $('#vid').dataset.id = it.id; }
@@ -641,7 +641,7 @@ $('#bRender').onclick = async () => {
     await Promise.all(ids.map(id => { clearTimeout(guardaT[id]); const it = ITEMS.find(x => x.id === id); return api('/api/edits/marcar', Object.assign({ id }, it.marca)); }));
     await api('/api/edits/renderizar', { ids });
     ids.forEach(id => { const it = ITEMS.find(x => x.id === id); it.estado = 'RENDERIZANDO'; VIVO[id] = { estado: 'renderizando', progreso: 0, fase: 'En cola' }; });
-    toast(`${ids.length} videos renderizándose 🔥`); I = 0; paso('revisar');
+    toast(`${ids.length} renderizándose · se guardan solos al terminar 🔥`); I = 0; paso('revisar');
   } catch (e) { toast(e.message); $('#bRender').disabled = false; }
 };
 
@@ -651,10 +651,10 @@ const enRevisar = () => ITEMS.filter(it => it.estado !== 'PARA EDITAR');
 function estadoDe(it){ const v = VIVO[it.id] || {}; return v.estado || (it.estado === 'REVISAR' ? 'revisar' : it.estado === 'RENDERIZANDO' ? 'renderizando' : it.estado.toLowerCase()); }
 function tagDe(it){
   const v = VIVO[it.id] || {}, est = estadoDe(it);
-  if (est === 'listo') return `<span class="tag ok">${esc(v.codigo || 'Aprobado')}</span>`;
-  if (est === 'revisar') return '<span class="tag cy">Para revisar</span>';
+  if (est === 'listo') return `<span class="tag ok">✓ ${esc(v.codigo || it.codigo_item || 'Guardado')}</span>`;
+  if (est === 'revisar') return '<span class="tag red">Sin guardar</span>';
   if (est === 'error') return '<span class="tag red">Error</span>';
-  if (est === 'aprobando') return '<span class="tag org">Subiendo</span>';
+  if (est === 'guardando' || est === 'aprobando') return '<span class="tag org">Guardando</span>';
   return `<span class="tag org">${Math.round(v.progreso || 0)} %</span>`;
 }
 function pintarRevisar(){
@@ -667,20 +667,20 @@ function pintarRevisar(){
   pintarColaRev();
   const it = lista[J], v = VIVO[it.id] || {}, est = estadoDe(it), mk = it.marca || {}, rd = it.render || {};
   // Centro: el video renderizado, o el póster con el progreso mientras se hace.
-  if (est === 'revisar') {
+  if (est === 'revisar' || est === 'listo') {
     const src = media(it.id, mk.vo_pref === 'none' ? 'sv.mp4' : 'con_voz.mp4') + '&r=' + (rd.hecho || '');
     const ya = $('#rvcol video');
     if (!ya || ya.dataset.src !== src) $('#rvcol').innerHTML = `<video src="${src}#t=0.01" data-src="${src}" controls playsinline preload="metadata"></video>`;
   } else {
-    const txt = est === 'listo' ? `<div class="cnt" style="font-size:40px;color:var(--verde)">${esc(v.codigo || '✓')}</div><div class="m">Aprobado · en el Drive y en la hoja para Lizy</div>`
-      : est === 'error' ? '<div class="t" style="color:#ff6b6b">Falló el render</div>'
-      : `<div class="t" data-fase>${esc(est === 'aprobando' ? 'Subiendo al Drive…' : (v.fase || 'En cola'))}</div><div class="pbar" style="width:180px;margin:10px auto 0"><i data-prog style="width:${Math.max(3, v.progreso || 0)}%"></i></div>`;
+    const txt = est === 'error' ? '<div class="t" style="color:#ff6b6b">Falló el render</div>'
+      : `<div class="t" data-fase>${esc(v.fase || (est === 'guardando' ? 'Guardando en el Drive…' : 'En cola'))}</div><div class="pbar" style="width:180px;margin:10px auto 0"><i data-prog style="width:${Math.max(3, v.progreso || 0)}%"></i></div>`;
     $('#rvcol').innerHTML = `<div class="wait" style="background-image:url('${media(it.id, 'poster.jpg')}')"><div>${txt}</div></div>`;
   }
   // Derecha: datos, retoques y la decisión.
   const g = n => (mk[n] == null ? 0 : mk[n]);
   const vo = +(mk.vo_locked ? mk.vo_at : (rd.vo_at || 0));
-  const puede = est === 'revisar';
+  const puede = est === 'revisar' || est === 'listo';
+  const codigo = v.codigo || it.codigo_item || '';
   $('#rpanel').innerHTML = `
     <div class="paso"><div class="lbl">Video</div>
       <div class="t trunc">${esc(it.archivo)}</div>
@@ -691,10 +691,13 @@ function pintarRevisar(){
       <div class="sl"><span>Música</span><input type="range" min="-12" max="6" step="0.5" value="${g('music_gain')}" data-k="music_gain" ${puede ? '' : 'disabled'}><output>${g('music_gain')} dB</output></div>
       <div class="sl"><span>Voz</span><input type="range" min="-12" max="6" step="0.5" value="${g('vo_gain')}" data-k="vo_gain" ${puede && mk.vo_pref !== 'none' ? '' : 'disabled'}><output>${g('vo_gain')} dB</output></div>
       <div class="sl"><span>Voz empieza</span><input type="range" min="0" max="${(rd.duration || it.duracion || 30).toFixed(1)}" step="0.1" value="${vo}" data-k="vo_at" ${puede && mk.vo_pref !== 'none' ? '' : 'disabled'}><output>${vo.toFixed(1)} s</output></div>
-      <div style="display:flex;gap:8px"><button class="btn btn-gray btn-sm" style="flex:1" data-a="retocar" disabled>Aplicar retoque</button><button class="btn btn-gray btn-sm" style="flex:1" data-a="remarcar" ${est === 'listo' || est === 'aprobando' ? 'disabled' : ''}>Volver a marcar</button></div></div>
+      <div style="display:flex;gap:8px"><button class="btn btn-gray btn-sm" style="flex:1" data-a="retocar" disabled>Aplicar retoque</button><button class="btn btn-gray btn-sm" style="flex:1" data-a="remarcar" ${puede || est === 'error' ? '' : 'disabled'}>Volver a marcar</button></div></div>
     <div class="fin">
       <div style="display:flex;gap:8px"><button class="btn btn-gray" data-a="prev" title="Anterior" ${J === 0 ? 'disabled' : ''}>←</button><button class="btn btn-gray" style="flex:1" data-a="next" ${J >= lista.length - 1 ? 'disabled' : ''}>Siguiente video</button></div>
-      <div style="display:flex;gap:8px"><button class="btn btn-gray" style="min-height:48px" data-a="descartar" ${puede || est === 'error' ? '' : 'disabled'}>✗ No sirve</button><button class="btn btn-red" style="flex:1;min-height:48px" data-a="aprobar" ${puede ? '' : 'disabled'}>✓ Aprobar</button></div>
+      <div style="display:flex;gap:8px;align-items:center"><button class="btn btn-gray" style="min-height:48px" data-a="descartar" ${puede || est === 'error' ? '' : 'disabled'}>✗ No sirve</button>
+        ${est === 'listo' ? `<div class="grow" style="text-align:center"><div class="t" style="color:var(--verde)">✓ Guardado · ${esc(codigo)}</div><div class="m">En el Drive y en la hoja para Lizy</div></div>`
+          : est === 'revisar' ? `<button class="btn btn-red" style="flex:1;min-height:48px" data-a="aprobar">Reintentar guardar</button>`
+          : `<div class="grow m" style="text-align:center">Se guarda solo al terminar</div>`}</div>
     </div>`;
   enlazarPanel(it);
 }
@@ -717,11 +720,11 @@ function enlazarPanel(it){
   });
   act('remarcar', () => { it.estado = 'PARA EDITAR'; VIVO[it.id] = {}; I = porMarcar().indexOf(it); paso('marcar'); });
   act('aprobar', async () => {
-    try { await api('/api/edits/aprobar', { id: it.id }); VIVO[it.id] = { estado: 'aprobando', progreso: 10 }; toast('Aprobado: subiendo al Drive');
-      const sig = enRevisar().findIndex((x, k) => k > J && estadoDe(x) === 'revisar'); if (sig >= 0) J = sig; pintarRevisar(); } catch (e) { toast(e.message); }
+    try { await api('/api/edits/aprobar', { id: it.id }); VIVO[it.id] = { estado: 'guardando', progreso: 96, fase: 'Guardando en el Drive…' }; pintarRevisar(); } catch (e) { toast(e.message); }
   });
   act('descartar', async () => {
-    const motivo = prompt('¿Por qué no sirve? (se anota en la hoja)'); if (motivo == null) return;
+    const guardado = estadoDe(it) === 'listo';
+    const motivo = prompt(guardado ? `¿Por qué no sirve? Se quita ${it.codigo_item || VIVO[it.id]?.codigo || 'el video'} de la hoja.` : '¿Por qué no sirve? (se anota en la hoja)'); if (motivo == null) return;
     try { await api('/api/edits/soltar', { id: it.id, descartar: true, motivo }); ITEMS = ITEMS.filter(x => x !== it); pintarRevisar(); toast('Descartado'); } catch (e) { toast(e.message); }
   });
 }
@@ -730,7 +733,7 @@ setInterval(async () => {
   if (VISTA !== 'cambios' || !TOKEN) return;
   const ids = ITEMS.filter(it => it.estado !== 'PARA EDITAR').map(it => it.id);
   if (!ids.length) return;
-  const enMarcha = ids.filter(id => !['revisar', 'listo', 'error'].includes((VIVO[id] || {}).estado));
+  const enMarcha = ids.filter(id => !['revisar', 'listo', 'error'].includes((VIVO[id] || {}).estado || ITEMS.find(x => x.id === id).estado.toLowerCase()));
   if (!enMarcha.length) return;
   try {
     const d = await api('/api/edits/vivo?ids=' + enMarcha.join(','));
