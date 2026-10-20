@@ -332,9 +332,12 @@ const FPS = 30;
 
 const guardado = { get(k){ try { return localStorage.getItem(k) } catch { return null } },
                    set(k,v){ try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k,v) } catch {} } };
-let TOKEN = guardado.get('rc_token' + (QS.get('api') === 'dev' ? '_dev' : ''));
-const guardarToken = t => { TOKEN = t; guardado.set('rc_token' + (QS.get('api') === 'dev' ? '_dev' : ''), t); };
-let YO = null;
+const SUF = QS.get('api') === 'dev' ? '_dev' : '';
+let TOKEN = guardado.get('rc_token' + SUF);
+const guardarToken = t => { TOKEN = t; guardado.set('rc_token' + SUF, t); if (!t) guardado.set('rc_yo' + SUF, null); };
+// Quién eres, guardado: así la página abre al instante sin esperar al servidor.
+const guardarYo = y => guardado.set('rc_yo' + SUF, y ? JSON.stringify(y) : null);
+let YO = (() => { try { return JSON.parse(guardado.get('rc_yo' + SUF) || 'null'); } catch { return null; } })();
 
 function toast(t){ const e = $('#toast'); e.textContent = t; e.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => e.classList.remove('show'), 2800); }
 
@@ -359,19 +362,25 @@ function pantallaLogin(){
   if (QS.get('api')) $('#devBox').classList.remove('hidden');
   const pinta = () => {
     if (!window.google || !google.accounts) return setTimeout(pinta, 200);
-    google.accounts.id.initialize({ client_id: CLIENT_ID, callback: r => entrar({ credential: r.credential }) });
+    google.accounts.id.initialize({ client_id: CLIENT_ID, auto_select: true, cancel_on_tap_outside: false,
+      callback: r => entrar({ credential: r.credential }) });
     google.accounts.id.renderButton($('#gbtn'), { theme: 'filled_black', size: 'large', shape: 'pill', text: 'signin_with', locale: 'es', width: 300 });
+    google.accounts.id.prompt();   // si ya entraste antes en este navegador, Google te mete solo
   };
   pinta();
 }
 async function entrar(body){
   try { const d = await fetch(API + '/api/entrar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     const j = await d.json(); if (!d.ok) throw new Error(j.detail || 'No se pudo entrar');
-    guardarToken(j.token); YO = j.yo; arrancar(); }
+    guardarToken(j.token); YO = j.yo; guardarYo(YO); arrancar(); }
   catch (e) { toast(e.message); }
 }
 $('#devEntrar').onclick = () => entrar({ dev_correo: $('#devCorreo').value.trim(), dev_nombre: $('#devCorreo').value.split('@')[0] });
-function salir(silencio){ guardarToken(null); YO = null; if (!silencio) toast('Saliste'); pantallaLogin(); }
+function salir(silencio){
+  guardarToken(null); YO = null;
+  if (!silencio) { toast('Saliste'); try { google.accounts.id.disableAutoSelect(); } catch {} }
+  pantallaLogin();
+}
 $('#salir').onclick = () => salir();
 
 const ROL_TXT = { ADMIN: 'Admin', PUBLICADOR: 'Publicador', EDITOR: 'Editor', SUBIDOR: 'Subidor' };
@@ -746,7 +755,16 @@ setInterval(async () => {
 /* ───── arranque ───── */
 (async function(){
   if (!TOKEN) return pantallaLogin();
-  try { YO = await api('/api/yo'); arrancar(); } catch { pantallaLogin(); }
+  const yaAbierta = !!YO;
+  if (yaAbierta) arrancar();
+  try {
+    const y = await api('/api/yo');           // un 401 manda al login (sesión vencida o cuenta apagada)
+    if (y.token) guardarToken(y.token);        // la sesión se renueva 90 días en cada visita
+    delete y.token;
+    const cambioRol = !YO || YO.rol !== y.rol || YO.nombre !== y.nombre;
+    YO = y; guardarYo(y);
+    if (!yaAbierta || cambioRol) arrancar();
+  } catch { if (!yaAbierta && TOKEN) setTimeout(() => location.reload(), 4000); }   // sin internet: reintenta
 })();
 </script>
 </body>
