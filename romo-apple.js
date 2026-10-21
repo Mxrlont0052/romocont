@@ -17,7 +17,13 @@
     if (!th.classList.contains('on')) th.classList.add('on');
     if (th.classList.contains('sin-anim')) { th.offsetWidth; th.classList.remove('sin-anim'); }
   }
-  const thumbs = () => document.querySelectorAll('.steps, .seg').forEach(thumb);
+  const thumbs = () => document.querySelectorAll('.steps, .seg, .pub-dias').forEach(thumb);
+  // Teléfono: si en la barra hay un solo apartado visible, no se repite como cápsula (Lizy solo tiene Publicar).
+  function soloUno() {
+    const side = document.querySelector('.side'); if (!side) return;
+    const n = [...side.querySelectorAll(':scope > a')].filter(x => !x.classList.contains('hidden')).length;
+    if ((n <= 1) !== side.hasAttribute('data-solo')) side.toggleAttribute('data-solo', n <= 1);
+  }
 
   function menuCuenta() {
     const me = document.querySelector('.me[data-menu]'), m = document.querySelector('.menu-cuenta');
@@ -31,9 +37,9 @@
     document.addEventListener('keydown', e => { if (e.key === 'Escape' && m.classList.contains('open')) { abrir(false); me.focus(); } });
   }
 
-  let pend = 0; const pronto = () => { if (!pend) { pend = 1; queueMicrotask(() => { pend = 0; thumbs(); }); } };   // antes de pintar
+  let pend = 0; const pronto = () => { if (!pend) { pend = 1; queueMicrotask(() => { pend = 0; thumbs(); soloUno(); }); } };   // antes de pintar
   const go = () => {
-    menuCuenta(); thumbs();
+    menuCuenta(); thumbs(); soloUno();
     new MutationObserver(pronto).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['aria-pressed', 'class'] });
     addEventListener('resize', pronto);
   };
