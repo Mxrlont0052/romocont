@@ -51,7 +51,15 @@ const COLS = [
   ['leads',       'LEADS',        []],
   ['notas',       'NOTAS',        []],
   ['created_at',  'CREADO',       ['CREATED_AT']],
+  // Publicar (20-10-2026): los admins eligen DÍA y HORA en el Dashboard; Lizy pega FACEBOOK y TIKTOK.
+  ['dia_pub',     'DÍA PUBLICAR', ['DIA PUBLICAR']],
+  ['hora_pub',    'HORA PUBLICAR', []],
+  ['facebook',    'FACEBOOK',     []],
+  ['publicado_en', 'PUBLICADO EN', []],
+  ['publico',     'PUBLICÓ',      ['PUBLICO']],
 ];
+// Columnas que se agregan solas al final de VIDEOS si faltan (las crea asegurarCentral).
+const COLS_NUEVAS = ['DÍA PUBLICAR', 'HORA PUBLICAR', 'FACEBOOK', 'PUBLICADO EN', 'PUBLICÓ'];
 const FIELDS = COLS.map(c => c[0]);
 
 // Lo que aparece en los menús de LISTAS la primera vez (después se editan en la hoja).
@@ -138,7 +146,8 @@ function aliasEntrada(v) {
 }
 
 function celda(val) {
-  // El Sheet convierte fechas a Date: devolver como YYYY-MM-DD
+  // El Sheet convierte fechas a Date: devolver como YYYY-MM-DD. Una HORA sola (18:00) llega como Date de 1899: HH:mm.
+  if (val instanceof Date && val.getFullYear() < 1901) return Utilities.formatDate(val, 'America/Guayaquil', 'HH:mm');
   if (val instanceof Date) return Utilities.formatDate(val, 'America/Guayaquil', 'yyyy-MM-dd');
   return String(val == null ? '' : val);
 }
@@ -962,8 +971,10 @@ function asegurarCentral() {
     su.setFrozenRows(1);
   }
   const v = getSheet();
-  const heads = v.getRange(1, 1, 1, v.getLastColumn()).getValues()[0].map(normHead);
-  if (heads.indexOf(normHead('SUBIÓ')) < 0) v.getRange(1, v.getLastColumn() + 1).setValue('SUBIÓ').setFontWeight('bold');
+  ['SUBIÓ'].concat(COLS_NUEVAS).forEach(h => {
+    const heads = v.getRange(1, 1, 1, v.getLastColumn()).getValues()[0].map(normHead);
+    if (heads.indexOf(normHead(h)) < 0) v.getRange(1, v.getLastColumn() + 1).setValue(h).setFontWeight('bold');
+  });
 }
 
 // Filas de una pestaña como objetos { ENCABEZADO: valor } (encabezados normalizados, sin tildes).

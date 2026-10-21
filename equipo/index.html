@@ -395,8 +395,10 @@ $('#salir').onclick = () => salir();
 
 const ROL_TXT = { ADMIN: 'Admin', PUBLICADOR: 'Publicador', EDITOR: 'Editor', SUBIDOR: 'Subidor' };
 function arrancar(){
-  // Llegó desde la dirección principal (?inicio=1): admins y Lizy ven el Dashboard primero (Marlon, 20-10-2026).
-  if (QS.get('inicio') === '1' && (YO.rol === 'ADMIN' || YO.rol === 'PUBLICADOR')) { location.replace('../dashboard.html'); return; }
+  // Llegó desde la dirección principal (?inicio=1): los admins ven el Dashboard primero (Marlon, 20-10-2026).
+  // Lizy (PUBLICADOR) se queda aquí: su pantalla es Publicar (#publicar).
+  if (QS.get('inicio') === '1' && YO.rol === 'ADMIN') { location.replace('../dashboard.html'); return; }
+  if (QS.get('inicio') === '1' && YO.rol === 'PUBLICADOR') location.hash = 'publicar';
   $('#vLogin').classList.add('hidden'); $('#vApp').classList.remove('hidden');
   $('#meNom').textContent = YO.nombre.toLowerCase().replace(/(^|\s)\S/g, c => c.toUpperCase()); $('#meRol').textContent = ROL_TXT[YO.rol] || YO.rol; $('.me').dataset.correo = YO.correo;
   $('#meAv').innerHTML = YO.foto ? `<img src="${esc(YO.foto)}" alt="">` : esc(YO.nombre.slice(0, 2));
