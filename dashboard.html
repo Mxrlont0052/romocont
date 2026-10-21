@@ -556,7 +556,7 @@ let filtro={q:'',cat:'',est:'todos',orden:'nuevos'};
 const $=s=>document.querySelector(s);
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2600)}
 function setLive(st){const l=$('#live');l.className='live'+(st==='ok'?' ok':'');$('#live span').textContent={ok:'En vivo',syncing:'Sincronizando',error:'Sin conexión'}[st]}
-const hashVideos=a=>a.map(v=>[v.id,v.estado,v.creador,v.link,v.tiktok,v.vistas,v.descripcion,v.tema,v.formato,v.oferta,v.nombre,v.categoria,v.fecha].join('¦')).join('|');
+const hashVideos=a=>a.map(v=>[v.id,v.estado,v.creador,v.link,v.tiktok,v.vistas,v.descripcion,v.tema,v.formato,v.oferta,v.nombre,v.categoria,v.fecha,v.dia_pub,v.hora_pub].join('¦')).join('|');
 let _hash='';
 
 async function load(){
@@ -766,6 +766,8 @@ function openEditor(id,modo){
     <div class="sh-head"><div><div class="kicker" style="color:${catColor(v.categoria)}">${esc(v.categoria)} · ${esc(who(v)||'sin creador')}</div><div class="sh-title">${esc(v.nombre)}</div></div><button class="close" onclick="closeSheet()" aria-label="Cerrar">✕</button></div>
     <div class="sh-body">
       ${fichaHtml(c,tecnica)}
+      ${c.estado!=='PUBLICADO'?`<div class="f2" style="margin-top:14px"><label class="fl"><span>Lizy lo publica el día</span><input class="field" type="date" id="e-dia" value="${esc(c.dia_pub||'')}"></label>
+        <label class="fl"><span>A la hora</span><input class="field" type="time" id="e-hora" step="900" value="${esc(c.hora_pub||'')}"></label></div>`:''}
       <details class="datos" ${modo==='editar'?'open':''}><summary>Datos del video</summary>
         <div class="form">
           <label class="fl"><span>Estado</span><div class="seg seg-in" id="e-est"><i class="th"></i><button type="button" data-v="PENDIENTE" aria-pressed="${c.estado==='PENDIENTE'}">Pendiente</button><button type="button" data-v="PUBLICADO" aria-pressed="${c.estado==='PUBLICADO'}">Publicado</button></div></label>
@@ -805,6 +807,7 @@ async function guardarEditor(){
   v.estado=c.estado;v.tiktok=c.tiktok||'';v.tema=c.tema||'';v.formato=c.formato||'';v.oferta=c.oferta||'';
   v.categoria=$('#e-cat').value;v.nombre=$('#e-nom').value.trim()||o.nombre;v.creador=$('#e-cre').value.trim().toUpperCase();
   const fe=$('#e-fec').value.trim();v.fecha=(c.fechaIso&&fe===c.fechaIso)?o.fecha:(fe||o.fecha); // si no se tocó, la fecha queda igual que estaba
+  if($('#e-dia')){v.dia_pub=$('#e-dia').value;v.hora_pub=$('#e-hora').value} // programar para Lizy (pantalla Publicar)
   v.vistas=$('#e-vis').value.trim();v.campana=$('#e-tan').value.trim().toUpperCase();v.notas=$('#e-not').value.trim();
   const d=(c.descripcion||'').trim();
   // Sin descripción nueva se queda la que había, salvo que fuera la etiqueta de técnica de ROMO CAMBIOS: esa se limpia.
