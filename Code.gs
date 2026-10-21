@@ -33,6 +33,17 @@ const DRIVE_SINVOZ = '1EwH6F6YbSBHkoCqHfnp9jLI3nD79HN8L'; // VIDEOS SIN VOZ
 // quién es · cómo va · dónde está · ficha · cómo le fue.
 // [campo que usa la app, encabezado en la hoja, otros nombres que se aceptan]
 // link = archivo en Drive (lo maneja el robot) · tiktok = video publicado (lo maneja el equipo)
+// Rendimiento por red (pedido de Peter / RomoOps, 21-10-2026). RomoOps lee cada día TikTok, Instagram y Facebook
+// y lo escribe aquí con `bulk`. Para sumar otra red: una línea más en REDES y volver a correr agregarColumnasRedes().
+// Facebook no trae comentarios ni compartidos (su API no es confiable en eso); los guardados de IG no se usan.
+const REDES = [
+  ['tt', 'TT', ['ID', 'PUBLICADO', 'VISTAS', 'LIKES', 'COMENTARIOS', 'COMPARTIDOS']],
+  ['ig', 'IG', ['ID', 'PUBLICADO', 'VISTAS', 'LIKES', 'COMENTARIOS', 'COMPARTIDOS']],
+  ['fb', 'FB', ['ID', 'PUBLICADO', 'VISTAS', 'LIKES']],
+];
+const COLS_REDES = [['actualizado', 'ACTUALIZADO', []]];
+REDES.forEach(([k, P, cs]) => cs.forEach(c => COLS_REDES.push([k + '_' + c.toLowerCase(), P + ' ' + c, []])));
+
 const COLS = [
   ['id',          'ID',           []],
   ['nombre',      'CÓDIGO',       ['NOMBRE', 'CODIGO']],
@@ -57,7 +68,10 @@ const COLS = [
   ['facebook',    'FACEBOOK',     []],
   ['publicado_en', 'PUBLICADO EN', []],
   ['publico',     'PUBLICÓ',      ['PUBLICO']],
-];
+  // SUBIÓ ya existe en la hoja (ROMO CENTRAL la agrega); va en COLS para que reorganizar() no la pierda.
+  ['subio',       'SUBIÓ',        ['SUBIO']],
+  ['instagram',   'INSTAGRAM',    []],   // link del reel, como TIKTOK y FACEBOOK
+].concat(COLS_REDES);
 // Columnas que se agregan solas al final de VIDEOS si faltan (las crea asegurarCentral).
 const COLS_NUEVAS = ['DÍA PUBLICAR', 'HORA PUBLICAR', 'FACEBOOK', 'PUBLICADO EN', 'PUBLICÓ'];
 const FIELDS = COLS.map(c => c[0]);
@@ -80,7 +94,7 @@ const LINEAS_IA = [
   { linea: 'MDT', hoja: 'GUIONES MDT', categoria: 'IA MDT', prefijo: 'IAM', para: 'DJ pro, certificación' },
 ];
 // Columnas de un guion: CÓDIGO y Estado + lo que lee la Fábrica (romo-reel/fabrica/hoja.py), por encabezado.
-const GUION_HEADS = ['CÓDIGO', 'Estado', 'Título', 'Estilo', 'Puerta', 'Tono',
+const GUION_HEADS = ['CÓDIGO', 'Estado', 'Título', 'Estilo', 'Puerta', 'Tono', 'Presentador', 'Gente',
   '1 Conflicto · voz', '1 · ceja', '1 · titular', '1 · sub',
   '2 Antes del PERO · ceja', '2 Antes del PERO · titular', '2 PERO · voz', '2 · ceja', '2 · titular', '2 · sub',
   '3 POR LO TANTO · voz', '3 · ceja', '3 · titular', '3 · sub',
@@ -216,13 +230,23 @@ function doGet(e) {
 }
 
 // Escribe en la fila solo los campos que llegan; lo que no llega se queda como está.
-function escribirFila(sheet, m, row, v) {
+// Métricas: un vacío ("") es «sin dato», no «cero»: nunca pisa un número que ya está.
+const METRICAS = COLS_REDES.map(c => c[0]).concat(['vistas']);
+const LINKS_REDES = ['tiktok', 'facebook', 'instagram'];
+const ES_ID_RED = f => /^(tt|ig|fb)_id$/.test(f);
+
+// Escribe en la fila solo los campos que llegan; lo que no llega se queda como está.
+// opts.protegerLinks (lo usa bulk/RomoOps): los links TIKTOK/FACEBOOK/INSTAGRAM solo se llenan si estaban vacíos.
+function escribirFila(sheet, m, row, v, opts) {
   const ancho = sheet.getLastColumn();
   const rango = sheet.getRange(row, 1, 1, ancho);
   const actual = rango.getValues()[0];
   FIELDS.forEach(f => {
     if (m[f] == null || f === 'created_at' || f === 'id') return;
     if (v[f] === undefined) return;
+    if (METRICAS.indexOf(f) >= 0 && (v[f] === '' || v[f] == null)) return;
+    if (opts && opts.protegerLinks && LINKS_REDES.indexOf(f) >= 0 && String(actual[m[f]] || '').trim()) return;
+    if (ES_ID_RED(f)) sheet.getRange(row, m[f] + 1).setNumberFormat('@');   // 19 dígitos de TikTok: texto, sin redondeo
     actual[m[f]] = v[f] == null ? '' : String(v[f]);
   });
   rango.setValues([actual]);
@@ -273,7 +297,7 @@ function doPost(e) {
       list.forEach(v => {
         const row = rowById[String(v.id)];
         if (!row) return;
-        escribirFila(sheet, m, row, aliasEntrada(v));
+        escribirFila(sheet, m, row, aliasEntrada(v), { protegerLinks: true });
         updated++;
       });
       return jsonOut({ ok: true, action: 'bulk', updated: updated });
@@ -951,6 +975,7 @@ function central(req) {
   if (op === 'categorias') return { ok: true, categorias: leerCategorias() };
   if (op === 'categoria_nueva') return categoriaNueva(req.nombre, req.prefijo);
   if (op === 'registrar_video') return registrarVideo(req);
+  if (op === 'columnas_redes') return agregarColumnasRedes();
   throw new Error('Operación desconocida: ' + op);
 }
 
@@ -1174,4 +1199,29 @@ function registrarVideo(req) {
   if (iSubio >= 0) fila[iSubio] = String(req.subio || '');
   v.appendRow(fila);
   return { ok: true, codigo: codigo, id: vals.id };
+}
+
+// ===========================================================================
+// COLUMNAS DE REDES (21-10-2026) — correr UNA vez (o desde ROMO CENTRAL con la acción central «columnas_redes»)
+// ===========================================================================
+// Crea al FINAL de VIDEOS las que falten: INSTAGRAM, ACTUALIZADO y los bloques TT / IG / FB. No mueve ni renombra nada.
+// Formato: *ID como TEXTO (los de TikTok tienen 19 dígitos), ACTUALIZADO y *PUBLICADO como fecha yyyy-mm-dd, el resto número.
+function agregarColumnasRedes() {
+  const v = getSheet();
+  const filas = Math.max(v.getMaxRows() - 1, 1);
+  const creadas = [];
+  ['INSTAGRAM'].concat(COLS_REDES.map(c => c[1])).forEach(h => {
+    const heads = v.getRange(1, 1, 1, v.getLastColumn()).getValues()[0].map(normHead);
+    let i = heads.indexOf(normHead(h));
+    if (i < 0) {
+      i = v.getLastColumn();
+      v.getRange(1, i + 1).setValue(h).setFontWeight('bold');
+      creadas.push(h);
+    }
+    const cuerpo = v.getRange(2, i + 1, filas, 1);
+    if (/ ID$/.test(h)) cuerpo.setNumberFormat('@');
+    else if (h === 'ACTUALIZADO' || / PUBLICADO$/.test(h)) cuerpo.setNumberFormat('yyyy-mm-dd');
+    else if (h !== 'INSTAGRAM') cuerpo.setNumberFormat('0');
+  });
+  return { ok: true, creadas: creadas };
 }
