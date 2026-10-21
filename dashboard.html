@@ -437,6 +437,14 @@ a.btn{text-decoration:none}
   .vid-act .btn-sm{min-width:28px}
 }
 </style>
+<!-- Incrustado en ROMO CENTRAL (20-10-2026): dentro de equipo/ el admin ve Inicio/Pendientes/Videos/Reportes en la
+     barra de la app; aquí se esconden la barra propia, el logo y el botón Agregar. dashboard.html solo sigue igual. -->
+<script>if (new URLSearchParams(location.search).get('embed') === '1' || window.top !== window.self) document.documentElement.classList.add('embed');</script>
+<style>
+.embed .tabbar,.embed .top img,.embed .fab{display:none!important}
+.embed .top{padding:10px 20px!important;min-height:0}
+.embed .wrap{margin:0!important;max-width:none!important;padding:0 8px 48px!important}
+</style>
 <!-- Piel estilo Apple, regla general de ROMO (20-10-2026) -->
 <link rel="stylesheet" href="romo-dash.css?v=2">
 </head>
@@ -574,7 +582,9 @@ async function load(){
 async function recargar(){try{videos=await apiGet();_hash=hashVideos(videos);try{localStorage.setItem('romocont_cache',JSON.stringify(videos))}catch(e){}setLive('ok')}catch(e){setLive('error')}render()}
 
 document.querySelectorAll('.tb').forEach(b=>b.onclick=()=>tabTo(b.dataset.tab));
-function tabTo(t){tab=t;document.querySelectorAll('.tb').forEach(x=>x.setAttribute('aria-selected',x.dataset.tab===t));render();scrollTo({top:0})}
+function tabTo(t){tab=t;document.querySelectorAll('.tb').forEach(x=>x.setAttribute('aria-selected',x.dataset.tab===t));render();scrollTo({top:0});
+  try{if(window.parent!==window&&window.parent.marcarDash)window.parent.marcarDash(t)}catch(e){}}
+{const t0=new URLSearchParams(location.search).get('tab');if(['inicio','pend','videos','rep'].includes(t0))tab=t0}
 function render(){
   if(!videos.length&&tab!=='guia')return;
   const pend=videos.filter(v=>v.estado==='PENDIENTE').length;const bd=$('#badge');bd.hidden=!pend;bd.textContent=pend;
@@ -589,7 +599,7 @@ function rInicio(){
   const pubs=videos.filter(v=>v.estado==='PUBLICADO'),comp=pubs.filter(v=>fichaN(v)===FICHA.length).length,conDesc=pubs.filter(v=>esDescReal(v.descripcion)).length;
   const cats=catsStats(),alertas=cats.filter(c=>c.buf!=='ok');
   $('#main').innerHTML=`
-  <div class="page-h"><div class="kicker">Content Team</div><div class="h1">Dashboard</div></div>
+  <div class="page-h"><div class="kicker">Content Team</div><div class="h1">${document.documentElement.classList.contains('embed')?'Inicio':'Dashboard'}</div></div>
   <div class="dash"><section class="b-hero"><div class="hero">
     <div class="mini-l" style="margin:0 0 6px">Videos registrados · ${Math.round(pub/total*100)}% publicado</div>
     <div class="hero-n" data-count="${total}">0</div>

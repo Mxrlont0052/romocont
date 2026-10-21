@@ -133,6 +133,7 @@ select.sel{height:36px;border-radius:10px;background:var(--card-2);border:0;padd
 /* ROMO CAMBIOS · opción A «3 columnas» (aprobada 20-10-2026): todo en una pantalla, sin bajar */
 .main.fija{height:100vh;overflow:hidden;padding:16px 20px;max-width:none;display:flex;flex-direction:column}
 .main.fija > section{flex:1;min-height:0;display:flex;flex-direction:column}
+.main.fija.dashv{padding:0}
 .ctop{display:flex;align-items:center;gap:16px;padding-bottom:14px;flex-wrap:wrap}
 .ctop .grow{min-width:200px}
 .ctop .h1{font-size:24px;line-height:28px}
@@ -224,12 +225,15 @@ select.sel{height:36px;border-radius:10px;background:var(--card-2);border:0;padd
 <div class="app hidden" id="vApp">
   <aside class="side">
     <div class="logo"><span class="solo"><img src="../logo-romo.svg" alt="ROMO"></span></div>
+    <div class="grp" data-rol="dash">Contenido</div>
+    <a data-nav="inicio" data-rol="dash"><svg class="ico" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Inicio</a>
+    <a data-nav="pend" data-rol="dash"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Pendientes<span class="n hidden" id="navPend"></span></a>
+    <a data-nav="videos" data-rol="dash"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9.5l4.5 2.5L10 14.5z"/></svg>Videos</a>
+    <a data-nav="rep" data-rol="dash"><svg class="ico" viewBox="0 0 24 24"><path d="M4 20V11M10 20V5M16 20v-6M21 20H3"/></svg>Reportes</a>
     <div class="grp">Equipo</div>
     <a data-nav="publicar" data-rol="publica"><svg class="ico" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>Publicar</a>
     <a data-nav="subir" data-rol="sube"><svg class="ico" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>Subir videos</a>
     <a data-nav="edits" data-rol="edita"><svg class="ico" viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><path d="M8.12 8.12 12 12"/><path d="M20 4 8.12 15.88"/><circle cx="6" cy="18" r="3"/><path d="M14.8 14.8 20 20"/></svg>Romo Edits <span class="n hidden" id="navN"></span></a>
-    <div class="grp" data-rol="dash">Data</div>
-    <a href="../dashboard.html" data-rol="dash"><svg class="ico" viewBox="0 0 24 24"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>Dashboard</a>
     <div class="viendo hidden" id="viendo"><span id="viendoTxt"></span><button>Volver a tu vista</button></div>
     <div class="me" data-menu role="button" tabindex="0" aria-haspopup="menu" aria-expanded="false"><div class="av" id="meAv"></div><div class="grow"><b id="meNom"></b><small id="meRol"></small></div><button id="salir" title="Salir">Salir</button><svg class="ico chev" viewBox="0 0 24 24"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg></div>
     <div class="menu-cuenta" role="menu"><div class="hd"></div><div class="sp"></div>
@@ -257,6 +261,9 @@ select.sel{height:36px;border-radius:10px;background:var(--card-2);border:0;padd
       <div class="sec"><h2>Lo que subiste</h2><span id="misCuenta"></span></div>
       <div class="card" id="mias"><div class="empty">Cargando…</div></div>
     </section>
+
+    <!-- CONTENIDO (admin): el Dashboard incrustado; la barra de la app elige la pestaña (20-10-2026) -->
+    <section data-v="dash" class="hidden"><iframe id="dashFrame" title="Contenido" style="flex:1;width:100%;border:0;background:transparent"></iframe></section>
 
     <!-- PUBLICAR · Lizy (20-10-2026): solo lo que los admins le eligieron para el día -->
     <section data-v="publicar" class="hidden">
@@ -425,7 +432,6 @@ const ROL_TXT = { ADMIN: 'Admin', PUBLICADOR: 'Publicador', EDITOR: 'Editor', SU
 function arrancar(){
   // Llegó desde la dirección principal (?inicio=1): los admins ven el Dashboard primero (Marlon, 20-10-2026).
   // Lizy (PUBLICADOR) se queda aquí: su pantalla es Publicar (#publicar).
-  if (QS.get('inicio') === '1' && YO.rol === 'ADMIN') { location.replace('../dashboard.html'); return; }
   if (QS.get('inicio') === '1' && YO.rol === 'PUBLICADOR') location.hash = 'publicar';
   $('#vLogin').classList.add('hidden'); $('#vApp').classList.remove('hidden');
   $('#meNom').textContent = YO.nombre.toLowerCase().replace(/(^|\s)\S/g, c => c.toUpperCase()); $('#meRol').textContent = ROL_TXT[YO.rol] || YO.rol; $('.me').dataset.correo = YO.correo;
@@ -433,13 +439,14 @@ function arrancar(){
   aplicarRol();
   $('#verComo').classList.toggle('hidden', YO.rol !== 'ADMIN');
   if (YO.rol === 'ADMIN' && !EQUIPO) api('/api/equipo').then(l => { EQUIPO = l; aplicarRol(); }).catch(() => {});
-  ir(vistaInicial(location.hash.slice(1)));
+  ir(YO.rol === 'ADMIN' && !VER ? 'inicio' : vistaInicial(location.hash.slice(1)));   // el admin siempre entra en Inicio
 }
 // Vista que le toca a cada rol: PUBLICADOR → Publicar; EDITOR/ADMIN → ROMO EDITS; SUBIDOR → Subir.
 function vistaInicial(v){
   const r = rolUI();
   if (r === 'PUBLICADOR') return 'publicar';
-  if (v === 'publicar' && r === 'ADMIN') return v;
+  if (r === 'ADMIN' && (v === 'publicar' || DASH.includes(v))) return v;
+  if (r === 'ADMIN' && !v) return 'inicio';
   if (edita() && ['edits', 'cambios', 'subir'].includes(v)) return v;
   return edita() ? 'edits' : 'subir';
 }
@@ -465,13 +472,18 @@ $('#viendo button').onclick = () => verComo('ADMIN');
 
 /* ───── navegación ───── */
 let VISTA = '';
+const DASH = ['inicio', 'pend', 'videos', 'rep'];
 function ir(v){
+  if (DASH.includes(v) && rolUI() !== 'ADMIN') v = vistaInicial('');
   if (v === 'cambios' && !edita()) v = 'subir';
   if (rolUI() === 'PUBLICADOR') v = 'publicar';
   if (v === 'publicar' && !(rolUI() === 'ADMIN' || rolUI() === 'PUBLICADOR')) v = vistaInicial('');
   VISTA = v; history.replaceState(null, '', '#' + v);
-  $('.main').classList.toggle('fija', v === 'cambios');
-  $$('[data-v]').forEach(s => s.classList.toggle('hidden', s.dataset.v !== v));
+  const esDash = DASH.includes(v);
+  $('.main').classList.toggle('fija', v === 'cambios' || esDash);
+  $('.main').classList.toggle('dashv', esDash);
+  $$('[data-v]').forEach(s => s.classList.toggle('hidden', s.dataset.v !== (esDash ? 'dash' : v)));
+  if (esDash) abrirDash(v);
   $$('[data-nav]').forEach(a => a.classList.toggle('on', a.dataset.nav === (v === 'cambios' ? 'edits' : v)));
   window.scrollTo(0, 0);
   if (v === 'subir') cargarMias();
@@ -481,6 +493,23 @@ function ir(v){
 }
 $$('[data-nav]').forEach(a => a.onclick = () => ir(a.dataset.nav));
 $$('[data-go]').forEach(b => b.onclick = () => ir(b.dataset.go));
+
+/* ───── CONTENIDO (el Dashboard dentro de la app) ───── */
+function abrirDash(t){
+  const f = $('#dashFrame');
+  try { if (f.contentWindow && f.contentWindow.tabTo && f.dataset.listo) { f.contentWindow.tabTo(t); return; } } catch {}
+  if (!f.src) { f.onload = () => { f.dataset.listo = '1'; pendientesDash(); }; f.src = '../dashboard.html?embed=1&tab=' + t; }
+}
+// El Dashboard avisa cuando cambia de pestaña solo (p. ej. "Ver los sin ficha →"): se marca en la barra.
+window.marcarDash = t => { if (!DASH.includes(t)) return; VISTA = t; history.replaceState(null, '', '#' + t);
+  $$('[data-nav]').forEach(a => a.classList.toggle('on', a.dataset.nav === t)); pendientesDash(); };
+function pendientesDash(){
+  let vs = [];
+  try { vs = $('#dashFrame').contentWindow.eval('videos') || []; } catch {}   // `let videos` del Dashboard (misma página)
+  if (!vs.length) return void setTimeout(pendientesDash, 1500);   // el Dashboard todavía está cargando la hoja
+  const n = vs.filter(v => v.estado === 'PENDIENTE').length;
+  $('#navPend').textContent = n; $('#navPend').classList.toggle('hidden', !n);
+}
 
 /* ───── PUBLICAR (Lizy) ───── */
 let PUB_DIA = 'hoy', PUB_AUTO = true;   // si hoy no hay nada programado, abre en Pendientes
