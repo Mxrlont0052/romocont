@@ -71,7 +71,28 @@ button:focus{outline:none} button:focus-visible{outline:2px solid var(--cyan);ou
 .m{font:500 13px/18px var(--font);color:var(--l2)}
 .m b{color:#fff}
 .trunc{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pub-admin{display:flex;gap:8px;margin-top:16px}
+.prog-top{display:flex;align-items:flex-end;gap:16px}
+.prog-top .grow{flex:1}
+.prog-horas{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:14px}
+.prog-horas .hchip{height:28px;padding:0 10px;border-radius:8px;background:var(--card-2);font:700 13px/28px var(--font)}
+.prog-horas .hchip i{font-style:normal;color:var(--l2);font-weight:600;margin-left:4px}
+.prog-barra{display:flex;align-items:center;gap:8px;margin-top:12px;padding:10px 12px;border-radius:12px;background:rgba(0,255,255,.08);box-shadow:inset 0 0 0 1px rgba(0,255,255,.25);font:700 13px/18px var(--font)}
+.semana{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;margin-top:14px}
+.dcol{display:flex;flex-direction:column;gap:6px;min-width:0}
+.dcol h4{font:800 12px/16px var(--font);color:var(--l2);text-transform:capitalize;padding:0 2px 2px}
+.dcol h4.hoy{color:#fff}
+.slot{border-radius:12px;background:var(--card);box-shadow:inset 0 0 0 1px var(--borde);padding:8px;min-height:64px;display:flex;flex-direction:column;gap:3px;position:relative}
+.slot .hr{font:800 12px/14px var(--font);font-variant-numeric:tabular-nums;color:var(--l2)}
+.slot .cd{font:800 13px/16px var(--font);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.slot .ct{font:600 11px/14px var(--font);color:var(--l2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:5px}
+.slot .ct i{width:7px;height:7px;border-radius:50%;flex:none}
+.slot .x{position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:6px;color:var(--l2);font:700 12px/22px var(--font)}
+.slot .x:hover{background:var(--card-2);color:#fff}
+.slot.vacio{background:transparent;box-shadow:inset 0 0 0 1px var(--borde);border:1px dashed transparent}
+.slot.vacio select{margin-top:2px;width:100%;height:28px;border:0;border-radius:8px;background:var(--card-2);color:var(--blanco);font:600 12px/1 var(--font);padding:0 6px}
+.slot.carr{background:transparent}
+.slot.prop{box-shadow:inset 0 0 0 1.5px var(--cyan)}
+.slot.pub{opacity:.55}
 .pub.carr{grid-template-columns:96px 1fr;align-items:center}
 .pub.carr .chk{display:flex;align-items:center;gap:10px;font:700 14px/1 var(--font);cursor:pointer}
 .pub.carr .chk input{width:20px;height:20px;accent-color:var(--verde)}
@@ -245,6 +266,7 @@ select.sel{height:36px;border-radius:10px;background:var(--card-2);border:0;padd
     <a data-nav="videos" data-rol="dash"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9.5l4.5 2.5L10 14.5z"/></svg>Videos</a>
     <a data-nav="rep" data-rol="dash"><svg class="ico" viewBox="0 0 24 24"><path d="M4 20V11M10 20V5M16 20v-6M21 20H3"/></svg>Reportes</a>
     <div class="grp">Equipo</div>
+    <a data-nav="programar" data-rol="dash"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Programar</a>
     <a data-nav="publicar" data-rol="publica"><svg class="ico" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>Publicar</a>
     <a data-nav="subir" data-rol="sube"><svg class="ico" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>Subir videos</a>
     <a data-nav="edits" data-rol="edita"><svg class="ico" viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><path d="M8.12 8.12 12 12"/><path d="M20 4 8.12 15.88"/><circle cx="6" cy="18" r="3"/><path d="M14.8 14.8 20 20"/></svg>Romo Edits <span class="n hidden" id="navN"></span></a>
@@ -279,14 +301,25 @@ select.sel{height:36px;border-radius:10px;background:var(--card-2);border:0;padd
     <!-- CONTENIDO (admin): el Dashboard incrustado; la barra de la app elige la pestaña (20-10-2026) -->
     <section data-v="dash" class="hidden"><iframe id="dashFrame" title="Contenido" style="flex:1;width:100%;border:0;background:transparent"></iframe></section>
 
+    <!-- PROGRAMAR (admin, 20-10-2026): la semana de Lizy en una pantalla -->
+    <section data-v="programar" class="hidden">
+      <div class="prog-top">
+        <div class="grow"><div class="kicker">Programar</div><div class="h1">Lo que publica Lizy</div></div>
+        <button class="btn btn-red" id="bLlenar">Llenar la semana sola</button>
+      </div>
+      <div class="prog-horas"><span class="m">Horas:</span><span id="progHoras"></span><button class="btn btn-gray btn-sm" id="bHoras">Cambiar horas</button></div>
+      <div class="card hidden" id="pubHoras" style="margin-top:12px;padding:16px"></div>
+      <div class="aviso hidden" id="progAviso" style="margin-top:12px"></div>
+      <div class="prog-barra hidden" id="progBarra"><span class="grow" id="progBarraTxt"></span><button class="btn btn-gray btn-sm" id="propNo">Cancelar</button><button class="btn btn-red btn-sm" id="propSi">Aprobar</button></div>
+      <div class="semana" id="semana"><div class="m">Cargando…</div></div>
+      <div class="m" style="margin-top:12px">Cada noche a las 22:00 se llena solo el día siguiente. Lo que pongas tú aquí se respeta. Solo entran videos con archivo en el Drive.</div>
+    </section>
+
     <!-- PUBLICAR · Lizy (20-10-2026): solo lo que los admins le eligieron para el día -->
     <section data-v="publicar" class="hidden">
       <div class="kicker">Publicar</div>
       <div class="h1" id="pubTitulo">Para publicar hoy</div>
       <div class="sub" id="pubSub">Descarga cada video a su hora y pega la descripción, el link de Facebook y el de TikTok.</div>
-      <div class="pub-admin hidden" id="pubAdmin"><button class="btn btn-gray btn-sm" id="bHoras">Horas de publicación</button><button class="btn btn-red btn-sm" id="bArmar">Armar semana</button></div>
-      <div class="card hidden" id="pubHoras" style="margin-top:14px;padding:16px"></div>
-      <div class="card hidden" id="pubArmar" style="margin-top:14px;padding:16px"></div>
       <div class="pub-dias" role="group"><button data-dia="hoy" aria-pressed="true">Hoy</button><button data-dia="manana" aria-pressed="false">Mañana</button><button data-dia="pendientes" aria-pressed="false">Pendientes <span id="pubN"></span></button></div>
       <div id="pubLista" style="margin-top:16px"><div class="card"><div class="empty">Cargando…</div></div></div>
     </section>
@@ -485,7 +518,7 @@ function arrancar(){
 function vistaInicial(v){
   const r = rolUI();
   if (r === 'PUBLICADOR') return 'publicar';
-  if (r === 'ADMIN' && (v === 'publicar' || DASH.includes(v))) return v;
+  if (r === 'ADMIN' && (v === 'publicar' || v === 'programar' || DASH.includes(v))) return v;
   if (r === 'ADMIN' && !v) return 'inicio';
   if (edita() && ['edits', 'cambios', 'subir', 'registrar'].includes(v)) return v;
   return edita() ? 'edits' : 'subir';
@@ -514,7 +547,7 @@ $('#viendo button').onclick = () => verComo('ADMIN');
 let VISTA = '';
 const DASH = ['inicio', 'pend', 'videos', 'rep'];
 function ir(v){
-  if (DASH.includes(v) && rolUI() !== 'ADMIN') v = vistaInicial('');
+  if ((DASH.includes(v) || v === 'programar') && rolUI() !== 'ADMIN') v = vistaInicial('');
   if ((v === 'cambios' || v === 'registrar') && !edita()) v = 'subir';
   if (rolUI() === 'PUBLICADOR') v = 'publicar';
   if (v === 'publicar' && !(rolUI() === 'ADMIN' || rolUI() === 'PUBLICADOR')) v = vistaInicial('');
@@ -528,6 +561,7 @@ function ir(v){
   window.scrollTo(0, 0);
   if (v === 'subir') cargarMias();
   if (v === 'publicar') cargarPublicar();
+  if (v === 'programar') cargarProgramar();
   if (v === 'registrar') abrirRegistrar();
   if (v === 'edits') cargarResumen();
   if (v === 'cambios') empezar(false);
@@ -575,7 +609,6 @@ async function cargarPublicar(){
       ? (d.videos.length ? `${d.videos.length} videos sin publicar · lo programado va primero, después del más viejo al más nuevo.` : 'No hay nada pendiente 🎉')
       : d.videos.length ? `${hechos} de ${d.videos.length} publicados · descarga cada video a su hora y pega la descripción y los links.`
       : 'Los admins todavía no programaron videos para este día.';
-    $('#pubAdmin').classList.toggle('hidden', rolUI() !== 'ADMIN');
     // El carrusel (lo hace Lizy con ChatGPT) va en su hora, con un check; no se registra en la hoja.
     const carr = PUB_DIA === 'pendientes' ? [] : (d.carruseles || []).map(c => `
       <div class="pub carr"><div class="hora">${esc(c.hora)}<small>carrusel</small></div>
@@ -613,7 +646,7 @@ async function cargarPublicar(){
 
 /* Ajustes del admin: horas de publicación (y cuál es el carrusel) */
 $('#bHoras').onclick = async () => {
-  const box = $('#pubHoras'); $('#pubArmar').classList.add('hidden');
+  const box = $('#pubHoras');
   if (!box.classList.contains('hidden')) return box.classList.add('hidden');
   const { horas } = await api('/api/publicar/config').catch(e => (toast(e.message), { horas: [] }));
   const fila = h => `<div class="horas-fila"><input type="time" step="900" value="${esc(h.hora)}"><select><option value="video" ${h.tipo === 'video' ? 'selected' : ''}>Video</option><option value="carrusel" ${h.tipo === 'carrusel' ? 'selected' : ''}>Carrusel</option></select><button class="btn btn-gray btn-sm" data-quitar>✕</button></div>`;
@@ -626,28 +659,55 @@ $('#bHoras').onclick = async () => {
   $('#horaMas').onclick = () => { $('#horasLista').insertAdjacentHTML('beforeend', fila({ hora: '', tipo: 'video' })); enlazar(); };
   $('#horasGuardar').onclick = async () => {
     const horas = $$('#horasLista .horas-fila').map(f => ({ hora: f.querySelector('input').value, tipo: f.querySelector('select').value })).filter(h => h.hora);
-    try { await api('/api/publicar/config', { horas }); toast('Horas guardadas'); box.classList.add('hidden'); cargarPublicar(); } catch (e) { toast(e.message); }
+    try { await api('/api/publicar/config', { horas }); toast('Horas guardadas'); box.classList.add('hidden'); cargarProgramar(); } catch (e) { toast(e.message); }
   };
 };
-/* Armar semana: propone con variedad, el admin revisa y aprueba */
-$('#bArmar').onclick = async () => {
-  const box = $('#pubArmar'); $('#pubHoras').classList.add('hidden');
-  box.innerHTML = '<div class="m">Armando…</div>'; box.classList.remove('hidden');
-  try {
-    const r = await api('/api/publicar/armar', { dias: 7 });
-    const porDia = {}; r.propuesta.forEach(x => (porDia[x.dia] = porDia[x.dia] || []).push(x));
-    box.innerHTML = `<div class="t">Propuesta para 7 días</div>
-      <div class="m">Grupos: Cambios · IA · 360 · Otros (no repite grupo el mismo día cuando hay de dónde elegir). Lo ya programado se respeta.</div>
-      ${r.sin_archivo ? `<div class="aviso" style="margin-top:10px">${r.sin_archivo} pendientes no tienen el archivo en el Drive y no entran hasta que lo tengan.</div>` : ''}
-      ${Object.entries(porDia).map(([d, xs]) => `<div class="armar-dia"><b>${esc(diaCorto(d))}</b>${xs.map(x => `<div class="m">${esc(x.hora)} · <b style="display:inline;color:#fff">${esc(x.codigo)}</b> · ${esc(x.categoria.toLowerCase())}</div>`).join('')}</div>`).join('') || '<div class="m" style="margin-top:10px">No hay videos con archivo para programar.</div>'}
-      ${r.faltan ? `<div class="m" style="margin-top:8px">${r.faltan} horas quedan sin video (no alcanzan los pendientes).</div>` : ''}
-      <div style="display:flex;gap:8px;margin-top:14px"><button class="btn btn-gray btn-sm" id="armarNo">Cancelar</button><button class="btn btn-red btn-sm" id="armarSi" ${r.propuesta.length ? '' : 'disabled'}>Aprobar y programar ${r.propuesta.length}</button></div>`;
-    $('#armarNo').onclick = () => box.classList.add('hidden');
-    $('#armarSi').onclick = async () => {
-      try { const a = await api('/api/publicar/armar', { aprobar: true, propuesta: r.propuesta }); toast(`✓ ${a.programados} videos programados`); box.classList.add('hidden'); cargarPublicar(); }
-      catch (e) { toast(e.message); }
-    };
-  } catch (e) { box.innerHTML = `<div class="m">${esc(e.message)}</div>`; }
+/* ───── PROGRAMAR (admin): la semana de Lizy, hora por hora ───── */
+const COLOR_GRUPO = { Cambios: 'var(--rojo)', IA: 'var(--cyan)', '360': 'var(--naranja)', Otros: 'var(--verde)' };
+const DIA_SEM = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
+let PROG = null, PROPUESTA = [];
+function nombreDia(iso, k){
+  if (k === 0) return 'Hoy'; if (k === 1) return 'Mañana';
+  const [y, m, d] = iso.split('-').map(Number); return `${DIA_SEM[new Date(y, m - 1, d).getDay()]} ${d} ${MES[m - 1]}`;
+}
+async function cargarProgramar(){
+  try { PROG = await api('/api/programar'); } catch (e) { $('#semana').innerHTML = `<div class="m">${esc(e.message)}</div>`; return; }
+  $('#progHoras').innerHTML = PROG.horas.map(h => `<span class="hchip">${esc(h.hora)}<i>${h.tipo === 'carrusel' ? 'carrusel' : 'video'}</i></span>`).join(' ');
+  $('#progAviso').classList.toggle('hidden', !PROG.sin_archivo);
+  $('#progAviso').textContent = `${PROG.sin_archivo} pendientes no tienen el archivo en el Drive: no se pueden programar hasta que lo tengan.`;
+  pintarSemana();
+}
+function pintarSemana(){
+  const ocupados = new Set(PROPUESTA.map(x => x.id));
+  const cands = PROG.candidatos.filter(c => !ocupados.has(c.id));
+  const opciones = '<option value="">+ Elegir video</option>' + cands.map(c => `<option value="${esc(c.id)}">${esc(c.codigo)} · ${esc(c.categoria.toLowerCase())}</option>`).join('');
+  $('#semana').innerHTML = PROG.semana.map((d, k) => `<div class="dcol"><h4 class="${k === 0 ? 'hoy' : ''}">${esc(nombreDia(d.dia, k))}</h4>${d.huecos.map(h => {
+    if (h.tipo === 'carrusel') return `<div class="slot carr"><span class="hr">${esc(h.hora)}</span><span class="ct">Carrusel${h.hecho ? ' · ✓ hecho' : ''}</span></div>`;
+    const prop = !h.video && PROPUESTA.find(x => x.dia === d.dia && x.hora === h.hora);
+    const v = h.video || prop;
+    if (!v) return `<div class="slot vacio"><span class="hr">${esc(h.hora)}</span><select data-dia="${d.dia}" data-hora="${esc(h.hora)}">${opciones}</select></div>`;
+    return `<div class="slot ${prop ? 'prop' : ''} ${v.publicado ? 'pub' : ''}"><span class="hr">${esc(h.hora)}${prop ? ' · propuesto' : v.publicado ? ' · ✓' : ''}</span>
+      <span class="cd">${esc(v.codigo)}</span><span class="ct"><i style="background:${COLOR_GRUPO[v.grupo] || 'var(--l3)'}"></i>${esc(v.categoria.toLowerCase())}</span>
+      ${!prop && !v.publicado ? `<button class="x" data-quitar="${esc(v.id)}" title="Quitar de esta hora">✕</button>` : ''}</div>`;
+  }).join('')}</div>`).join('');
+  $$('#semana select').forEach(sel => sel.onchange = async () => {
+    if (!sel.value) return;
+    try { await api('/api/programar/poner', { id: sel.value, dia: sel.dataset.dia, hora: sel.dataset.hora }); toast('Programado'); cargarProgramar(); } catch (e) { toast(e.message); }
+  });
+  $$('#semana [data-quitar]').forEach(b => b.onclick = async () => {
+    try { await api('/api/programar/poner', { id: b.dataset.quitar, quitar: true }); toast('Quitado: vuelve a pendientes'); cargarProgramar(); } catch (e) { toast(e.message); }
+  });
+  $('#progBarra').classList.toggle('hidden', !PROPUESTA.length);
+  $('#progBarraTxt').textContent = `${PROPUESTA.length} videos propuestos (en celeste), sin repetir grupo el mismo día cuando se puede.`;
+}
+$('#bLlenar').onclick = async () => {
+  try { const r = await api('/api/publicar/armar', { dias: 7 }); PROPUESTA = r.propuesta;
+    if (!PROPUESTA.length) toast('No hay huecos vacíos o no quedan videos con archivo'); pintarSemana(); } catch (e) { toast(e.message); }
+};
+$('#propNo').onclick = () => { PROPUESTA = []; pintarSemana(); };
+$('#propSi').onclick = async () => {
+  try { const a = await api('/api/publicar/armar', { aprobar: true, propuesta: PROPUESTA }); PROPUESTA = []; toast(`✓ ${a.programados} videos programados`); cargarProgramar(); }
+  catch (e) { toast(e.message); }
 };
 
 /* ───── REGISTRAR VIDEOS ESPECIALES ───── */
