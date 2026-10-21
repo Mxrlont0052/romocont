@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es">
+<html lang="es" data-t="c">
 <head>
 <meta charset="utf-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -8,7 +8,7 @@
 <title>ROMO CONT · Equipo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&display=swap">
 <script src="https://accounts.google.com/gsi/client" async></script>
 <style>
 /* ROMO CENTRAL · Subir + ROMO EDITS (opción A, aprobada 20-10-2026). Mismos tokens que el RomoCont aprobado (../index.html). */
@@ -188,6 +188,9 @@ select.sel{height:36px;border-radius:10px;background:var(--card-2);border:0;padd
   .vcol{width:100%;height:70vh}
 }
 </style>
+<!-- Piel estilo Apple, regla general de ROMO (20-10-2026) -->
+<link rel="stylesheet" href="../romo-apple.css?v=3">
+<script src="../romo-apple.js?v=2"></script>
 </head>
 <body>
 
@@ -206,13 +209,17 @@ select.sel{height:36px;border-radius:10px;background:var(--card-2);border:0;padd
 <!-- APP -->
 <div class="app hidden" id="vApp">
   <aside class="side">
-    <div class="logo"><img src="../logo-romo.svg" alt="ROMO"></div>
+    <div class="logo"><span class="solo"><img src="../logo-romo.svg" alt="ROMO"></span></div>
     <div class="grp">Equipo</div>
-    <a data-nav="subir">⬆︎ Subir videos</a>
-    <a data-nav="edits" data-rol="edita">✂︎ ROMO EDITS <span class="n hidden" id="navN"></span></a>
+    <a data-nav="subir"><svg class="ico" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>Subir videos</a>
+    <a data-nav="edits" data-rol="edita"><svg class="ico" viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><path d="M8.12 8.12 12 12"/><path d="M20 4 8.12 15.88"/><circle cx="6" cy="18" r="3"/><path d="M14.8 14.8 20 20"/></svg>Romo Edits <span class="n hidden" id="navN"></span></a>
     <div class="grp" data-rol="dash">Data</div>
-    <a href="../" data-rol="dash">▤ Dashboard</a>
-    <div class="me"><div class="av" id="meAv"></div><div class="grow"><b id="meNom"></b><small id="meRol"></small></div><button id="salir" title="Salir">Salir</button></div>
+    <a href="../" data-rol="dash"><svg class="ico" viewBox="0 0 24 24"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>Dashboard</a>
+    <div class="viendo hidden" id="viendo"><span id="viendoTxt"></span><button>Volver a tu vista</button></div>
+    <div class="me" data-menu role="button" tabindex="0" aria-haspopup="menu" aria-expanded="false"><div class="av" id="meAv"></div><div class="grow"><b id="meNom"></b><small id="meRol"></small></div><button id="salir" title="Salir">Salir</button><svg class="ico chev" viewBox="0 0 24 24"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg></div>
+    <div class="menu-cuenta" role="menu"><div class="hd"></div><div class="sp"></div>
+      <div id="verComo" class="hidden"><div class="hd2">Ver como</div><button role="menuitemradio" data-ver="ADMIN">Admin (tú)</button><button role="menuitemradio" data-ver="EDITOR">Editor</button><button role="menuitemradio" data-ver="PUBLICADOR">Publicador · Lizy</button><button role="menuitemradio" data-ver="SUBIDOR">Solo sube</button><div class="sp"></div></div>
+      <button role="menuitem" data-salir><svg class="ico" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>Salir</button></div>
   </aside>
 
   <main class="main">
@@ -238,24 +245,24 @@ select.sel{height:36px;border-radius:10px;background:var(--card-2);border:0;padd
 
     <!-- ROMO EDITS · inicio -->
     <section data-v="edits" class="hidden">
-      <div class="kicker" id="hola">ROMO EDITS</div>
+      <div class="kicker" id="hola">Romo Edits</div>
       <div class="h1">¿Qué vas a hacer?</div>
       <div class="big3">
         <button class="bigb main1" id="irCambios">
-          <div class="ic">✂︎</div>
-          <div class="nm">ROMO CAMBIOS</div>
+          <div class="ic"><svg class="ico" viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><path d="M8.12 8.12 12 12"/><path d="M20 4 8.12 15.88"/><circle cx="6" cy="18" r="3"/><path d="M14.8 14.8 20 20"/></svg></div>
+          <div class="nm">Romo Cambios</div>
           <div class="ds">Editar los cambios de estudiantes que subieron. Se abren ya cargados, listos para marcar.</div>
-          <div class="ft"><div class="cnt" id="teTocan">–<small>TE TOCAN</small></div><span class="btn btn-red btn-sm">Empezar a editar</span></div>
+          <div class="ft"><div class="cnt" id="teTocan">–<small>te tocan</small></div><span class="btn btn-red btn-sm">Empezar a editar</span></div>
         </button>
         <button class="bigb" id="irIA">
-          <div class="ic">✦</div>
-          <div class="nm">ROMO IA</div>
+          <div class="ic"><svg class="ico" viewBox="0 0 24 24"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg></div>
+          <div class="nm">Romo IA</div>
           <div class="ds">Generar videos con IA: eliges la línea (Viral, EA o MDT) y cuántos.</div>
           <div class="ft"><span class="m">Se abre la Fábrica</span><span class="btn btn-gray btn-sm">Generar</span></div>
         </button>
         <button class="bigb soon" disabled>
-          <div class="ic">◎</div>
-          <div class="nm">ROMO 360</div>
+          <div class="ic"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg></div>
+          <div class="nm">Romo 360</div>
           <div class="ds">Videos de la Insta360 que se editan solos. Tú solo revisas.</div>
           <div class="ft"><span class="tag gr">Pronto</span></div>
         </button>
@@ -267,7 +274,7 @@ select.sel{height:36px;border-radius:10px;background:var(--card-2);border:0;padd
     <!-- ROMO CAMBIOS · opción A -->
     <section data-v="cambios" class="hidden">
       <div class="ctop">
-        <div class="grow"><div class="kicker" id="cKicker">ROMO CAMBIOS</div><div class="h1" id="cTitulo">Marcar el cambio</div></div>
+        <div class="grow"><div class="kicker" id="cKicker">Romo Cambios</div><div class="h1" id="cTitulo">Marcar el cambio</div><span id="cCuenta"></span></div>
         <div class="pill" id="reparto"></div>
         <div class="steps" role="group"><button data-paso="marcar" aria-pressed="true">1 · Marcar</button><button data-paso="revisar" aria-pressed="false">2 · Revisar <span id="revN"></span></button></div>
       </div>
@@ -296,14 +303,14 @@ select.sel{height:36px;border-radius:10px;background:var(--card-2);border:0;padd
             <button class="btn btn-red" style="min-height:48px" id="bRender">Renderizar</button>
           </div>
         </div>
-        <div id="sinVideos" class="card hidden" style="grid-column:1/-1;align-self:start"><div class="empty">No tienes videos por marcar. Cuando suban más te salen aquí.</div></div>
+        <div id="sinVideos" class="card hidden" style="grid-column:1/-1;align-self:start"><div class="empty"><svg class="ico ico-vacio" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="m9 8 6 4-6 4Z"/></svg><div class="tit-vacio">No tienes videos por marcar</div><div>Cuando suban más, te salen aquí.</div></div></div>
       </div>
 
       <div id="pRevisar" class="cbody hidden">
         <div class="cola" id="rcola"></div>
         <div class="vcol" id="rvcol"></div>
         <div class="panel" id="rpanel"></div>
-        <div id="rVacio" class="card hidden" style="grid-column:1/-1;align-self:start"><div class="empty">Aquí salen los videos cuando los mandes a renderizar.</div></div>
+        <div id="rVacio" class="card hidden" style="grid-column:1/-1;align-self:start"><div class="empty"><svg class="ico ico-vacio" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="m9 8 6 4-6 4Z"/></svg><div class="tit-vacio">Nada por revisar</div><div>Aquí salen los videos cuando los mandes a renderizar.</div></div></div>
       </div>
     </section>
 
@@ -354,7 +361,10 @@ const media = (id, n) => `${API}/media/${id}/${n}?t=${encodeURIComponent(TOKEN)}
 const fmt = s => { s = Math.max(0, s || 0); const m = Math.floor(s / 60), r = s - m * 60; return m + ':' + r.toFixed(2).padStart(5, '0'); };
 const fecha = iso => { const d = new Date(iso); if (isNaN(d)) return ''; const hoy = new Date(); const h = d.toLocaleTimeString('es-EC', {hour:'2-digit', minute:'2-digit'});
   return d.toDateString() === hoy.toDateString() ? 'hoy ' + h : d.toLocaleDateString('es-EC', {day:'numeric', month:'short'}) + ' ' + h; };
-const edita = () => YO && (YO.rol === 'EDITOR' || YO.rol === 'ADMIN');
+/* «Ver como» (solo admin): cambia lo que se MUESTRA, no los permisos del backend. */
+let VER = null;
+const rolUI = () => VER || (YO && YO.rol);
+const edita = () => YO && (rolUI() === 'EDITOR' || rolUI() === 'ADMIN');
 
 /* ───── entrar / salir ───── */
 function pantallaLogin(){
@@ -386,13 +396,28 @@ $('#salir').onclick = () => salir();
 const ROL_TXT = { ADMIN: 'Admin', PUBLICADOR: 'Publicador', EDITOR: 'Editor', SUBIDOR: 'Subidor' };
 function arrancar(){
   $('#vLogin').classList.add('hidden'); $('#vApp').classList.remove('hidden');
-  $('#meNom').textContent = YO.nombre; $('#meRol').textContent = (ROL_TXT[YO.rol] || YO.rol) + ' · ' + YO.correo;
+  $('#meNom').textContent = YO.nombre.toLowerCase().replace(/(^|\s)\S/g, c => c.toUpperCase()); $('#meRol').textContent = ROL_TXT[YO.rol] || YO.rol; $('.me').dataset.correo = YO.correo;
   $('#meAv').innerHTML = YO.foto ? `<img src="${esc(YO.foto)}" alt="">` : esc(YO.nombre.slice(0, 2));
-  $$('[data-rol="edita"]').forEach(e => e.classList.toggle('hidden', !edita()));
-  $$('[data-rol="dash"]').forEach(e => e.classList.toggle('hidden', !(YO.rol === 'ADMIN' || YO.rol === 'PUBLICADOR')));
+  aplicarRol();
+  $('#verComo').classList.toggle('hidden', YO.rol !== 'ADMIN');
   const v = location.hash.slice(1);
   ir(edita() && ['edits', 'cambios'].includes(v) ? v : (v === 'subir' || !edita()) ? 'subir' : 'edits');
 }
+
+function aplicarRol(){
+  $$('[data-rol="edita"]').forEach(e => e.classList.toggle('hidden', !edita()));
+  $$('[data-rol="dash"]').forEach(e => e.classList.toggle('hidden', !(rolUI() === 'ADMIN' || rolUI() === 'PUBLICADOR')));
+  $$('#verComo [data-ver]').forEach(b => b.setAttribute('aria-checked', b.dataset.ver === (VER || 'ADMIN')));
+  $('#viendo').classList.toggle('hidden', !VER);
+  if (VER) $('#viendoTxt').innerHTML = `Viendo como<b>${ROL_TXT[VER] === 'Subidor' ? 'Solo sube' : ROL_TXT[VER] === 'Publicador' ? 'Publicador · Lizy' : ROL_TXT[VER]}</b>`;
+}
+function verComo(r){
+  if (!YO || YO.rol !== 'ADMIN') return;
+  VER = r === 'ADMIN' ? null : r; aplicarRol();
+  ir(edita() && ['edits', 'cambios'].includes(VISTA) ? VISTA : edita() ? 'edits' : 'subir');
+}
+$$('#verComo [data-ver]').forEach(b => b.onclick = () => verComo(b.dataset.ver));
+$('#viendo button').onclick = () => verComo('ADMIN');
 
 /* ───── navegación ───── */
 let VISTA = '';
@@ -490,9 +515,9 @@ function pintarBarra(c){ const i = COLA.indexOf(c), row = $('#subiendo').childre
 
 /* ───── ROMO EDITS · inicio ───── */
 async function cargarResumen(){
-  $('#hola').textContent = 'ROMO EDITS · Hola, ' + (YO.nombre.charAt(0) + YO.nombre.slice(1).toLowerCase());
+  $('#hola').textContent = 'Romo Edits · Hola, ' + (YO.nombre.charAt(0) + YO.nombre.slice(1).toLowerCase());
   try { const d = await api('/api/edits/resumen');
-    $('#teTocan').innerHTML = `${d.te_tocan}<small>TE TOCAN</small>`;
+    $('#teTocan').innerHTML = `${d.te_tocan}<small>te tocan</small>`;
     $('#navN').textContent = d.te_tocan; $('#navN').classList.toggle('hidden', !d.te_tocan);
     $('#prepTxt').textContent = d.preparando ? d.preparando + ' videos' : '';
     $('#prepInfo').textContent = d.preparando ? 'Hay videos recién subidos preparándose: en 1–2 minutos salen para marcar.' : 'Nada preparándose ahora.';
@@ -540,7 +565,7 @@ function pintarMarcar(){
   const lista = porMarcar();
   $('#sinVideos').classList.toggle('hidden', lista.length > 0);
   ['#cola', '#vcol', '#panelM'].forEach(x => $(x).classList.toggle('hidden', !lista.length));
-  $('#cKicker').textContent = lista.length ? `ROMO CAMBIOS · ${I + 1} de ${lista.length}` : 'ROMO CAMBIOS';
+  $('#cKicker').textContent = 'Romo Cambios'; $('#cCuenta').textContent = lista.length ? `${I + 1} de ${lista.length}` : '';
   $('#cola').innerHTML = lista.map((it, k) => `<button class="${k === I ? 'on' : ''}" data-k="${k}"><div class="thumb" style="background-image:url('${media(it.id, 'poster.jpg')}')"></div><div style="min-width:0"><div class="t trunc">${esc(it.archivo.replace(/\.[^.]+$/, ''))}</div><div class="m">${listoParaRender(it) ? '<span class="tag ok">Listo</span>' : it.marca.marker != null ? '<span class="tag org">Falta tipo</span>' : 'Sin marcar'}</div></div></button>`).join('');
   $$('#cola [data-k]').forEach(b => b.onclick = () => { I = +b.dataset.k; pintarMarcar(); });
   const n = lista.filter(listoParaRender).length;
@@ -659,7 +684,7 @@ function tagDe(it){
 }
 function pintarRevisar(){
   const lista = enRevisar();
-  $('#cKicker').textContent = lista.length ? `ROMO CAMBIOS · Revisar ${Math.min(J, lista.length - 1) + 1} de ${lista.length}` : 'ROMO CAMBIOS · Revisar';
+  $('#cKicker').textContent = 'Romo Cambios · Revisar'; $('#cCuenta').textContent = lista.length ? `${Math.min(J, lista.length - 1) + 1} de ${lista.length}` : '';
   $('#rVacio').classList.toggle('hidden', lista.length > 0);
   ['#rcola', '#rvcol', '#rpanel'].forEach(x => $(x).classList.toggle('hidden', !lista.length));
   if (!lista.length) return;

@@ -1,0 +1,204 @@
+/* ROMO · piel estilo Apple (aprobada 20-10-2026, opción C con selección roja). REGLA GENERAL para todas las pantallas de ROMO CONT / ROMO CENTRAL.
+   Se activa con <html data-t="c">. Valores: apple-design-research (HIG oscuro, tabla de tracking, demo #escritorio, controles.md).
+   Rojo ROMO #E8001D = rellenos (blanco encima 4.7:1). Texto/íconos rojos chicos = #FF4245 (5.0:1 sobre #1C1C1E). Un solo relleno rojo por pantalla.
+   Detalle de la regla: romo-central/SISTEMA-DISENO-ROMO.md */
+:root[data-t]{
+  --negro:#000; --card:#1C1C1E; --card-2:#2C2C2E; --borde:transparent;
+  --l2:rgba(235,235,245,.6); --l3:rgba(235,235,245,.3);
+  --rojo:#E8001D; --rojo-t:#FF4245; --rojo-suave:rgba(232,0,29,.2); --cyan:#00FFFF;
+  --fill:rgba(120,120,128,.36); --sep:rgba(84,84,88,.6);
+  --font:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+:root[data-t] body{font-optical-sizing:auto;-moz-osx-font-smoothing:grayscale;letter-spacing:-.016em}
+
+/* Íconos (Lucide, trazo 1.75 como el peso del texto) */
+svg.ico{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+
+/* Barra lateral */
+[data-t] .side{border-right:0;box-shadow:inset -.5px 0 0 var(--sep)}
+[data-t] .side .grp{font:600 12px/16px var(--font);letter-spacing:0;text-transform:none;color:var(--l2);padding:18px 10px 6px}
+[data-t] .side a{font:500 14px/1 var(--font);letter-spacing:-.01em;color:rgba(255,255,255,.88);height:36px;border-radius:8px}
+[data-t] .side a .ico{color:var(--l2)}
+[data-t] .side a.on{background:var(--card-2);color:#fff}
+[data-t] .side a.on .ico{color:var(--rojo-t)}
+[data-t] .side a .n{font:600 12px/1 var(--font);background:var(--rojo);border-radius:980px;padding:3px 7px;min-width:20px;text-align:center}
+[data-t] .me{background:var(--card)}
+[data-t] .me b{font:600 13px/16px var(--font)}
+[data-t] .me small{font:400 11px/14px var(--font)}
+[data-t] .me button{font:500 12px/1 var(--font)}
+[data-t] .av{font:600 12px/1 var(--font);box-shadow:none}
+@media (hover:hover){[data-t] .side a:hover{background:rgba(120,120,128,.18)}}
+
+/* Jerarquía de texto (HIG: Large Title 34 Bold · Headline 17 Semibold · Subheadline 15 · Footnote 13) */
+[data-t] .kicker{font:500 15px/20px var(--font);letter-spacing:-.016em;text-transform:none;color:var(--l2)}
+[data-t] .h1{font:700 34px/41px var(--font);letter-spacing:.012em;text-transform:none;margin-top:2px}
+[data-t] .sub{font:400 15px/20px var(--font);letter-spacing:-.016em}
+[data-t] .sec h2{font:600 17px/22px var(--font);letter-spacing:-.026em;text-transform:none}
+[data-t] .sec span{font:400 13px/18px var(--font)}
+[data-t] .t{font:600 15px/20px var(--font);letter-spacing:-.016em}
+[data-t] .m{font:400 13px/18px var(--font);letter-spacing:-.006em}
+[data-t] .empty{font:400 14px/20px var(--font)}
+[data-t] .card{box-shadow:none}
+[data-t] .tag{font:600 11px/1 var(--font);letter-spacing:.006em;text-transform:none;border-radius:980px;padding:4px 8px}
+[data-t] .tag.red{background:rgba(232,0,29,.18);color:#FF6165}
+[data-t] .btn{font:600 15px/1 var(--font);letter-spacing:-.016em}
+[data-t] .btn-sm{font-size:13px;letter-spacing:-.006em}
+[data-t] .btn-red{text-transform:none}
+[data-t] .pbar i{background:var(--rojo)}
+[data-t] .chip{font:500 13px/1 var(--font)}
+[data-t] kbd{font:500 11px/1 var(--font);letter-spacing:0}
+[data-t] select.sel{font:500 13px/1 var(--font)}
+[data-t] .toast{font:600 14px/18px var(--font)}
+
+/* Subir */
+[data-t] .drop{border:1.5px dashed rgba(235,235,245,.22);background:var(--card)}
+[data-t] .drop.over{border-color:var(--rojo);background:rgba(232,0,29,.1)}
+[data-t] .drop .big{font:700 22px/28px var(--font);letter-spacing:-.012em;text-transform:none}
+
+/* EDITS · 3 botones */
+[data-t] .bigb{box-shadow:none;border-radius:22px}
+[data-t] .bigb .ic{font:0/0 a;color:#fff}
+[data-t] .bigb .ic .ico{width:28px;height:28px;stroke-width:1.6}
+[data-t] .bigb .nm{font:700 22px/28px var(--font);letter-spacing:-.012em;text-transform:none}
+[data-t] .bigb .ds{font:400 15px/20px var(--font);letter-spacing:-.016em}
+[data-t] .bigb.main1{box-shadow:none}
+[data-t] .bigb.main1::after{display:none}
+[data-t] .cnt{font:700 40px/1 var(--font);letter-spacing:-.02em}
+[data-t] .cnt small{font:500 13px/1 var(--font);letter-spacing:-.006em;text-transform:none}
+
+/* ROMO CAMBIOS · SOLO piel (mismos tamaños y posiciones que la opción A aprobada) */
+[data-t] .ctop .h1{font-size:24px;line-height:28px;letter-spacing:-.012em}
+[data-t] .pill{font:500 12px/1 var(--font);box-shadow:none}
+[data-t] .steps button,[data-t] .seg button{font:600 13px/1 var(--font);letter-spacing:-.006em}
+[data-t] .steps button[aria-pressed=true],[data-t] .seg button[aria-pressed=true]{background:#636366;color:#fff}
+[data-t] .seg button[aria-pressed=true] kbd{background:rgba(255,255,255,.16);color:#fff}
+[data-t] .cola button.on{background:var(--card-2);box-shadow:inset 0 0 0 1.5px var(--rojo)}
+[data-t] .track .mk::before{content:"Cambio";font:600 10px/1 var(--font);letter-spacing:0}
+[data-t] .ptime,[data-t] .ptime button{font-family:var(--font);font-weight:500}
+[data-t] .panel{box-shadow:none}
+[data-t] .lbl{font:600 13px/16px var(--font);letter-spacing:-.006em;text-transform:none}
+[data-t] .lbl b{color:var(--rojo-t)}
+[data-t] .lbl span{font-weight:400}
+[data-t] .estado1{font:600 14px/18px var(--font)}
+[data-t] .estado1 button{font:500 12px/1 var(--font)}
+[data-t] .sl{font:500 12px/1 var(--font)}
+[data-t] .sl input{accent-color:var(--rojo)}
+[data-t] .aviso{font:500 13px/18px var(--font)}
+[data-t] .error{background:rgba(232,0,29,.16);color:#FF6165;font:500 13px/18px var(--font)}
+
+/* ───────── C · "Mac": barra lateral flotante + selección roja sólida + tinte rojo en la tarjeta principal ───────── */
+[data-t=c] .side{box-shadow:none;margin:8px 0 8px 8px;height:calc(100vh - 16px);top:8px;border-radius:18px;background:#141416;box-shadow:inset 0 0 0 .5px rgba(255,255,255,.08)}
+[data-t=c] .side a.on{background:var(--rojo);color:#fff}
+[data-t=c] .side a.on .ico{color:#fff}
+[data-t=c] .side a.on .n{background:#fff;color:var(--rojo)}
+[data-t=c] .me{background:transparent}
+[data-t=c] .kicker{color:var(--rojo-t)}
+[data-t=c] .bigb .ic{width:48px;height:48px;border-radius:12px;display:grid;place-items:center;background:var(--card-2)}
+[data-t=c] .bigb.main1 .ic{background:var(--rojo-suave);color:var(--rojo-t)}
+[data-t=c] .bigb.main1{background:linear-gradient(160deg,rgba(232,0,29,.22),rgba(232,0,29,0) 60%),var(--card)}
+[data-t=c] .cola button.on{background:var(--rojo-suave);box-shadow:inset 0 0 0 1.5px var(--rojo)}
+
+/* ═════════ RONDA 2 (20-10-2026) · crítica de jerarquía contra apple-design-research (demo #escritorio, controles.md) ═════════ */
+/* Barra lateral = demo de escritorio: logo chico, secciones 600 11, ítems 400 14 de 32 px, selección gris + negrita, íconos en el color (como Música) */
+[data-t=c] .side .logo{padding:8px 10px 14px}
+[data-t=c] .side .logo .solo{display:block;height:16px;overflow:hidden}          /* manual ROMO: <120 px de ancho = solo "ROMO" */
+[data-t=c] .side .logo .solo img{height:24.7px;width:auto}                        /* "ROMO" = filas 0–361 de 558 del SVG */
+[data-t=c] .side .grp{font:600 11px/14px var(--font);letter-spacing:0;padding:14px 10px 4px}
+[data-t=c] .side a{font:400 14px/20px var(--font);height:32px;padding:0 10px;border-radius:8px;color:#fff}
+[data-t=c] .side a .ico{color:var(--rojo-t)}
+[data-t=c] .side a.on{background:rgba(120,120,128,.32);color:#fff;font-weight:600}
+[data-t=c] .side a.on .ico{color:var(--rojo-t)}
+[data-t=c] .side a .n,[data-t=c] .side a.on .n{background:none;color:var(--l2);font:500 12px/1 var(--font);padding:0;min-width:0}
+@media (hover:hover){[data-t=c] .side a:hover:not(.on){background:rgba(120,120,128,.18)}}
+
+/* Tu tarjeta: una línea de nombre + rol; el correo y Salir van en un menú que sale desde la tarjeta */
+[data-t=c] .me{padding:8px;border-radius:12px;cursor:pointer;gap:10px;transition:background-color .35s ease-out}
+[data-t=c] .me:active{background:rgba(120,120,128,.32);transition:none}
+@media (hover:hover){[data-t=c] .me:hover{background:rgba(120,120,128,.18)}}
+[data-t=c] .me .av{width:28px;height:28px;font:600 11px/1 var(--font)}
+[data-t=c] .me b,[data-t=c] .me small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+[data-t=c] .me small{font:400 12px/16px var(--font)}
+[data-t=c] .me #salir{display:none}
+[data-t=c] .me .chev{width:14px;height:14px;color:var(--l2);stroke-width:2}
+.menu-cuenta{position:absolute;left:12px;right:12px;bottom:68px;z-index:30;padding:6px 0;border-radius:14px;
+  background:rgba(44,44,46,.92);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);
+  box-shadow:0 12px 40px rgba(0,0,0,.45),inset 0 0 0 .5px rgba(255,255,255,.14);
+  clip-path:inset(100% 0 0 0 round 14px);opacity:0;pointer-events:none;transition:clip-path .25s ease-in,opacity .2s ease-in}
+.menu-cuenta.open{clip-path:inset(0 0 0 0 round 14px);opacity:1;pointer-events:auto;transition:clip-path .6s var(--spring),opacity .08s}
+.menu-cuenta .hd{font:400 12px/16px var(--font);color:var(--l2);padding:6px 14px 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.menu-cuenta .sp{height:.5px;background:var(--sep);margin:0 0 6px}
+.menu-cuenta button{display:flex;align-items:center;gap:10px;width:100%;height:32px;padding:0 14px;font:400 14px/1 var(--font);color:#FF4245;text-align:left}
+.menu-cuenta button:active{background:rgba(120,120,128,.32);transition:none}
+@media (hover:hover){.menu-cuenta button:hover{background:rgba(120,120,128,.24)}}
+[data-t=c] .side{position:sticky}
+
+/* Un solo rojo de acento: el contexto (eyebrow) vuelve a gris secundario; video elegido = gris como la barra */
+[data-t=c] .kicker{color:var(--l2)}
+[data-t=c] .cola button.on{background:rgba(120,120,128,.32);box-shadow:none}
+[data-t=c] .cola button.on .t{font-weight:700}
+
+/* Foco: anillo fino del sistema, sin el cyan grueso encima */
+[data-t] button:focus-visible{outline:2px solid var(--rojo-t);outline-offset:2px}
+[data-t] .steps button:focus-visible,[data-t] .seg button:focus-visible{outline-offset:-2px}
+
+/* Cabecera de Cambios en UNA línea: título 22 Bold + "1 de 3" gris + reparto (texto) + segmentado, todo centrado en 44 px */
+[data-t=c] .main.fija{padding-top:10px}
+[data-t=c] .ctop{height:44px;padding-bottom:0;margin-bottom:12px;flex-wrap:nowrap}
+[data-t=c] .ctop .grow{display:flex;align-items:baseline;gap:10px;min-width:0}
+[data-t=c] #cKicker{display:none}
+[data-t=c] .ctop .h1{font:700 22px/28px var(--font);letter-spacing:-.012em;margin:0;width:auto}
+[data-t=c] #cCuenta{font:400 15px/20px var(--font);letter-spacing:-.016em;color:var(--l2);white-space:nowrap}
+[data-t=c] .pill{height:32px;padding:0;background:none;box-shadow:none;font:400 13px/1 var(--font);letter-spacing:-.006em;color:var(--l2);gap:4px}
+[data-t=c] .pill b{font-weight:600}
+[data-t=c] .pill .btn{margin-left:8px}
+
+/* Segmentados = cápsula 32 px con pulgar que se desliza (controles.md: "el pulgar se desliza con resorte") */
+[data-t=c] .steps,[data-t=c] .seg{position:relative;border-radius:980px;padding:2px;gap:0;background:var(--fill)}
+[data-t=c] .steps{height:32px}
+[data-t=c] .steps button,[data-t=c] .seg button{position:relative;z-index:1;height:28px;border-radius:980px;font:500 13px/1 var(--font);color:#fff;background:none!important;transition:opacity .2s}
+[data-t=c] .seg button{height:32px}
+[data-t=c] .seg{padding:2px}
+[data-t=c] .steps button[aria-pressed=true],[data-t=c] .seg button[aria-pressed=true]{font-weight:600}
+[data-t=c] .steps button:active:not([aria-pressed=true]),[data-t=c] .seg button:active:not([aria-pressed=true]){opacity:.45;transition:none}
+.thumb-seg{position:absolute;z-index:0;top:2px;bottom:2px;left:0;border-radius:980px;background:#636366;box-shadow:0 3px 8px rgba(0,0,0,.12),0 3px 1px rgba(0,0,0,.04);
+  opacity:0;transition:transform .75s var(--spring-snappy,var(--spring)),width .75s var(--spring-snappy,var(--spring)),opacity .15s}
+.thumb-seg.on{opacity:1}
+.thumb-seg.sin-anim{transition:none}
+/* Atajos: texto gris, sin cajita */
+[data-t=c] .seg kbd{background:none!important;padding:0;color:var(--l2)!important;font:500 12px/1 var(--font)}
+[data-t=c] .seg button[aria-pressed=true] kbd{color:rgba(255,255,255,.7)!important}
+
+/* Panel: niveles de etiqueta, no colores. Pasos en gris secundario; la instrucción en blanco; estado ✓ en verde (estado) */
+[data-t=c] .lbl{font:600 13px/16px var(--font);color:var(--l2)}
+[data-t=c] .lbl b{color:var(--l2);margin-right:4px}
+[data-t=c] .lbl b::after{content:" ·"}
+[data-t=c] .lbl span{color:var(--l2);font-weight:400}
+[data-t=c] #oCambio span[style*="naranja"]{color:#fff!important;font:500 15px/20px var(--font);letter-spacing:-.016em}
+[data-t=c] .estado1{font:500 15px/20px var(--font);letter-spacing:-.016em}
+
+/* Botones: solo 44 (grande) y 34 (chico); UN relleno rojo, el que toca ahora */
+[data-t=c] #bRender{min-height:44px!important}
+[data-t=c] #pMarcar:has(#bRender:not(:disabled)) #bMarcar{background:var(--card-2);color:#fff}
+[data-t=c] #pMarcar:has(#bRender:not(:disabled)) #bMarcar:active{filter:none;opacity:.4}
+[data-t=c] #bMarcar kbd,[data-t=c] .btn kbd{background:rgba(255,255,255,.16);color:rgba(255,255,255,.75)}
+
+/* Estado vacío centrado (ícono + título + texto), no un cartel a todo lo ancho */
+[data-t=c] #sinVideos,[data-t=c] #rVacio{background:none;box-shadow:none;align-self:center!important;justify-self:center}
+[data-t=c] #sinVideos,[data-t=c] #rVacio{overflow:visible}
+[data-t=c] #sinVideos .empty > div,[data-t=c] #rVacio .empty > div{max-width:100%;text-align:center}
+[data-t=c] #sinVideos .empty,[data-t=c] #rVacio .empty{display:flex;flex-direction:column;align-items:center;gap:6px;padding:0 16px;max-width:420px;font:400 15px/20px var(--font);color:var(--l2)}
+[data-t=c] .empty .ico-vacio{width:44px;height:44px;stroke-width:1.4;color:var(--l3);margin-bottom:6px}
+[data-t=c] .empty .tit-vacio{font:600 17px/22px var(--font);letter-spacing:-.026em;color:#fff}
+[data-t=c] .pill .btn{min-height:32px;height:32px}   /* mismo alto que el segmentado de al lado */
+[data-t=c] [data-a=descartar]{min-height:44px!important}   /* botones: solo 44 y 34 */
+
+/* «Ver como» (solo admin): opciones con ✓ en el menú de cuenta + barrita flotante para volver */
+.menu-cuenta .hd2{font:600 11px/14px var(--font);color:var(--l2);padding:4px 14px 4px}
+.menu-cuenta button[role=menuitemradio]{color:#fff;padding-left:34px;position:relative}
+.menu-cuenta button[aria-checked=true]::before{content:"✓";position:absolute;left:14px;font-weight:600;color:#fff}
+.menu-cuenta #verComo .sp{margin:6px 0}
+.viendo{margin-top:auto;display:flex;flex-direction:column;gap:8px;padding:10px;border-radius:12px;background:rgba(120,120,128,.18);font:400 12px/16px var(--font);color:var(--l2)}
+.viendo b{display:block;font:600 13px/16px var(--font);color:#fff}
+.viendo button{height:28px;border-radius:980px;background:rgba(120,120,128,.36);font:600 12px/1 var(--font);color:#fff}
+.viendo button:active{opacity:.4;transition:none}
+.viendo:not(.hidden) + .me{margin-top:8px}
