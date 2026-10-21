@@ -948,6 +948,9 @@ function central(req) {
   if (op === 'subida_cambiar') return subidaCambiar(req.id, req.campos || {});
   if (op === 'repartir') return repartir(req.editor, !!req.mas);
   if (op === 'registrar_cambio') return registrarCambio(req);
+  if (op === 'categorias') return { ok: true, categorias: leerCategorias() };
+  if (op === 'categoria_nueva') return categoriaNueva(req.nombre, req.prefijo);
+  if (op === 'registrar_video') return registrarVideo(req);
   throw new Error('Operación desconocida: ' + op);
 }
 
@@ -1110,5 +1113,65 @@ function registrarCambio(req) {
   if (iSubio >= 0) fila[iSubio] = String(req.subio || '');
   v.appendRow(fila);
   if (req.subida) subidaCambiar(req.subida, { estado: 'LISTO', codigo: codigo, categoria: cat });
+  return { ok: true, codigo: codigo, id: vals.id };
+}
+
+// ===========================================================================
+// CATEGORÍAS y VIDEOS ESPECIALES (20-10-2026): «Registrar videos» de ROMO EDITS
+// ===========================================================================
+// Las categorías viven en LISTAS (columna A = CATEGORÍA, B = PREFIJO). Agregar una aquí la pone en los menús de VIDEOS.
+function leerCategorias() {
+  const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(LISTAS_SHEET);
+  if (!sh || sh.getLastRow() < 2) return CATEGORIAS.map(([c, p]) => ({ categoria: c, prefijo: p }));
+  return sh.getRange(2, 1, sh.getLastRow() - 1, 2).getValues()
+    .filter(f => String(f[0]).trim() && String(f[1]).trim())
+    .map(f => ({ categoria: String(f[0]).trim().toUpperCase(), prefijo: String(f[1]).trim().toUpperCase() }));
+}
+
+function categoriaNueva(nombre, prefijo) {
+  nombre = String(nombre || '').trim().toUpperCase();
+  prefijo = String(prefijo || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if (!nombre || !prefijo) throw new Error('Falta el nombre o el prefijo');
+  if (prefijo.length > 5) throw new Error('El prefijo es de 2 a 5 letras (ej. POD)');
+  const cats = leerCategorias();
+  if (cats.some(c => c.categoria === nombre)) throw new Error('Ya existe la categoría ' + nombre);
+  if (cats.some(c => c.prefijo === prefijo)) throw new Error('El prefijo ' + prefijo + ' ya es de otra categoría');
+  const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(LISTAS_SHEET);
+  const col = sh.getRange(2, 1, Math.max(sh.getLastRow() - 1, 1), 1).getValues();
+  let fila = col.findIndex(f => !String(f[0]).trim());
+  fila = fila < 0 ? sh.getLastRow() + 1 : fila + 2;
+  sh.getRange(fila, 1, 1, 2).setValues([[nombre, prefijo]]);
+  return { ok: true, categoria: nombre, prefijo: prefijo };
+}
+
+// Siguiente código libre de la categoría (mira VIDEOS y las pestañas de guiones) + fila PENDIENTE en VIDEOS.
+function registrarVideo(req) {
+  const cat = String(req.categoria || '').trim().toUpperCase();
+  const c = leerCategorias().find(x => x.categoria === cat);
+  if (!c) throw new Error('Categoría no válida: ' + cat);
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let top = 0;
+  if (PREFIJO_CAT[cat]) {
+    const v0 = getSheet(), m0 = colMap(v0);
+    if (v0.getLastRow() > 1) v0.getRange(2, m0.nombre + 1, v0.getLastRow() - 1, 1).getValues().forEach(f => {
+      const x = String(f[0] || '').trim().match(PREFIJO_CAT[cat][1]); if (x) top = Math.max(top, +x[1]);
+    });
+  } else {
+    top = ultimoNumero(ss, c.prefijo);
+  }
+  const codigo = c.prefijo + String(top + 1).padStart(3, '0');
+  const v = getSheet(), m = colMap(v);
+  const t = new Date();
+  const fila = new Array(v.getLastColumn()).fill('');
+  const vals = {
+    id: 'v' + t.getTime() + Math.floor(Math.random() * 1000), nombre: codigo, categoria: cat, estado: 'PENDIENTE',
+    creador: String(req.editor || '').toUpperCase(), fecha: Utilities.formatDate(t, 'America/Guayaquil', 'yyyy-MM-dd'),
+    link: req.link || '', notas: String(req.notas || ''), created_at: t.toISOString(),
+  };
+  FIELDS.forEach(f => { if (m[f] != null && vals[f] != null) fila[m[f]] = vals[f]; });
+  const heads = v.getRange(1, 1, 1, v.getLastColumn()).getValues()[0].map(normHead);
+  const iSubio = heads.indexOf(normHead('SUBIÓ'));
+  if (iSubio >= 0) fila[iSubio] = String(req.subio || '');
+  v.appendRow(fila);
   return { ok: true, codigo: codigo, id: vals.id };
 }

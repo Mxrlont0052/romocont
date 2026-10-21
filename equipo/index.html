@@ -71,6 +71,20 @@ button:focus{outline:none} button:focus-visible{outline:2px solid var(--cyan);ou
 .m{font:500 13px/18px var(--font);color:var(--l2)}
 .m b{color:#fff}
 .trunc{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pub-admin{display:flex;gap:8px;margin-top:16px}
+.pub.carr{grid-template-columns:96px 1fr;align-items:center}
+.pub.carr .chk{display:flex;align-items:center;gap:10px;font:700 14px/1 var(--font);cursor:pointer}
+.pub.carr .chk input{width:20px;height:20px;accent-color:var(--verde)}
+.horas-fila{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.horas-fila input,.horas-fila select{height:36px;border:0;border-radius:10px;background:var(--card-2);color:var(--blanco);padding:0 10px;font:600 14px/1 var(--font)}
+.armar-dia{margin-top:10px}
+.armar-dia b{display:block;font:800 13px/18px var(--font);margin-bottom:4px}
+.reg-btn{display:flex;align-items:center;gap:14px;width:100%;text-align:left;margin-top:16px;border-radius:16px;background:var(--card);box-shadow:inset 0 0 0 1px var(--borde);padding:14px 16px}
+.reg-btn:hover{background:var(--card-2)}
+.reg-cat{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;margin-top:18px}
+.reg-cat label{display:flex;flex-direction:column;gap:5px;font:700 12px/16px var(--font);color:var(--l2)}
+.reg-nueva{display:flex;gap:8px}
+.reg-nueva input{height:36px;border:0;border-radius:10px;background:var(--card-2);color:var(--blanco);padding:0 10px;font:600 14px/1 var(--font)}
 .pub-dias{display:flex;gap:3px;background:var(--fill);border-radius:12px;padding:3px;width:max-content;margin-top:18px}
 .pub-dias button{height:32px;padding:0 16px;border-radius:9px;font:700 13px/1 var(--font);color:var(--l2)}
 .pub-dias button[aria-pressed=true]{background:#fff;color:#000}
@@ -270,6 +284,9 @@ select.sel{height:36px;border-radius:10px;background:var(--card-2);border:0;padd
       <div class="kicker">Publicar</div>
       <div class="h1" id="pubTitulo">Para publicar hoy</div>
       <div class="sub" id="pubSub">Descarga cada video a su hora y pega la descripción, el link de Facebook y el de TikTok.</div>
+      <div class="pub-admin hidden" id="pubAdmin"><button class="btn btn-gray btn-sm" id="bHoras">Horas de publicación</button><button class="btn btn-red btn-sm" id="bArmar">Armar semana</button></div>
+      <div class="card hidden" id="pubHoras" style="margin-top:14px;padding:16px"></div>
+      <div class="card hidden" id="pubArmar" style="margin-top:14px;padding:16px"></div>
       <div class="pub-dias" role="group"><button data-dia="hoy" aria-pressed="true">Hoy</button><button data-dia="manana" aria-pressed="false">Mañana</button><button data-dia="pendientes" aria-pressed="false">Pendientes <span id="pubN"></span></button></div>
       <div id="pubLista" style="margin-top:16px"><div class="card"><div class="empty">Cargando…</div></div></div>
     </section>
@@ -298,8 +315,31 @@ select.sel{height:36px;border-radius:10px;background:var(--card-2);border:0;padd
           <div class="ft"><span class="tag gr">Pronto</span></div>
         </button>
       </div>
+      <button class="reg-btn" data-go="registrar"><div class="grow"><div class="t">Registrar videos ya editados</div><div class="m">Tus videos especiales (podcast, tandas…): eliges la categoría, se suben al Drive y se registran con el siguiente código.</div></div><span class="btn btn-gray btn-sm">Registrar</span></button>
       <div class="sec"><h2>Preparándose</h2><span id="prepTxt"></span></div>
       <div class="m" id="prepInfo">Los videos recién subidos tardan 1–2 minutos en estar listos para marcar.</div>
+    </section>
+
+    <!-- REGISTRAR VIDEOS ESPECIALES (20-10-2026) -->
+    <section data-v="registrar" class="hidden">
+      <div class="kicker">Romo Edits</div>
+      <div class="h1">Registrar videos</div>
+      <div class="sub">Para videos que ya vienen editados. Cada uno sale con el siguiente código de su categoría, se guarda en el Drive y le aparece a Lizy en Pendientes.</div>
+      <div class="reg-cat">
+        <label>Categoría<select class="sel" id="regCat"></select></label>
+        <button class="btn btn-gray btn-sm hidden" id="regNuevaBtn">+ Nueva categoría</button>
+        <div class="reg-nueva hidden" id="regNueva"><input id="regNom" placeholder="Nombre (ej. PODCAST)"><input id="regPre" placeholder="Prefijo (ej. POD)" maxlength="5"><button class="btn btn-red btn-sm" id="regCrear">Crear</button></div>
+      </div>
+      <label class="drop" id="regDrop" style="display:block;margin-top:16px;cursor:pointer">
+        <div class="big">Suelta aquí los videos editados</div>
+        <div class="m">.mp4 o .mov · varios a la vez · a cada uno le puedes cambiar la categoría abajo</div>
+        <input type="file" id="regArchivos" accept="video/mp4,video/quicktime,.mp4,.mov,.m4v" multiple hidden>
+      </label>
+      <div id="regWrap" class="hidden">
+        <div class="sec"><h2>Videos</h2><span id="regCuenta"></span></div>
+        <div class="card" id="regLista"></div>
+        <div style="display:flex;justify-content:flex-end;margin-top:14px"><button class="btn btn-red" id="regSubir">Subir y registrar</button></div>
+      </div>
     </section>
 
     <!-- ROMO CAMBIOS · opción A -->
@@ -447,7 +487,7 @@ function vistaInicial(v){
   if (r === 'PUBLICADOR') return 'publicar';
   if (r === 'ADMIN' && (v === 'publicar' || DASH.includes(v))) return v;
   if (r === 'ADMIN' && !v) return 'inicio';
-  if (edita() && ['edits', 'cambios', 'subir'].includes(v)) return v;
+  if (edita() && ['edits', 'cambios', 'subir', 'registrar'].includes(v)) return v;
   return edita() ? 'edits' : 'subir';
 }
 
@@ -475,7 +515,7 @@ let VISTA = '';
 const DASH = ['inicio', 'pend', 'videos', 'rep'];
 function ir(v){
   if (DASH.includes(v) && rolUI() !== 'ADMIN') v = vistaInicial('');
-  if (v === 'cambios' && !edita()) v = 'subir';
+  if ((v === 'cambios' || v === 'registrar') && !edita()) v = 'subir';
   if (rolUI() === 'PUBLICADOR') v = 'publicar';
   if (v === 'publicar' && !(rolUI() === 'ADMIN' || rolUI() === 'PUBLICADOR')) v = vistaInicial('');
   VISTA = v; history.replaceState(null, '', '#' + v);
@@ -484,10 +524,11 @@ function ir(v){
   $('.main').classList.toggle('dashv', esDash);
   $$('[data-v]').forEach(s => s.classList.toggle('hidden', s.dataset.v !== (esDash ? 'dash' : v)));
   if (esDash) abrirDash(v);
-  $$('[data-nav]').forEach(a => a.classList.toggle('on', a.dataset.nav === (v === 'cambios' ? 'edits' : v)));
+  $$('[data-nav]').forEach(a => a.classList.toggle('on', a.dataset.nav === (v === 'cambios' || v === 'registrar' ? 'edits' : v)));
   window.scrollTo(0, 0);
   if (v === 'subir') cargarMias();
   if (v === 'publicar') cargarPublicar();
+  if (v === 'registrar') abrirRegistrar();
   if (v === 'edits') cargarResumen();
   if (v === 'cambios') empezar(false);
 }
@@ -534,7 +575,12 @@ async function cargarPublicar(){
       ? (d.videos.length ? `${d.videos.length} videos sin publicar · lo programado va primero, después del más viejo al más nuevo.` : 'No hay nada pendiente 🎉')
       : d.videos.length ? `${hechos} de ${d.videos.length} publicados · descarga cada video a su hora y pega la descripción y los links.`
       : 'Los admins todavía no programaron videos para este día.';
-    $('#pubLista').innerHTML = d.videos.map(v => `
+    $('#pubAdmin').classList.toggle('hidden', rolUI() !== 'ADMIN');
+    // El carrusel (lo hace Lizy con ChatGPT) va en su hora, con un check; no se registra en la hoja.
+    const carr = PUB_DIA === 'pendientes' ? [] : (d.carruseles || []).map(c => `
+      <div class="pub carr"><div class="hora">${esc(c.hora)}<small>carrusel</small></div>
+        <label class="chk"><input type="checkbox" data-carr="${esc(c.hora)}" ${c.hecho ? 'checked' : ''} ${soloVer ? 'disabled' : ''}>Carrusel con ChatGPT ${c.hecho ? '<span class="tag ok">Hecho</span>' : '<span class="tag org">Pendiente</span>'}</label></div>`);
+    const tarjetas = d.videos.map(v => ({ hora: v.hora || '99:99', html: `
       <div class="pub" data-id="${esc(v.id)}">
         <div class="hora">${PUB_DIA === 'pendientes' ? (v.dia ? `${esc(v.hora || '—')}<small>${esc(diaCorto(v.dia))}</small>` : '<span class="m">Sin hora</span>') : esc(v.hora || '—')}<small>${esc(v.categoria.toLowerCase())}</small></div>
         <div>
@@ -547,7 +593,14 @@ async function cargarPublicar(){
             <label>Link de TikTok<input data-k="tiktok" value="${esc(v.tiktok)}" placeholder="https://www.tiktok.com/…" ${soloVer ? 'disabled' : ''}></label>
           </div>
         </div>
-      </div>`).join('') || '<div class="card"><div class="empty">Nada programado para este día.</div></div>';
+      </div>` }));
+    (d.carruseles && PUB_DIA !== 'pendientes' ? d.carruseles : []).forEach((c, k) => tarjetas.push({ hora: c.hora, html: carr[k] }));
+    if (PUB_DIA !== 'pendientes') tarjetas.sort((a, b) => a.hora.localeCompare(b.hora));   // Pendientes ya viene en su orden
+    $('#pubLista').innerHTML = tarjetas.map(t => t.html).join('') || '<div class="card"><div class="empty">Nada programado para este día.</div></div>';
+    $$('#pubLista [data-carr]').forEach(c => c.onchange = async () => {
+      try { await api('/api/publicar/carrusel', { dia, hora: c.dataset.carr, hecho: c.checked }); toast(c.checked ? '✓ Carrusel hecho' : 'Carrusel pendiente'); cargarPublicar(); }
+      catch (e) { toast(e.message); c.checked = !c.checked; }
+    });
     $$('#pubLista [data-k]').forEach(c => c.onchange = async () => {
       const id = c.closest('.pub').dataset.id;
       try { const v = await api('/api/publicar/guardar', { id, [c.dataset.k]: c.value.trim() });
@@ -557,6 +610,108 @@ async function cargarPublicar(){
     });
   } catch (e) { $('#pubLista').innerHTML = `<div class="card"><div class="empty">${esc(e.message)}</div></div>`; }
 }
+
+/* Ajustes del admin: horas de publicación (y cuál es el carrusel) */
+$('#bHoras').onclick = async () => {
+  const box = $('#pubHoras'); $('#pubArmar').classList.add('hidden');
+  if (!box.classList.contains('hidden')) return box.classList.add('hidden');
+  const { horas } = await api('/api/publicar/config').catch(e => (toast(e.message), { horas: [] }));
+  const fila = h => `<div class="horas-fila"><input type="time" step="900" value="${esc(h.hora)}"><select><option value="video" ${h.tipo === 'video' ? 'selected' : ''}>Video</option><option value="carrusel" ${h.tipo === 'carrusel' ? 'selected' : ''}>Carrusel</option></select><button class="btn btn-gray btn-sm" data-quitar>✕</button></div>`;
+  box.innerHTML = `<div class="t" style="margin-bottom:10px">Horas de publicación de Lizy</div><div id="horasLista">${horas.map(fila).join('')}</div>
+    <div style="display:flex;gap:8px;margin-top:6px"><button class="btn btn-gray btn-sm" id="horaMas">+ Agregar hora</button><button class="btn btn-red btn-sm" id="horasGuardar">Guardar</button></div>
+    <div class="m" style="margin-top:8px">Cada noche se arma solo el día siguiente con estas horas. Lo que programes a mano en la ficha de un video se respeta.</div>`;
+  box.classList.remove('hidden');
+  const enlazar = () => $$('#horasLista [data-quitar]').forEach(b => b.onclick = () => b.parentElement.remove());
+  enlazar();
+  $('#horaMas').onclick = () => { $('#horasLista').insertAdjacentHTML('beforeend', fila({ hora: '', tipo: 'video' })); enlazar(); };
+  $('#horasGuardar').onclick = async () => {
+    const horas = $$('#horasLista .horas-fila').map(f => ({ hora: f.querySelector('input').value, tipo: f.querySelector('select').value })).filter(h => h.hora);
+    try { await api('/api/publicar/config', { horas }); toast('Horas guardadas'); box.classList.add('hidden'); cargarPublicar(); } catch (e) { toast(e.message); }
+  };
+};
+/* Armar semana: propone con variedad, el admin revisa y aprueba */
+$('#bArmar').onclick = async () => {
+  const box = $('#pubArmar'); $('#pubHoras').classList.add('hidden');
+  box.innerHTML = '<div class="m">Armando…</div>'; box.classList.remove('hidden');
+  try {
+    const r = await api('/api/publicar/armar', { dias: 7 });
+    const porDia = {}; r.propuesta.forEach(x => (porDia[x.dia] = porDia[x.dia] || []).push(x));
+    box.innerHTML = `<div class="t">Propuesta para 7 días</div>
+      <div class="m">Grupos: Cambios · IA · 360 · Otros (no repite grupo el mismo día cuando hay de dónde elegir). Lo ya programado se respeta.</div>
+      ${r.sin_archivo ? `<div class="aviso" style="margin-top:10px">${r.sin_archivo} pendientes no tienen el archivo en el Drive y no entran hasta que lo tengan.</div>` : ''}
+      ${Object.entries(porDia).map(([d, xs]) => `<div class="armar-dia"><b>${esc(diaCorto(d))}</b>${xs.map(x => `<div class="m">${esc(x.hora)} · <b style="display:inline;color:#fff">${esc(x.codigo)}</b> · ${esc(x.categoria.toLowerCase())}</div>`).join('')}</div>`).join('') || '<div class="m" style="margin-top:10px">No hay videos con archivo para programar.</div>'}
+      ${r.faltan ? `<div class="m" style="margin-top:8px">${r.faltan} horas quedan sin video (no alcanzan los pendientes).</div>` : ''}
+      <div style="display:flex;gap:8px;margin-top:14px"><button class="btn btn-gray btn-sm" id="armarNo">Cancelar</button><button class="btn btn-red btn-sm" id="armarSi" ${r.propuesta.length ? '' : 'disabled'}>Aprobar y programar ${r.propuesta.length}</button></div>`;
+    $('#armarNo').onclick = () => box.classList.add('hidden');
+    $('#armarSi').onclick = async () => {
+      try { const a = await api('/api/publicar/armar', { aprobar: true, propuesta: r.propuesta }); toast(`✓ ${a.programados} videos programados`); box.classList.add('hidden'); cargarPublicar(); }
+      catch (e) { toast(e.message); }
+    };
+  } catch (e) { box.innerHTML = `<div class="m">${esc(e.message)}</div>`; }
+};
+
+/* ───── REGISTRAR VIDEOS ESPECIALES ───── */
+let CATS_REG = [], REG = [];
+async function abrirRegistrar(){
+  $('#regNuevaBtn').classList.toggle('hidden', rolUI() !== 'ADMIN');
+  try { CATS_REG = await api('/api/categorias'); } catch (e) { return toast(e.message); }
+  const prev = $('#regCat').value;
+  $('#regCat').innerHTML = CATS_REG.map(c => `<option value="${esc(c.categoria)}">${esc(c.categoria.charAt(0) + c.categoria.slice(1).toLowerCase())} · ${esc(c.prefijo)}</option>`).join('');
+  if (prev) $('#regCat').value = prev;
+  pintarReg();
+}
+$('#regCat').onchange = () => { REG.filter(r => r.estado === 'cola' && !r.propia).forEach(r => r.cat = $('#regCat').value); pintarReg(); };
+$('#regNuevaBtn').onclick = () => $('#regNueva').classList.toggle('hidden');
+$('#regCrear').onclick = async () => {
+  try { const c = await api('/api/categorias', { nombre: $('#regNom').value, prefijo: $('#regPre').value });
+    toast(`✓ Categoría ${c.categoria} (${c.prefijo})`); $('#regNom').value = $('#regPre').value = ''; $('#regNueva').classList.add('hidden');
+    await abrirRegistrar(); $('#regCat').value = c.categoria; $('#regCat').onchange(); } catch (e) { toast(e.message); }
+};
+const regDrop = $('#regDrop');
+['dragenter','dragover'].forEach(ev => regDrop.addEventListener(ev, e => { e.preventDefault(); regDrop.classList.add('over'); }));
+['dragleave','drop'].forEach(ev => regDrop.addEventListener(ev, e => { e.preventDefault(); regDrop.classList.remove('over'); }));
+regDrop.addEventListener('drop', e => agregarReg([...e.dataTransfer.files]));
+$('#regArchivos').onchange = e => { agregarReg([...e.target.files]); e.target.value = ''; };
+function agregarReg(files){
+  files = files.filter(f => /\.(mp4|mov|m4v)$/i.test(f.name));
+  if (!files.length) return toast('Solo videos .mp4 o .mov');
+  files.forEach(f => REG.push({ f, cat: $('#regCat').value, estado: 'cola', prog: 0 }));
+  pintarReg();
+}
+function pintarReg(){
+  $('#regWrap').classList.toggle('hidden', !REG.length);
+  const enCola = REG.filter(r => r.estado === 'cola').length;
+  $('#regCuenta').textContent = `${REG.filter(r => r.estado === 'listo').length} de ${REG.length} registrados`;
+  $('#regSubir').textContent = enCola ? `Subir y registrar ${enCola}` : 'Subir y registrar'; $('#regSubir').disabled = !enCola || SUBIENDO;
+  $('#regLista').innerHTML = REG.map((r, k) => `<div class="row"><div class="grow"><div class="t trunc">${esc(r.f.name)}</div>
+      <div class="m">${(r.f.size / 1048576).toFixed(0)} MB${r.codigo ? ` · <b>${esc(r.codigo)}</b>` : ''}${r.error ? ` · <span style="color:var(--naranja)">${esc(r.error)}</span>` : ''}</div>
+      ${r.estado === 'subiendo' ? `<div class="pbar"><i style="width:${Math.round(r.prog * 100)}%"></i></div>` : ''}</div>
+    ${r.estado === 'cola' ? `<select class="sel" data-k="${k}">${CATS_REG.map(c => `<option value="${esc(c.categoria)}" ${c.categoria === r.cat ? 'selected' : ''}>${esc(c.categoria.charAt(0) + c.categoria.slice(1).toLowerCase())}</option>`).join('')}</select><button class="btn btn-gray btn-sm" data-quita="${k}">✕</button>`
+      : r.estado === 'listo' ? `<span class="tag ok">✓ ${esc(r.codigo)}</span>` : r.estado === 'error' ? '<span class="tag red">Error</span>' : `<span class="tag org">${Math.round(r.prog * 100)} %</span>`}</div>`).join('');
+  $$('#regLista [data-k]').forEach(sl => sl.onchange = () => { const r = REG[+sl.dataset.k]; r.cat = sl.value; r.propia = true; });
+  $$('#regLista [data-quita]').forEach(b => b.onclick = () => { REG.splice(+b.dataset.quita, 1); pintarReg(); });
+}
+$('#regSubir').onclick = async () => {
+  SUBIENDO = true; pintarReg();
+  for (const r of REG.filter(r => r.estado === 'cola')) {
+    r.estado = 'subiendo'; r.error = ''; pintarReg();
+    let s = null;
+    try {
+      s = await api('/api/especiales/iniciar', { archivo: r.f.name, tam: r.f.size, tipo: r.f.type || 'video/mp4', categoria: r.cat });
+      r.codigo = s.codigo; r.onprog = () => pintarReg();
+      const driveId = await subirADrive(s.url, r);
+      await api('/api/especiales/listo', { fila: s.fila, drive_id: driveId });
+      r.estado = 'listo';
+    } catch (e) {
+      r.estado = 'error'; r.error = e.message;
+      if (s) api('/api/especiales/cancelar', { fila: s.fila }).catch(() => {});   // sin archivo no queda fila ni se gasta el código
+      r.codigo = '';
+    }
+    pintarReg();
+  }
+  SUBIENDO = false; pintarReg();
+  const ok = REG.filter(r => r.estado === 'listo').length; if (ok) toast(`✓ ${ok} registrados · ya le salen a Lizy en Pendientes`);
+};
 
 /* ───── SUBIR ───── */
 const ESTADO_TAG = { 'PREPARANDO': ['org','Preparando'], 'PARA EDITAR': ['org','Para editar'], 'RENDERIZANDO': ['cy','Editándose'],
@@ -620,14 +775,14 @@ async function subirADrive(url, c){
       r = await new Promise((ok, mal) => {
         const x = new XMLHttpRequest(); x.open('PUT', url);
         x.setRequestHeader('Content-Range', `bytes ${ini}-${fin - 1}/${total}`);
-        x.upload.onprogress = e => { c.prog = (ini + e.loaded) / total; pintarBarra(c); };
+        x.upload.onprogress = e => { c.prog = (ini + e.loaded) / total; (c.onprog || pintarBarra)(c); };
         x.onload = () => ok(x); x.onerror = () => mal(new Error('Se cortó el internet'));
         x.send(c.f.slice(ini, fin));
       });
     } catch (e) { if (++intentos > 5) throw e; await new Promise(z => setTimeout(z, 2000 * intentos)); continue; }
     if (r.status === 200 || r.status === 201) { const j = JSON.parse(r.responseText || '{}'); if (!j.id) throw new Error('Drive no devolvió el archivo'); return j.id; }
     if (r.status === 308) {
-      const rg = r.getResponseHeader('Range'); ini = rg ? +rg.split('-')[1] + 1 : fin; intentos = 0; c.prog = ini / total; pintarBarra(c); continue;
+      const rg = r.getResponseHeader('Range'); ini = rg ? +rg.split('-')[1] + 1 : fin; intentos = 0; c.prog = ini / total; (c.onprog || pintarBarra)(c); continue;
     }
     if (r.status >= 500 && ++intentos <= 5) { await new Promise(z => setTimeout(z, 2000 * intentos)); continue; }
     throw new Error('Drive respondió ' + r.status);
