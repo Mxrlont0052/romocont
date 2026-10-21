@@ -5,11 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#000000">
 <title>ROMO CONT</title>
-<!-- 20-10-2026: la dirección principal abre ROMO CENTRAL (login + roles). El dashboard vive en dashboard.html
-     y se entra desde la barra lateral (admins y Lizy). -->
-<script>location.replace('equipo/' + location.search + location.hash);</script>
-<meta http-equiv="refresh" content="0; url=equipo/">
+<!-- 20-10-2026: la dirección principal reparte según quién eres (lo recuerda ROMO CENTRAL en este navegador):
+     ADMIN y PUBLICADOR → el Dashboard primero (dashboard.html); los demás → ROMO CENTRAL (equipo/).
+     Sin sesión todavía → equipo/ para entrar con Google; con ?inicio=1, al entrar los admins pasan al Dashboard. -->
+<script>
+(function () {
+  var rol = '';
+  try { rol = (JSON.parse(localStorage.getItem('rc_yo') || 'null') || {}).rol || ''; } catch (e) {}
+  var dash = rol === 'ADMIN' || rol === 'PUBLICADOR';
+  location.replace(dash ? 'dashboard.html' + location.hash : 'equipo/?inicio=1' + location.hash);
+})();
+</script>
 <style>html,body{background:#000;color:#fff;font-family:system-ui,sans-serif}</style>
 </head>
-<body><p style="padding:24px">Abriendo ROMO CENTRAL… <a href="equipo/" style="color:#fff">entrar</a></p></body>
+<body><noscript><p style="padding:24px"><a href="equipo/" style="color:#fff">Entrar a ROMO CENTRAL</a></p></noscript></body>
 </html>
