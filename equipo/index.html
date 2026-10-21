@@ -71,6 +71,20 @@ button:focus{outline:none} button:focus-visible{outline:2px solid var(--cyan);ou
 .m{font:500 13px/18px var(--font);color:var(--l2)}
 .m b{color:#fff}
 .trunc{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pub-dias{display:flex;gap:3px;background:var(--fill);border-radius:12px;padding:3px;width:max-content;margin-top:18px}
+.pub-dias button{height:32px;padding:0 16px;border-radius:9px;font:700 13px/1 var(--font);color:var(--l2)}
+.pub-dias button[aria-pressed=true]{background:#fff;color:#000}
+.pub{border-radius:20px;background:var(--card);box-shadow:inset 0 0 0 1px var(--borde);padding:16px;display:grid;grid-template-columns:96px 1fr;gap:16px;margin-bottom:12px}
+.pub .hora{font:800 26px/1 var(--font);font-variant-numeric:tabular-nums}
+.pub .hora small{display:block;margin-top:8px;font:600 12px/16px var(--font);color:var(--l2)}
+.pub .campos{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pub textarea,.pub input{width:100%;border:0;outline:none;border-radius:12px;background:var(--card-2);color:var(--blanco);font:500 14px/20px var(--font);padding:10px 12px}
+.pub textarea{grid-column:1/-1;min-height:64px;resize:vertical}
+.pub textarea:focus,.pub input:focus{box-shadow:0 0 0 2px var(--cyan)}
+.pub label{display:flex;flex-direction:column;gap:5px;font:700 12px/16px var(--font);color:var(--l2)}
+.pub label.ancho{grid-column:1/-1}
+.pub .arriba{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.pub .arriba .grow{min-width:0}
 .empty{padding:22px 16px;color:var(--l2);font:500 14px/20px var(--font);text-align:center}
 .tag{display:inline-flex;align-items:center;font:800 10px/1 var(--font);letter-spacing:.1em;text-transform:uppercase;border-radius:6px;padding:4px 6px;white-space:nowrap}
 .tag.red{background:var(--rojo);color:#fff}.tag.org{background:rgba(255,146,48,.16);color:var(--naranja)}.tag.ok{background:rgba(48,209,88,.14);color:var(--verde)}.tag.cy{background:rgba(0,255,255,.12);color:var(--cyan)}.tag.gr{background:var(--fill);color:var(--l2)}
@@ -211,7 +225,8 @@ select.sel{height:36px;border-radius:10px;background:var(--card-2);border:0;padd
   <aside class="side">
     <div class="logo"><span class="solo"><img src="../logo-romo.svg" alt="ROMO"></span></div>
     <div class="grp">Equipo</div>
-    <a data-nav="subir"><svg class="ico" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>Subir videos</a>
+    <a data-nav="publicar" data-rol="publica"><svg class="ico" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>Publicar</a>
+    <a data-nav="subir" data-rol="sube"><svg class="ico" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>Subir videos</a>
     <a data-nav="edits" data-rol="edita"><svg class="ico" viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><path d="M8.12 8.12 12 12"/><path d="M20 4 8.12 15.88"/><circle cx="6" cy="18" r="3"/><path d="M14.8 14.8 20 20"/></svg>Romo Edits <span class="n hidden" id="navN"></span></a>
     <div class="grp" data-rol="dash">Data</div>
     <a href="../dashboard.html" data-rol="dash"><svg class="ico" viewBox="0 0 24 24"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>Dashboard</a>
@@ -241,6 +256,15 @@ select.sel{height:36px;border-radius:10px;background:var(--card-2);border:0;padd
       </div>
       <div class="sec"><h2>Lo que subiste</h2><span id="misCuenta"></span></div>
       <div class="card" id="mias"><div class="empty">Cargando…</div></div>
+    </section>
+
+    <!-- PUBLICAR · Lizy (20-10-2026): solo lo que los admins le eligieron para el día -->
+    <section data-v="publicar" class="hidden">
+      <div class="kicker">Publicar</div>
+      <div class="h1" id="pubTitulo">Para publicar hoy</div>
+      <div class="sub" id="pubSub">Descarga cada video a su hora y pega la descripción, el link de Facebook y el de TikTok.</div>
+      <div class="pub-dias" role="group"><button data-dia="hoy" aria-pressed="true">Hoy</button><button data-dia="manana" aria-pressed="false">Mañana</button></div>
+      <div id="pubLista" style="margin-top:16px"><div class="card"><div class="empty">Cargando…</div></div></div>
     </section>
 
     <!-- ROMO EDITS · inicio -->
@@ -348,9 +372,13 @@ let YO = (() => { try { return JSON.parse(guardado.get('rc_yo' + SUF) || 'null')
 
 function toast(t){ const e = $('#toast'); e.textContent = t; e.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => e.classList.remove('show'), 2800); }
 
+// «Ver como» de un admin: se manda X-Ver-Como con la persona de EQUIPO que tiene ese rol → se ven SUS datos (solo lectura).
+let EQUIPO = null;
+const personaDe = r => (EQUIPO || []).find(p => p.rol === r && p.activo);
+const verCabecera = () => { const p = VER && personaDe(VER); return p ? { 'X-Ver-Como': p.correo || p.nombre } : {}; };
 async function api(ruta, body, metodo){
   const r = await fetch(API + ruta, { method: metodo || (body ? 'POST' : 'GET'),
-    headers: Object.assign({ 'Authorization': 'Bearer ' + (TOKEN || '') }, body ? { 'Content-Type': 'application/json' } : {}),
+    headers: Object.assign({ 'Authorization': 'Bearer ' + (TOKEN || '') }, verCabecera(), body ? { 'Content-Type': 'application/json' } : {}),
     body: body ? JSON.stringify(body) : undefined });
   let d = {}; try { d = await r.json() } catch {}
   if (r.status === 401) { salir(true); throw new Error(d.detail || 'Entra de nuevo'); }
@@ -404,21 +432,33 @@ function arrancar(){
   $('#meAv').innerHTML = YO.foto ? `<img src="${esc(YO.foto)}" alt="">` : esc(YO.nombre.slice(0, 2));
   aplicarRol();
   $('#verComo').classList.toggle('hidden', YO.rol !== 'ADMIN');
-  const v = location.hash.slice(1);
-  ir(edita() && ['edits', 'cambios'].includes(v) ? v : (v === 'subir' || !edita()) ? 'subir' : 'edits');
+  if (YO.rol === 'ADMIN' && !EQUIPO) api('/api/equipo').then(l => { EQUIPO = l; aplicarRol(); }).catch(() => {});
+  ir(vistaInicial(location.hash.slice(1)));
+}
+// Vista que le toca a cada rol: PUBLICADOR → Publicar; EDITOR/ADMIN → ROMO EDITS; SUBIDOR → Subir.
+function vistaInicial(v){
+  const r = rolUI();
+  if (r === 'PUBLICADOR') return 'publicar';
+  if (v === 'publicar' && r === 'ADMIN') return v;
+  if (edita() && ['edits', 'cambios', 'subir'].includes(v)) return v;
+  return edita() ? 'edits' : 'subir';
 }
 
 function aplicarRol(){
   $$('[data-rol="edita"]').forEach(e => e.classList.toggle('hidden', !edita()));
-  $$('[data-rol="dash"]').forEach(e => e.classList.toggle('hidden', !(rolUI() === 'ADMIN' || rolUI() === 'PUBLICADOR')));
+  // Lizy (PUBLICADOR) ve SOLO «Publicar»: ni Subir ni Dashboard (Marlon, 20-10-2026). El Dashboard es de admins.
+  $$('[data-rol="dash"]').forEach(e => e.classList.toggle('hidden', rolUI() !== 'ADMIN'));
+  $$('[data-rol="publica"]').forEach(e => e.classList.toggle('hidden', !(rolUI() === 'ADMIN' || rolUI() === 'PUBLICADOR')));
+  $$('[data-rol="sube"]').forEach(e => e.classList.toggle('hidden', rolUI() === 'PUBLICADOR'));
   $$('#verComo [data-ver]').forEach(b => b.setAttribute('aria-checked', b.dataset.ver === (VER || 'ADMIN')));
   $('#viendo').classList.toggle('hidden', !VER);
-  if (VER) $('#viendoTxt').innerHTML = `Viendo como<b>${ROL_TXT[VER] === 'Subidor' ? 'Solo sube' : ROL_TXT[VER] === 'Publicador' ? 'Publicador · Lizy' : ROL_TXT[VER]}</b>`;
+  const per = VER && personaDe(VER);
+  if (VER) $('#viendoTxt').innerHTML = `Viendo como<b>${esc(ROL_TXT[VER] === 'Subidor' ? 'Solo sube' : ROL_TXT[VER])}${per ? ' · ' + esc(per.nombre.charAt(0) + per.nombre.slice(1).toLowerCase()) : ''}</b>`;
 }
 function verComo(r){
   if (!YO || YO.rol !== 'ADMIN') return;
   VER = r === 'ADMIN' ? null : r; aplicarRol();
-  ir(edita() && ['edits', 'cambios'].includes(VISTA) ? VISTA : edita() ? 'edits' : 'subir');
+  ir(vistaInicial(VISTA));
 }
 $$('#verComo [data-ver]').forEach(b => b.onclick = () => verComo(b.dataset.ver));
 $('#viendo button').onclick = () => verComo('ADMIN');
@@ -427,17 +467,57 @@ $('#viendo button').onclick = () => verComo('ADMIN');
 let VISTA = '';
 function ir(v){
   if (v === 'cambios' && !edita()) v = 'subir';
+  if (rolUI() === 'PUBLICADOR') v = 'publicar';
+  if (v === 'publicar' && !(rolUI() === 'ADMIN' || rolUI() === 'PUBLICADOR')) v = vistaInicial('');
   VISTA = v; history.replaceState(null, '', '#' + v);
   $('.main').classList.toggle('fija', v === 'cambios');
   $$('[data-v]').forEach(s => s.classList.toggle('hidden', s.dataset.v !== v));
   $$('[data-nav]').forEach(a => a.classList.toggle('on', a.dataset.nav === (v === 'cambios' ? 'edits' : v)));
   window.scrollTo(0, 0);
   if (v === 'subir') cargarMias();
+  if (v === 'publicar') cargarPublicar();
   if (v === 'edits') cargarResumen();
   if (v === 'cambios') empezar(false);
 }
 $$('[data-nav]').forEach(a => a.onclick = () => ir(a.dataset.nav));
 $$('[data-go]').forEach(b => b.onclick = () => ir(b.dataset.go));
+
+/* ───── PUBLICAR (Lizy) ───── */
+let PUB_DIA = 'hoy';
+const diaISO = off => { const d = new Date(Date.now() + off * 86400e3); return d.toLocaleDateString('en-CA', { timeZone: 'America/Guayaquil' }); };
+$$('[data-dia]').forEach(b => b.onclick = () => { PUB_DIA = b.dataset.dia; $$('[data-dia]').forEach(x => x.setAttribute('aria-pressed', x === b)); cargarPublicar(); });
+async function cargarPublicar(){
+  const dia = diaISO(PUB_DIA === 'hoy' ? 0 : 1);
+  $('#pubTitulo').textContent = PUB_DIA === 'hoy' ? 'Para publicar hoy' : 'Para publicar mañana';
+  try {
+    const d = await api('/api/publicar?dia=' + dia);
+    const soloVer = !!VER;
+    const hechos = d.videos.filter(v => v.estado === 'PUBLICADO').length;
+    $('#pubSub').textContent = d.videos.length ? `${hechos} de ${d.videos.length} publicados · descarga cada video a su hora y pega la descripción y los links.`
+      : 'Los admins todavía no programaron videos para este día.';
+    $('#pubLista').innerHTML = d.videos.map(v => `
+      <div class="pub" data-id="${esc(v.id)}">
+        <div class="hora">${esc(v.hora || '—')}<small>${esc(v.categoria.toLowerCase())}</small></div>
+        <div>
+          <div class="arriba"><div class="grow"><div class="t">${esc(v.codigo)}</div></div>
+            ${v.estado === 'PUBLICADO' ? `<span class="tag ok">Publicado ${esc((v.publicado_en || '').slice(11))}</span>` : '<span class="tag org">Pendiente</span>'}
+            ${v.descarga ? `<a class="btn btn-red btn-sm" href="${esc(v.descarga)}" target="_blank" rel="noopener" download>Descargar</a>` : '<span class="m">Sin archivo en el Drive</span>'}</div>
+          <div class="campos">
+            <label class="ancho">Descripción<textarea data-k="descripcion" placeholder="Pega aquí la descripción tal cual la publicas" ${soloVer ? 'disabled' : ''}>${esc(v.descripcion)}</textarea></label>
+            <label>Link de Facebook<input data-k="facebook" value="${esc(v.facebook)}" placeholder="https://www.facebook.com/…" ${soloVer ? 'disabled' : ''}></label>
+            <label>Link de TikTok<input data-k="tiktok" value="${esc(v.tiktok)}" placeholder="https://www.tiktok.com/…" ${soloVer ? 'disabled' : ''}></label>
+          </div>
+        </div>
+      </div>`).join('') || '<div class="card"><div class="empty">Nada programado para este día.</div></div>';
+    $$('#pubLista [data-k]').forEach(c => c.onchange = async () => {
+      const id = c.closest('.pub').dataset.id;
+      try { const v = await api('/api/publicar/guardar', { id, [c.dataset.k]: c.value.trim() });
+        toast(v.estado === 'PUBLICADO' ? `✓ ${v.codigo} publicado` : 'Guardado');
+        if (v.estado === 'PUBLICADO') cargarPublicar();
+      } catch (e) { toast(e.message); c.focus(); }
+    });
+  } catch (e) { $('#pubLista').innerHTML = `<div class="card"><div class="empty">${esc(e.message)}</div></div>`; }
+}
 
 /* ───── SUBIR ───── */
 const ESTADO_TAG = { 'PREPARANDO': ['org','Preparando'], 'PARA EDITAR': ['org','Para editar'], 'RENDERIZANDO': ['cy','Editándose'],
