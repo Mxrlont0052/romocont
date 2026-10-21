@@ -312,7 +312,7 @@ select.sel{height:36px;border-radius:10px;background:var(--card-2);border:0;padd
       <div class="aviso hidden" id="progAviso" style="margin-top:12px"></div>
       <div class="prog-barra hidden" id="progBarra"><span class="grow" id="progBarraTxt"></span><button class="btn btn-gray btn-sm" id="propNo">Cancelar</button><button class="btn btn-red btn-sm" id="propSi">Aprobar</button></div>
       <div class="semana" id="semana"><div class="m">Cargando…</div></div>
-      <div class="m" style="margin-top:12px">Cada noche a las 22:00 se llena solo el día siguiente. Lo que pongas tú aquí se respeta. Solo entran videos con archivo en el Drive.</div>
+      <div class="m" style="margin-top:12px">Cada noche a las 22:00 se llena solo el día siguiente. Lo que pongas tú aquí se respeta. «WhatsApp» = no está en el Drive: Lizy lo saca del grupo.</div>
     </section>
 
     <!-- PUBLICAR · Lizy (20-10-2026): solo lo que los admins le eligieron para el día -->
@@ -619,7 +619,7 @@ async function cargarPublicar(){
         <div>
           <div class="arriba"><div class="grow"><div class="t">${esc(v.codigo)}</div></div>
             ${v.estado === 'PUBLICADO' ? `<span class="tag ok">Publicado ${esc((v.publicado_en || '').slice(11))}</span>` : '<span class="tag org">Pendiente</span>'}
-            ${v.descarga ? `<a class="btn btn-red btn-sm" href="${esc(v.descarga)}" target="_blank" rel="noopener" download>Descargar</a>` : '<span class="m">Sin archivo en el Drive</span>'}</div>
+            ${v.descarga ? `<a class="btn btn-red btn-sm" href="${esc(v.descarga)}" target="_blank" rel="noopener" download>Descargar</a>` : '<span class="tag gr" title="No está en el Drive: búscalo en el grupo de WhatsApp">Video en el grupo de WhatsApp</span>'}</div>
           <div class="campos">
             <label class="ancho">Descripción<textarea data-k="descripcion" placeholder="Pega aquí la descripción tal cual la publicas" ${soloVer ? 'disabled' : ''}>${esc(v.descripcion)}</textarea></label>
             <label>Link de Facebook<input data-k="facebook" value="${esc(v.facebook)}" placeholder="https://www.facebook.com/…" ${soloVer ? 'disabled' : ''}></label>
@@ -673,21 +673,20 @@ function nombreDia(iso, k){
 async function cargarProgramar(){
   try { PROG = await api('/api/programar'); } catch (e) { $('#semana').innerHTML = `<div class="m">${esc(e.message)}</div>`; return; }
   $('#progHoras').innerHTML = PROG.horas.map(h => `<span class="hchip">${esc(h.hora)}<i>${h.tipo === 'carrusel' ? 'carrusel' : 'video'}</i></span>`).join(' ');
-  $('#progAviso').classList.toggle('hidden', !PROG.sin_archivo);
-  $('#progAviso').textContent = `${PROG.sin_archivo} pendientes no tienen el archivo en el Drive: no se pueden programar hasta que lo tengan.`;
+  $('#progAviso').classList.add('hidden');   // desde el 21-10 entran todos: los que no están en el Drive van con «WhatsApp»
   pintarSemana();
 }
 function pintarSemana(){
   const ocupados = new Set(PROPUESTA.map(x => x.id));
   const cands = PROG.candidatos.filter(c => !ocupados.has(c.id));
-  const opciones = '<option value="">+ Elegir video</option>' + cands.map(c => `<option value="${esc(c.id)}">${esc(c.codigo)} · ${esc(c.categoria.toLowerCase())}</option>`).join('');
+  const opciones = '<option value="">+ Elegir video</option>' + cands.map(c => `<option value="${esc(c.id)}">${esc(c.codigo)} · ${esc(c.categoria.toLowerCase())}${c.archivo ? '' : ' · WhatsApp'}</option>`).join('');
   $('#semana').innerHTML = PROG.semana.map((d, k) => `<div class="dcol"><h4 class="${k === 0 ? 'hoy' : ''}">${esc(nombreDia(d.dia, k))}</h4>${d.huecos.map(h => {
     if (h.tipo === 'carrusel') return `<div class="slot carr"><span class="hr">${esc(h.hora)}</span><span class="ct">Carrusel${h.hecho ? ' · ✓ hecho' : ''}</span></div>`;
     const prop = !h.video && PROPUESTA.find(x => x.dia === d.dia && x.hora === h.hora);
     const v = h.video || prop;
     if (!v) return `<div class="slot vacio"><span class="hr">${esc(h.hora)}</span><select data-dia="${d.dia}" data-hora="${esc(h.hora)}">${opciones}</select></div>`;
     return `<div class="slot ${prop ? 'prop' : ''} ${v.publicado ? 'pub' : ''}"><span class="hr">${esc(h.hora)}${prop ? ' · propuesto' : v.publicado ? ' · ✓' : ''}</span>
-      <span class="cd">${esc(v.codigo)}</span><span class="ct"><i style="background:${COLOR_GRUPO[v.grupo] || 'var(--l3)'}"></i>${esc(v.categoria.toLowerCase())}</span>
+      <span class="cd">${esc(v.codigo)}</span><span class="ct"><i style="background:${COLOR_GRUPO[v.grupo] || 'var(--l3)'}"></i>${esc(v.categoria.toLowerCase())}${v.archivo === false ? ' · WhatsApp' : ''}</span>
       ${!prop && !v.publicado ? `<button class="x" data-quitar="${esc(v.id)}" title="Quitar de esta hora">✕</button>` : ''}</div>`;
   }).join('')}</div>`).join('');
   $$('#semana select').forEach(sel => sel.onchange = async () => {
