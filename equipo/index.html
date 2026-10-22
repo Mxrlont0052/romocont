@@ -843,17 +843,20 @@ async function subirADrive(url, c){
     if (r.status === 308) {
       const rg = r.getResponseHeader('Range'); ini = rg ? +rg.split('-')[1] + 1 : fin; intentos = 0; c.prog = ini / total; (c.onprog || pintarBarra)(c); continue;
     }
-    // 403/429 = Drive frena por velocidad; 5xx = falla suya. Se espera cada vez más, se pregunta hasta dónde llegó y se sigue.
-    if ((r.status >= 500 || r.status === 403 || r.status === 429) && ++intentos <= 7) {
+    // 429, o 403 por velocidad = Drive frena; 5xx = falla suya. Se espera cada vez más, se pregunta hasta dónde llegó y se sigue.
+    // Cualquier otro 403 se corta ya y muestra el motivo de Drive (no se reintenta a ciegas: volvía a empezar de cero).
+    let motivoR = ''; try { const j = JSON.parse(r.responseText); motivoR = j.error.errors?.[0]?.reason || j.error.status || j.error.message || ''; } catch (e) { motivoR = (r.responseText || '').slice(0, 120); }
+    if (r.status >= 400) console.warn('Drive', r.status, r.responseText);
+    const porVelocidad = r.status === 429 || (r.status === 403 && /rate|limit/i.test(motivoR));
+    if ((r.status >= 500 || porVelocidad) && ++intentos <= 7) {
       await new Promise(z => setTimeout(z, 3000 * 2 ** (intentos - 1)));
       const q = await new Promise(ok => { const x = new XMLHttpRequest(); x.open('PUT', url); x.setRequestHeader('Content-Range', `bytes */${total}`);
         x.onload = () => ok(x); x.onerror = () => ok(null); x.send(); });
       if (q && (q.status === 200 || q.status === 201)) { const j = JSON.parse(q.responseText || '{}'); if (j.id) return j.id; }
-      if (q && q.status === 308) { const rg = q.getResponseHeader('Range'); ini = rg ? +rg.split('-')[1] + 1 : 0; c.prog = ini / total; }
+      if (q && q.status === 308) { const rg = q.getResponseHeader('Range'); ini = rg ? +rg.split('-')[1] + 1 : 0; c.prog = ini / total; (c.onprog || pintarBarra)(c); }
       continue;
     }
-    let motivo = ''; try { motivo = JSON.parse(r.responseText).error.errors[0].reason; } catch (e) {}
-    throw new Error('Drive respondió ' + r.status + (motivo ? ' (' + motivo + ')' : ''));
+    throw new Error('Drive respondió ' + r.status + (motivoR ? ' · ' + motivoR : ' (sin motivo)'));
   }
 }
 function pintarBarra(c){ const i = COLA.indexOf(c), row = $('#subiendo').children[i]; if (!row) return;
