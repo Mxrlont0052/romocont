@@ -739,9 +739,9 @@ function agregarReg(files){
 }
 function pintarReg(){
   $('#regWrap').classList.toggle('hidden', !REG.length);
-  const enCola = REG.filter(r => r.estado === 'cola').length;
+  const enCola = REG.filter(r => r.estado === 'cola' || r.estado === 'error').length;
   $('#regCuenta').textContent = `${REG.filter(r => r.estado === 'listo').length} de ${REG.length} registrados`;
-  $('#regSubir').textContent = enCola ? `Subir y registrar ${enCola}` : 'Subir y registrar'; $('#regSubir').disabled = !enCola || SUBIENDO;
+  $('#regSubir').textContent = enCola ? (REG.some(r => r.estado === 'error') ? `Reintentar ${enCola}` : `Subir y registrar ${enCola}`) : 'Subir y registrar'; $('#regSubir').disabled = !enCola || SUBIENDO;
   $('#regLista').innerHTML = REG.map((r, k) => `<div class="row"><div class="grow"><div class="t trunc">${esc(r.f.name)}</div>
       <div class="m">${(r.f.size / 1048576).toFixed(0)} MB${r.codigo ? ` · <b>${esc(r.codigo)}</b>` : ''}${r.error ? ` · <span style="color:var(--naranja)">${esc(r.error)}</span>` : ''}</div>
       ${r.estado === 'subiendo' ? `<div class="pbar"><i style="width:${Math.round(r.prog * 100)}%"></i></div>` : ''}</div>
@@ -752,7 +752,7 @@ function pintarReg(){
 }
 $('#regSubir').onclick = async () => {
   SUBIENDO = true; pintarReg();
-  for (const r of REG.filter(r => r.estado === 'cola')) {
+  for (const r of REG.filter(r => r.estado === 'cola' || r.estado === 'error')) {
     r.estado = 'subiendo'; r.error = ''; pintarReg();
     let s = null;
     try {
@@ -762,7 +762,7 @@ $('#regSubir').onclick = async () => {
       await api('/api/especiales/listo', { fila: s.fila, drive_id: driveId });
       r.estado = 'listo';
     } catch (e) {
-      r.estado = 'error'; r.error = e.message;
+      r.estado = 'error'; r.error = /failed to fetch|load failed|networkerror/i.test(e.message) ? 'No llegó al servidor: recarga la página (⌘⇧R) y reintenta' : e.message;
       if (s) api('/api/especiales/cancelar', { fila: s.fila }).catch(() => {});   // sin archivo no queda fila ni se gasta el código
       r.codigo = '';
     }
@@ -843,8 +843,17 @@ async function subirADrive(url, c){
     if (r.status === 308) {
       const rg = r.getResponseHeader('Range'); ini = rg ? +rg.split('-')[1] + 1 : fin; intentos = 0; c.prog = ini / total; (c.onprog || pintarBarra)(c); continue;
     }
-    if (r.status >= 500 && ++intentos <= 5) { await new Promise(z => setTimeout(z, 2000 * intentos)); continue; }
-    throw new Error('Drive respondió ' + r.status);
+    // 403/429 = Drive frena por velocidad; 5xx = falla suya. Se espera cada vez más, se pregunta hasta dónde llegó y se sigue.
+    if ((r.status >= 500 || r.status === 403 || r.status === 429) && ++intentos <= 7) {
+      await new Promise(z => setTimeout(z, 3000 * 2 ** (intentos - 1)));
+      const q = await new Promise(ok => { const x = new XMLHttpRequest(); x.open('PUT', url); x.setRequestHeader('Content-Range', `bytes */${total}`);
+        x.onload = () => ok(x); x.onerror = () => ok(null); x.send(); });
+      if (q && (q.status === 200 || q.status === 201)) { const j = JSON.parse(q.responseText || '{}'); if (j.id) return j.id; }
+      if (q && q.status === 308) { const rg = q.getResponseHeader('Range'); ini = rg ? +rg.split('-')[1] + 1 : 0; c.prog = ini / total; }
+      continue;
+    }
+    let motivo = ''; try { motivo = JSON.parse(r.responseText).error.errors[0].reason; } catch (e) {}
+    throw new Error('Drive respondió ' + r.status + (motivo ? ' (' + motivo + ')' : ''));
   }
 }
 function pintarBarra(c){ const i = COLA.indexOf(c), row = $('#subiendo').children[i]; if (!row) return;
