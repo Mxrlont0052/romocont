@@ -35,11 +35,11 @@ const DRIVE_SINVOZ = '1EwH6F6YbSBHkoCqHfnp9jLI3nD79HN8L'; // VIDEOS SIN VOZ
 // link = archivo en Drive (lo maneja el robot) · tiktok = video publicado (lo maneja el equipo)
 // Rendimiento por red (pedido de Peter / RomoOps, 21-10-2026). RomoOps lee cada día TikTok, Instagram y Facebook
 // y lo escribe aquí con `bulk`. Para sumar otra red: una línea más en REDES y volver a correr agregarColumnasRedes().
-// Facebook no trae comentarios ni compartidos (su API no es confiable en eso); los guardados de IG no se usan.
+// Facebook también lleva comentarios y compartidos (pedido de Peter, 22-10-2026). Los guardados de IG no se usan.
 const REDES = [
   ['tt', 'TT', ['ID', 'PUBLICADO', 'VISTAS', 'LIKES', 'COMENTARIOS', 'COMPARTIDOS']],
   ['ig', 'IG', ['ID', 'PUBLICADO', 'VISTAS', 'LIKES', 'COMENTARIOS', 'COMPARTIDOS']],
-  ['fb', 'FB', ['ID', 'PUBLICADO', 'VISTAS', 'LIKES']],
+  ['fb', 'FB', ['ID', 'PUBLICADO', 'VISTAS', 'LIKES', 'COMENTARIOS', 'COMPARTIDOS']],
 ];
 const COLS_REDES = [['actualizado', 'ACTUALIZADO', []]];
 REDES.forEach(([k, P, cs]) => cs.forEach(c => COLS_REDES.push([k + '_' + c.toLowerCase(), P + ' ' + c, []])));
