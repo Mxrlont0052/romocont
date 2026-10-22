@@ -1261,6 +1261,22 @@ function guionesReemplazar(borrar, nuevos) {
       sh.getRange(1, sh.getLastColumn() + 1).setValue(k).setFontWeight('bold');
       cab = cabGuion(sh);
     });
+    // Con «CÓDIGO»: se rehace ESE guion en su misma fila (mismo número, vuelve a «listo»). Nunca toca uno «hecho».
+    const pedido = String(n['CÓDIGO'] || n['CODIGO'] || '').trim().toUpperCase();
+    if (pedido) {
+      const iC = cab.indexOf('CODIGO'), iE = cab.indexOf('ESTADO');
+      const data = sh.getRange(2, 1, Math.max(1, sh.getLastRow() - 1), cab.length).getValues();
+      const r = data.findIndex(f => String(f[iC] || '').trim().toUpperCase() === pedido);
+      if (r < 0) throw new Error('No existe el guion ' + pedido + ' en ' + l.hoja);
+      if (String(data[r][iE] || '').toLowerCase() === 'hecho') { saltados.push(pedido); return; }
+      const fila = new Array(cab.length).fill('');
+      Object.keys(n).forEach(k => { const i = cab.indexOf(normHead(k)); if (i >= 0 && k !== 'linea') fila[i] = n[k]; });
+      fila[iC] = pedido;
+      if (iE >= 0) fila[iE] = 'listo';
+      sh.getRange(r + 2, 1, 1, cab.length).setValues([fila]);
+      cargados.push({ codigo: pedido, titulo: n['Título'] || '', reemplazado: true });
+      return;
+    }
     if (tops[l.prefijo] == null) tops[l.prefijo] = ultimoNumero(ss, l.prefijo);
     tops[l.prefijo]++;
     const codigo = l.prefijo + String(tops[l.prefijo]).padStart(3, '0');
