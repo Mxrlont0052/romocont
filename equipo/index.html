@@ -430,11 +430,11 @@ const QS = new URLSearchParams(location.search);
 const LOCAL = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
 // ?api=dev → backend de prueba (modal serve con ROMO_DEV=1)
 // ?api=dev → backend de prueba (modal serve con ROMO_DEV=1) · ?api=http://localhost:… → simulador local
-const API_PROD = 'https://marlonromero0052--romo-central-web.us-east.modal.run';
+const API_PROD = 'https://rauwkbron--romo-central-web.us-east.modal.run';
 const API = QS.get('api') === 'dev' ? API_PROD.replace('-web.', '-web-dev.')
           : (LOCAL && /^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(QS.get('api') || '')) ? QS.get('api') : API_PROD;
 const CLIENT_ID = '990413100667-00gss32u9av3o187bs6gks78eo6l5dq4.apps.googleusercontent.com';
-const FABRICA_URL = 'https://marlonromero0052--romo-fabrica-web.modal.run/';
+const FABRICA_URL = 'https://rauwkbron--romo-fabrica-web.us-east.modal.run/';
 const TIPOS = [['CORTE','Corte'],['METRICA','Métrica'],['ARRASTRE','Arrastre'],['STEMS','Stems'],['CLASE','Clase gratis']];
 const CATS = [['ESTUDIANTES','Estudiantes','W'],['DEMOSTRATIVAS','Demostrativas','Q'],['RELLENO','Relleno','E']];
 const VOCES = [['auto','Donde quepa'],['start','Inicio'],['end','Final'],['none','Sin voz']];
