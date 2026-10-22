@@ -976,6 +976,7 @@ function central(req) {
   if (op === 'categoria_nueva') return categoriaNueva(req.nombre, req.prefijo);
   if (op === 'registrar_video') return registrarVideo(req);
   if (op === 'columnas_redes') return agregarColumnasRedes();
+  if (op === 'guiones_reemplazar') return guionesReemplazar(req.borrar || [], req.nuevos || []);
   throw new Error('Operación desconocida: ' + op);
 }
 
@@ -1224,4 +1225,51 @@ function agregarColumnasRedes() {
     else if (h !== 'INSTAGRAM') cuerpo.setNumberFormat('0');
   });
   return { ok: true, creadas: creadas };
+}
+
+// ===========================================================================
+// GUIONES DESDE CLAUDE (22-10-2026): borrar guiones sin hacer y cargar una tanda nueva, sin tocar la hoja a mano.
+// ===========================================================================
+// borrar: códigos a quitar (solo si NO están hechos). nuevos: [{linea: 'VIRAL'|'EA'|'MDT', <Encabezado>: valor…}].
+// Cada nuevo recibe el siguiente CÓDIGO libre de su línea (mira VIDEOS y las pestañas, como asignarCodigos).
+// Si un encabezado no existe en la pestaña (Presentador, Gente, Notas…), se agrega al final.
+function guionesReemplazar(borrar, nuevos) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const quitar = borrar.map(c => String(c).trim().toUpperCase());
+  const borrados = [], saltados = [];
+  LINEAS_IA.forEach(l => {
+    const sh = hojaGuion(ss, l);
+    if (sh.getLastRow() < 2) return;
+    const cab = cabGuion(sh), iC = cab.indexOf('CODIGO'), iE = cab.indexOf('ESTADO');
+    const data = sh.getRange(2, 1, sh.getLastRow() - 1, cab.length).getValues();
+    for (let r = data.length - 1; r >= 0; r--) {
+      const cod = String(data[r][iC] || '').trim().toUpperCase();
+      if (quitar.indexOf(cod) < 0) continue;
+      if (String(data[r][iE] || '').toLowerCase() === 'hecho') { saltados.push(cod); continue; }
+      sh.deleteRow(r + 2); borrados.push(cod);
+    }
+  });
+  const cargados = [];
+  const tops = {};
+  nuevos.forEach(n => {
+    const l = LINEAS_IA.find(x => x.linea === String(n.linea || '').toUpperCase());
+    if (!l) throw new Error('Línea no válida: ' + n.linea);
+    const sh = hojaGuion(ss, l);
+    let cab = cabGuion(sh);
+    Object.keys(n).forEach(k => {
+      if (k === 'linea' || cab.indexOf(normHead(k)) >= 0) return;
+      sh.getRange(1, sh.getLastColumn() + 1).setValue(k).setFontWeight('bold');
+      cab = cabGuion(sh);
+    });
+    if (tops[l.prefijo] == null) tops[l.prefijo] = ultimoNumero(ss, l.prefijo);
+    tops[l.prefijo]++;
+    const codigo = l.prefijo + String(tops[l.prefijo]).padStart(3, '0');
+    const fila = new Array(cab.length).fill('');
+    Object.keys(n).forEach(k => { const i = cab.indexOf(normHead(k)); if (i >= 0 && k !== 'linea') fila[i] = n[k]; });
+    fila[cab.indexOf('CODIGO')] = codigo;
+    if (cab.indexOf('ESTADO') >= 0 && !fila[cab.indexOf('ESTADO')]) fila[cab.indexOf('ESTADO')] = 'listo';
+    sh.appendRow(fila);
+    cargados.push({ codigo: codigo, titulo: n['Título'] || '' });
+  });
+  return { ok: true, borrados: borrados, saltados: saltados, cargados: cargados };
 }
