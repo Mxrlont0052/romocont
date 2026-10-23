@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="es" data-t="c">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<title>ROMO · Analítica</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&display=swap">
+<style>
+/* ROMO CENTRAL › Analítica (opción A, elegida por Marlon 22-10-2026). Solo LEE la hoja «Romo cont» (VIDEOS); nunca escribe.
+   Piel = SISTEMA-DISENO-ROMO.md (Apple oscuro, Inter). Las métricas por red las escribe RomoOps: aquí solo se muestran. */
+:root{
+  --negro:#000; --card:#1C1C1E; --card-2:#2C2C2E; --fill:rgba(120,120,128,.36); --sep:rgba(84,84,88,.6);
+  --l1:#fff; --l2:rgba(235,235,245,.6); --l3:rgba(235,235,245,.3); --rojo:#E8001D; --rojo-t:#FF4245; --cyan:#00FFFF;
+  --font:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --spring:linear(0, 0.060 4.2%, 0.186 8.3%, 0.329 12.5%, 0.464 16.7%, 0.583 20.8%, 0.681 25.0%, 0.759 29.2%, 0.820 33.3%, 0.866 37.5%, 0.902 41.7%, 0.928 45.8%, 0.948 50.0%, 0.962 54.2%, 0.973 58.3%, 0.981 62.5%, 0.986 66.7%, 0.990 70.8%, 0.993 75.0%, 0.995 79.2%, 0.996 83.3%, 0.997 87.5%, 0.998 91.7%, 0.999 95.8%, 1);
+}
+@supports not (transition-timing-function: linear(0, 1)){:root{--spring:cubic-bezier(.25,.1,.25,1)}}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--negro)}
+body{color:var(--l1);font:400 15px/20px var(--font);letter-spacing:-.016em;-webkit-font-smoothing:antialiased;font-optical-sizing:auto;padding:24px 28px 56px}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+button:focus{outline:none} button:focus-visible{outline:2px solid #FF6165;outline-offset:2px}
+a{color:inherit;text-decoration:none}
+
+.head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.kicker{font:500 15px/20px var(--font);color:var(--l2)}
+.h1{font:700 34px/41px var(--font);letter-spacing:.012em;margin-top:2px}
+.sub{font:400 13px/18px var(--font);color:var(--l2);margin-top:4px}
+.controles{display:flex;gap:10px;flex-wrap:wrap}
+
+/* Segmentado: cápsula 32, pulgar #636366 que se desliza con resorte */
+.seg{position:relative;display:inline-flex;height:32px;padding:2px;border-radius:980px;background:var(--fill)}
+.seg button{position:relative;z-index:1;height:28px;padding:0 14px;border-radius:980px;font:500 13px/28px var(--font);letter-spacing:-.006em;color:#fff;white-space:nowrap}
+.seg button .c{color:var(--l2);margin-left:5px}
+.seg button[aria-pressed=true]{font-weight:600}
+.seg i{position:absolute;z-index:0;top:2px;bottom:2px;left:0;border-radius:980px;background:#636366;box-shadow:0 3px 8px rgba(0,0,0,.12),0 3px 1px rgba(0,0,0,.04);transition:transform .5s var(--spring),width .5s var(--spring)}
+
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:20px}
+.kpi{background:var(--card);border-radius:14px;padding:14px 16px}
+.kpi .l{font:400 13px/18px var(--font);color:var(--l2)}
+.kpi .v{font:700 28px/34px var(--font);letter-spacing:.012em;margin-top:2px;font-variant-numeric:tabular-nums}
+.kpi .d{font:400 12px/16px var(--font);color:var(--l2);margin-top:2px}
+
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px}
+.card{background:var(--card);border-radius:14px;padding:16px}
+.card h2{font:600 17px/22px var(--font);letter-spacing:-.026em}
+.card .nota{font:400 12px/16px var(--font);color:var(--l2);margin-top:2px}
+.card .top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+
+/* Barras: gris; la primera en blanco. Sin rojo: el rojo es solo para la acción (aquí no hay). */
+.fila{display:grid;grid-template-columns:132px minmax(0,1fr) 78px;align-items:center;gap:10px;min-height:36px}
+.fila .n{font:500 14px/18px var(--font);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fila .n small{display:block;font:400 12px/16px var(--font);color:var(--l2)}
+.fila .b{height:10px;border-radius:5px;background:rgba(120,120,128,.18);overflow:hidden}
+.fila .b span{display:block;height:100%;border-radius:5px;background:rgba(235,235,245,.42)}
+.fila.lider .b span{background:#fff}
+.fila .x{font:600 14px/18px var(--font);text-align:right;font-variant-numeric:tabular-nums}
+.fila.poco .n,.fila.poco .x{color:var(--l2)}
+
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th{font:400 12px/16px var(--font);color:var(--l2);text-align:right;padding:0 8px 8px;white-space:nowrap}
+th:first-child,td:first-child,th.iz,td.iz{text-align:left}
+td{font:400 14px/18px var(--font);text-align:right;padding:9px 8px;box-shadow:inset 0 .5px 0 var(--sep);white-space:nowrap}
+td b{font-weight:600}
+td.iz{max-width:280px;overflow:hidden;text-overflow:ellipsis}
+td .m{display:block;font:400 12px/16px var(--font);color:var(--l2);overflow:hidden;text-overflow:ellipsis}
+tbody tr{cursor:pointer}
+@media (hover:hover){tbody tr:hover td{background:rgba(120,120,128,.12)}}
+tbody tr:active td{background:rgba(120,120,128,.32);transition:none}
+
+.vacio{text-align:center;padding:56px 16px}
+.vacio svg{width:44px;height:44px;stroke:var(--l2);fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+.vacio b{display:block;font:600 17px/22px var(--font);margin-top:10px}
+.vacio p{font:400 15px/20px var(--font);color:var(--l2);margin-top:4px}
+
+@media (max-width:900px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.grid2{grid-template-columns:minmax(0,1fr)}body{padding:16px}}
+</style>
+</head>
+<body>
+
+<div class="head">
+  <div>
+    <div class="kicker">Contenido</div>
+    <div class="h1">Analítica</div>
+    <div class="sub" id="sub">Cargando la hoja…</div>
+  </div>
+  <div class="controles">
+    <div class="seg" id="segRed" role="group" aria-label="Red"></div>
+    <div class="seg" id="segMet" role="group" aria-label="Medida"></div>
+  </div>
+</div>
+
+<div id="cuerpo"></div>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxXMj7tetNujWtLkvyaFQfRJlJfn_MduZP6uDt24lzjznjlY8w0PQ4St1kOqt5Yx6Tb/exec';
+// Por ahora todo lo publicado lo publicó Lizy (Marlon, 22-10-2026). Solo se MUESTRA así: la hoja no se toca.
+const PUBLICADOR_POR_DEFECTO = 'LIZY';
+const REDES = [
+  { k: 'todas', t: 'Todas' },
+  { k: 'tt', t: 'TikTok' },
+  { k: 'fb', t: 'Facebook' },
+  { k: 'ig', t: 'Instagram' },
+];
+const METRICAS = [
+  { k: 'tipico', t: 'Video típico', d: 'Lo que saca un video normal (mediana)' },
+  { k: 'total', t: 'Vistas totales', d: 'Todas las vistas sumadas' },
+  { k: 'inter', t: 'Interacción', d: '(likes + comentarios + compartidos) ÷ vistas' },
+];
+// Tema sacado de la descripción (no hay FORMATO en los videos viejos). El primero que calce gana.
+const TEMAS = [
+  ['Mezcla de arrastre', /arrastre/],
+  ['Mezcla métrica', /m[ée]trica/],
+  ['Mezcla por corte', /\bcorte\b/],
+  ['Edición y extended', /extended|edici[óo]n de audio|stems|remix|\bpacks?\b|versiones/],
+  ['Transiciones', /transici/],
+  ['Cabina y experiencia', /cabina|pista|evento|fiesta/],
+  ['Comunidad', /comunidad/],
+];
+const MIN_GRUPO = 3;   // con menos videos, el grupo sale en gris (pocos datos)
+
+let VIDEOS = [], RED = 'todas', MET = 'tipico', LISTA = 'mas';
+const $ = s => document.querySelector(s);
+const num = x => { const n = parseFloat(String(x ?? '').replace(/,/g, '')); return isFinite(n) ? n : 0; };
+const FMT = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 0 });   // 4.884 (el «es» no separa los miles de 4 cifras)
+const fmt = n => FMT.format(Math.round(n));
+const pct = n => (Math.round(n * 1000) / 10).toLocaleString('es', { minimumFractionDigits: 1 }) + ' %';
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const nombre = s => { s = String(s || '').trim().toLowerCase(); return s ? s.replace(/^ia\b/, 'IA').replace(/^\S/, c => c.toUpperCase()) : ''; };
+const MES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+const dia = iso => { const [y, m, d] = String(iso || '').slice(0, 10).split('-'); return d ? `${+d} ${MES[+m - 1]}` : ''; };
+const mediana = a => { if (!a.length) return 0; const s = [...a].sort((x, y) => x - y), h = s.length >> 1; return s.length % 2 ? s[h] : (s[h - 1] + s[h]) / 2; };
+
+// Números de un video en la red elegida. Facebook no trae comentarios ni compartidos.
+function metr(v, red){
+  const una = p => ({ vistas: num(v[p + '_vistas']), likes: num(v[p + '_likes']), com: num(v[p + '_comentarios']), comp: num(v[p + '_compartidos']) });
+  if (red !== 'todas') return una(red);
+  const s = { vistas: 0, likes: 0, com: 0, comp: 0 };
+  ['tt', 'fb', 'ig'].forEach(p => { const m = una(p); for (const k in s) s[k] += m[k]; });
+  return s;
+}
+const medido = (v, red) => metr(v, red).vistas > 0;
+const conDatos = red => VIDEOS.filter(v => medido(v, red)).length;
+
+function tema(v){
+  const t = String(v.descripcion || '').toLowerCase();
+  for (const [n, re] of TEMAS) if (re.test(t)) return n;
+  return t ? 'Otro' : 'Sin descripción';
+}
+const grabo = v => nombre(v.subio) || 'Sin registro';
+const publico = v => nombre(v.publico || (String(v.estado).toUpperCase() === 'PUBLICADO' ? PUBLICADOR_POR_DEFECTO : '')) || 'Sin registro';
+const fechaPub = v => v[(RED === 'todas' ? 'tt' : RED) + '_publicado'] || v.tt_publicado || v.fb_publicado || v.ig_publicado || v.fecha;
+
+/* ───── segmentados ───── */
+function seg(el, items, actual, alElegir){
+  el.innerHTML = items.map(i => `<button type="button" data-k="${i.k}" aria-pressed="${i.k === actual}">${esc(i.t)}${i.c != null ? `<span class="c">${i.c}</span>` : ''}</button>`).join('') + '<i></i>';
+  const mover = sinAnim => { const b = el.querySelector('[aria-pressed=true]'), th = el.querySelector('i');
+    if (sinAnim) th.style.transition = 'none';
+    th.style.width = b.offsetWidth + 'px'; th.style.transform = `translateX(${b.offsetLeft}px)`;
+    if (sinAnim) requestAnimationFrame(() => th.style.transition = ''); };
+  el.querySelectorAll('button').forEach(b => b.onclick = () => {
+    el.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); mover(); alElegir(b.dataset.k); });
+  requestAnimationFrame(() => mover(true));
+}
+
+/* ───── agrupar ───── */
+function grupos(lista, clave){
+  const g = new Map();
+  lista.forEach(v => { const k = clave(v); if (!g.has(k)) g.set(k, []); g.get(k).push(v); });
+  return [...g].map(([k, vs]) => {
+    const ms = vs.map(v => metr(v, RED)), vistas = ms.reduce((a, m) => a + m.vistas, 0);
+    const accion = ms.reduce((a, m) => a + m.likes + m.com + m.comp, 0);
+    return { k, n: vs.length, total: vistas, tipico: mediana(ms.map(m => m.vistas)), inter: vistas ? accion / vistas : 0 };
+  }).sort((a, b) => (b.n >= MIN_GRUPO) - (a.n >= MIN_GRUPO) || b[MET] - a[MET]);
+}
+const valor = g => MET === 'inter' ? pct(g.inter) : fmt(g[MET]);
+
+function barras(titulo, nota, gs){
+  // La escala la marcan los grupos con datos suficientes; uno de 1 video no aplasta al resto.
+  const base = gs.filter(g => g.n >= MIN_GRUPO), max = Math.max(...(base.length ? base : gs).map(g => g[MET]), MET === 'inter' ? 0.001 : 1);
+  return `<div class="card"><div class="top"><div><h2>${titulo}</h2><div class="nota">${nota}</div></div></div>
+    ${gs.map((g, i) => `<div class="fila${i === 0 && g.n >= MIN_GRUPO ? ' lider' : ''}${g.n < MIN_GRUPO ? ' poco' : ''}" title="${esc(g.k)}: ${fmt(g.total)} vistas en ${g.n} videos">
+      <div class="n">${esc(g.k)}<small>${g.n} video${g.n === 1 ? '' : 's'}${g.n < MIN_GRUPO ? ' · pocos datos' : ''}</small></div>
+      <div class="b"><span style="width:${Math.min(100, Math.max(2, 100 * g[MET] / max))}%"></span></div>
+      <div class="x">${valor(g)}</div></div>`).join('')}</div>`;
+}
+
+function tabla(lista){
+  const orden = [...lista].sort((a, b) => metr(b, RED).vistas - metr(a, RED).vistas);
+  const filas = (LISTA === 'mas' ? orden.slice(0, 10) : orden.slice(-10).reverse());
+  return `<div class="card" style="margin-top:12px"><div class="top"><div><h2>Videos</h2><div class="nota">Toca un video para abrirlo en TikTok</div></div><div class="seg" id="segLista"></div></div>
+    <table><thead><tr><th>Video</th><th class="iz">Editó</th><th class="iz">Grabó</th><th>Publicado</th><th>Vistas</th><th>Likes</th><th>Coment.</th><th>Compart.</th><th>Interac.</th></tr></thead><tbody>
+    ${filas.map(v => { const m = metr(v, RED), i = m.vistas ? (m.likes + m.com + m.comp) / m.vistas : 0, link = v.tiktok || v.link || v.facebook || v.instagram || '';
+      return `<tr data-link="${esc(link)}"><td class="iz"><b>${esc(v.nombre)}</b><span class="m">${esc(nombre(v.categoria))} · ${esc(tema(v))}</span></td>
+      <td class="iz">${esc(nombre(v.creador) || '—')}</td><td class="iz">${esc(grabo(v))}</td><td>${esc(dia(fechaPub(v)))}</td>
+      <td><b>${fmt(m.vistas)}</b></td><td>${fmt(m.likes)}</td><td>${RED === 'fb' ? '—' : fmt(m.com)}</td><td>${RED === 'fb' ? '—' : fmt(m.comp)}</td><td>${pct(i)}</td></tr>`; }).join('')}
+    </tbody></table></div>`;
+}
+
+/* ───── pintar ───── */
+function pintar(){
+  const lista = VIDEOS.filter(v => medido(v, RED)), red = REDES.find(r => r.k === RED).t;
+  seg($('#segRed'), REDES.map(r => ({ ...r, c: conDatos(r.k) })), RED, k => { RED = k; pintar(); });
+  if (!lista.length) {
+    $('#cuerpo').innerHTML = `<div class="card" style="margin-top:20px"><div class="vacio">
+      <svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg>
+      <b>${esc(red)} todavía no tiene datos</b><p>Aparece solo cuando RomoOps traiga las métricas de ${esc(red)} a la hoja.</p></div></div>`;
+    return;
+  }
+  const ms = lista.map(v => metr(v, RED)), vistas = ms.reduce((a, m) => a + m.vistas, 0);
+  const likes = ms.reduce((a, m) => a + m.likes, 0), com = ms.reduce((a, m) => a + m.com, 0), comp = ms.reduce((a, m) => a + m.comp, 0);
+  const desc = METRICAS.find(m => m.k === MET).d;
+  $('#cuerpo').innerHTML = `
+    <div class="kpis">
+      <div class="kpi"><div class="l">Videos medidos</div><div class="v">${fmt(lista.length)}</div><div class="d">de ${fmt(VIDEOS.length)} en la hoja</div></div>
+      <div class="kpi"><div class="l">Vistas</div><div class="v">${fmt(vistas)}</div><div class="d">${fmt(likes)} likes</div></div>
+      <div class="kpi"><div class="l">Video típico</div><div class="v">${fmt(mediana(ms.map(m => m.vistas)))}</div><div class="d">vistas (mediana)</div></div>
+      <div class="kpi"><div class="l">Interacción</div><div class="v">${pct(vistas ? (likes + com + comp) / vistas : 0)}</div><div class="d">${RED === 'fb' ? 'solo likes' : `${fmt(com)} coment. · ${fmt(comp)} compart.`}</div></div>
+    </div>
+    <div class="grid2">
+      ${barras('Por categoría', desc, grupos(lista, v => nombre(v.categoria) || 'Sin categoría'))}
+      ${barras('Por editor', 'Quien editó el video (CREADOR)', grupos(lista, v => nombre(v.creador) || 'Sin registro'))}
+    </div>
+    <div class="grid2">
+      ${barras('Por tema', 'Sacado de la descripción', grupos(lista, tema))}
+      ${barras('Quién grabó', 'Columna SUBIÓ · se llena con los videos nuevos', grupos(lista, grabo))}
+    </div>
+    ${tabla(lista)}`;
+  seg($('#segLista'), [{ k: 'mas', t: 'Más vistos' }, { k: 'menos', t: 'Menos vistos' }], LISTA, k => { LISTA = k; pintar(); });
+  document.querySelectorAll('tbody tr').forEach(tr => tr.onclick = () => { if (tr.dataset.link) window.open(tr.dataset.link, '_blank', 'noopener'); });
+}
+
+// La hoja a veces no contesta la primera vez (Apps Script frío): se corta a los 20 s y se reintenta.
+async function leerHoja(intentos = 3){
+  for (let i = 1; ; i++) {
+    const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 20000);
+    try { const r = await fetch(SCRIPT_URL, { cache: 'no-store', signal: ctl.signal }); return await r.json(); }
+    catch (e) { if (i >= intentos) throw e; }
+    finally { clearTimeout(t); }
+  }
+}
+async function cargar(){
+  try {
+    const d = await leerHoja();
+    VIDEOS = (Array.isArray(d) ? d : d.videos || []).filter(v => v && v.nombre);
+    const act = VIDEOS.map(v => String(v.actualizado || '').slice(0, 10)).filter(Boolean).sort().pop();
+    const pubs = VIDEOS.filter(v => publico(v) === nombre(PUBLICADOR_POR_DEFECTO)).length;
+    $('#sub').textContent = `Lo que se publicó y cómo le fue${act ? ` · métricas al ${dia(act)}` : ''} · publicó: ${nombre(PUBLICADOR_POR_DEFECTO)} (${fmt(pubs)})`;
+    seg($('#segMet'), METRICAS, MET, k => { MET = k; pintar(); });
+    pintar();
+  } catch (e) {
+    $('#sub').textContent = 'No se pudo leer la hoja. Recarga la página.';
+  }
+}
+cargar();
+</script>
+</body>
+</html>
