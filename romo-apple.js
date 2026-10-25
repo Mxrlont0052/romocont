@@ -37,9 +37,15 @@
     document.addEventListener('keydown', e => { if (e.key === 'Escape' && m.classList.contains('open')) { abrir(false); me.focus(); } });
   }
 
-  let pend = 0; const pronto = () => { if (!pend) { pend = 1; queueMicrotask(() => { pend = 0; thumbs(); soloUno(); }); } };   // antes de pintar
+  // Editores en el teléfono: ¿ya están listos todos los de la cola? (el rojo pasa de «Siguiente» a «Renderizar»)
+  function todosListos() {
+    const p = document.getElementById('pMarcar'), cola = document.getElementById('cola'); if (!p || !cola) return;
+    const n = cola.children.length, ok = cola.querySelectorAll('.tag.ok').length, todos = n > 0 && ok === n;
+    if (todos !== p.hasAttribute('data-todos')) p.toggleAttribute('data-todos', todos);
+  }
+  let pend = 0; const pronto = () => { if (!pend) { pend = 1; queueMicrotask(() => { pend = 0; thumbs(); soloUno(); todosListos(); }); } };   // antes de pintar
   const go = () => {
-    menuCuenta(); thumbs(); soloUno();
+    menuCuenta(); thumbs(); soloUno(); todosListos();
     new MutationObserver(pronto).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['aria-pressed', 'class'] });
     addEventListener('resize', pronto);
   };

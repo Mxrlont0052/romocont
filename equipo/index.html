@@ -239,8 +239,8 @@ select.sel{height:36px;border-radius:10px;background:var(--card-2);border:0;padd
 }
 </style>
 <!-- Piel estilo Apple, regla general de ROMO (20-10-2026) -->
-<link rel="stylesheet" href="../romo-apple.css?v=7">
-<script src="../romo-apple.js?v=4"></script>
+<link rel="stylesheet" href="../romo-apple.css?v=14">
+<script src="../romo-apple.js?v=5"></script>
 </head>
 <body>
 
@@ -288,15 +288,21 @@ select.sel{height:36px;border-radius:10px;background:var(--card-2);border:0;padd
       <label class="drop" id="drop" style="display:block;margin-top:22px;cursor:pointer">
         <div class="big">Suelta aquí los videos</div>
         <div class="m">o toca para elegirlos del iPhone / la compu · varios a la vez</div>
-        <div style="margin-top:18px"><span class="btn btn-red">Elegir videos</span></div>
+        <div style="margin-top:18px"><span class="btn btn-red" id="bElegir">Elegir videos</span></div>
         <input type="file" id="archivos" accept="video/*,.mov,.mp4,.m4v" multiple hidden>
       </label>
+      <div id="porSubirWrap" class="hidden">
+        <div class="sec"><h2>Por subir</h2><span id="porSubirN"></span></div>
+        <div id="porSubir"></div>
+        <div class="subir-fin"><button class="btn btn-red" id="bSubirTodo">Subir</button><div class="m" id="subirFalta"></div></div>
+      </div>
       <div id="subiendoWrap" class="hidden">
         <div class="sec"><h2>Subiendo ahora</h2><span id="subiendoCuenta"></span></div>
         <div class="card" id="subiendo"></div>
       </div>
-      <div class="sec"><h2>Lo que subiste</h2><span id="misCuenta"></span></div>
-      <div class="card" id="mias"><div class="empty">Cargando…</div></div>
+      <!-- Historial escondido (23-10-2026): solo texto, sin miniaturas -->
+      <div class="hist-wrap"><button class="hist-btn" id="histBtn" aria-expanded="false"><svg class="ico" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg><span class="grow">Historial</span><span class="m" id="misCuenta"></span><svg class="ico chev-h" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>
+        <div class="hist" id="histBox"><div><div class="card" id="mias"><div class="empty">Cargando…</div></div></div></div></div>
     </section>
 
     <!-- CONTENIDO (admin): el Dashboard incrustado; la barra de la app elige la pestaña (20-10-2026) -->
@@ -324,7 +330,8 @@ select.sel{height:36px;border-radius:10px;background:var(--card-2);border:0;padd
       <div class="kicker">Publicar</div>
       <div class="h1" id="pubTitulo">Para publicar hoy</div>
       <div class="sub" id="pubSub">Descarga cada video a su hora y pega la descripción, el link de Facebook y el de TikTok.</div>
-      <div class="pub-dias" role="group"><button data-dia="hoy" aria-pressed="true">Hoy</button><button data-dia="manana" aria-pressed="false">Mañana</button><button data-dia="pendientes" aria-pressed="false">Pendientes <span id="pubN"></span></button></div>
+      <div class="pub-dias" role="group"><button data-dia="hoy" aria-pressed="true"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Hoy</span></button><button data-dia="manana" aria-pressed="false"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span>Mañana</span></button><button data-dia="pendientes" aria-pressed="false"><svg class="ico" viewBox="0 0 24 24"><path d="M12 2v4"/><path d="m16.2 7.8 2.9-2.9"/><path d="M18 12h4"/><path d="m16.2 16.2 2.9 2.9"/><path d="M12 18v4"/><path d="m4.9 19.1 2.9-2.9"/><path d="M2 12h4"/><path d="m4.9 4.9 2.9 2.9"/></svg><span>Pendientes <span id="pubN"></span></span></button></div>
+      <div class="pub-linea" id="pubLinea"></div>
       <div id="pubLista" style="margin-top:16px"><div class="card"><div class="empty">Cargando…</div></div></div>
     </section>
 
@@ -600,11 +607,11 @@ const MES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','
 const diaCorto = iso => { const [y, m, d] = (iso || '').split('-'); return d ? `${+d} ${MES[+m - 1]}` : ''; };
 async function cargarPublicar(){
   const dia = PUB_DIA === 'pendientes' ? 'pendientes' : diaISO(PUB_DIA === 'hoy' ? 0 : 1);
-  $('#pubTitulo').textContent = PUB_DIA === 'hoy' ? 'Para publicar hoy' : PUB_DIA === 'manana' ? 'Para publicar mañana' : 'Pendientes de publicar';
+  $('#pubTitulo').textContent = PUB_DIA === 'hoy' ? 'Hoy' : PUB_DIA === 'manana' ? 'Mañana' : 'Pendientes';
   try {
     let d = await api('/api/publicar?dia=' + dia);
     if (PUB_AUTO && PUB_DIA === 'hoy' && !d.videos.length && d.pendientes) {   // nada programado hoy → sus pendientes
-      PUB_DIA = 'pendientes'; marcarDia(); $('#pubTitulo').textContent = 'Pendientes de publicar';
+      PUB_DIA = 'pendientes'; marcarDia(); $('#pubTitulo').textContent = 'Pendientes';
       d = await api('/api/publicar?dia=pendientes');
     }
     $('#pubN').textContent = d.pendientes ? `(${d.pendientes})` : '';
@@ -618,33 +625,72 @@ async function cargarPublicar(){
     const carr = PUB_DIA === 'pendientes' ? [] : (d.carruseles || []).map(c => `
       <div class="pub carr"><div class="hora">${esc(c.hora)}<small>carrusel</small></div>
         <label class="chk"><input type="checkbox" data-carr="${esc(c.hora)}" ${c.hecho ? 'checked' : ''} ${soloVer ? 'disabled' : ''}>Carrusel con ChatGPT ${c.hecho ? '<span class="tag ok">Hecho</span>' : '<span class="tag org">Pendiente</span>'}</label></div>`);
-    const tarjetas = d.videos.map(v => ({ hora: v.hora || '99:99', html: `
-      <div class="pub" data-id="${esc(v.id)}">
-        <div class="hora">${PUB_DIA === 'pendientes' ? (v.dia ? `${esc(v.hora || '—')}<small>${esc(diaCorto(v.dia))}</small>` : '<span class="m">Sin hora</span>') : esc(v.hora || '—')}<small>${esc(v.categoria.toLowerCase())}</small></div>
-        <div>
-          <div class="arriba"><div class="grow"><div class="t">${esc(v.codigo)}</div></div>
-            ${v.estado === 'PUBLICADO' ? `<span class="tag ok">Publicado ${esc((v.publicado_en || '').slice(11))}</span>` : '<span class="tag org">Pendiente</span>'}
-            ${v.descarga ? `<a class="btn btn-red btn-sm" href="${esc(v.descarga)}" target="_blank" rel="noopener" download>Descargar</a>` : '<span class="tag gr" title="No está en el Drive: búscalo en el grupo de WhatsApp">Video en el grupo de WhatsApp</span>'}</div>
-          <div class="campos">
-            <label class="ancho">Descripción<textarea data-k="descripcion" placeholder="Pega aquí la descripción tal cual la publicas" ${soloVer ? 'disabled' : ''}>${esc(v.descripcion)}</textarea></label>
-            <label>Link de Facebook<input data-k="facebook" value="${esc(v.facebook)}" placeholder="https://www.facebook.com/…" ${soloVer ? 'disabled' : ''}></label>
-            <label>Link de TikTok<input data-k="tiktok" value="${esc(v.tiktok)}" placeholder="https://www.tiktok.com/…" ${soloVer ? 'disabled' : ''}></label>
+    // Tarjeta (23-10-2026): el que toca va abierto; el rojo es «Descargar» → «✓ Descargado» (cyan) y aparece «Copiar #»;
+    // «Listo, publicado» se prende recién con TikTok, Facebook y descripción. Los 3 juntos se guardan con Listo (así el backend lo marca PUBLICADO).
+    const ICO = { dl: '<svg class="ico" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>',
+      cp: '<svg class="ico" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>',
+      ok: '<svg class="ico" viewBox="0 0 24 24" style="stroke-width:2.4"><path d="M20 6 9 17l-5-5"/></svg>', chev: '<svg class="ico chev-p" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>' };
+    const puedePegar = !!(navigator.clipboard && navigator.clipboard.readText);
+    const bajado = v => !v.descarga || !!(v.descripcion || v.facebook || v.tiktok) || guardado.get('rc_desc_' + v.id) === '1';
+    const campo = (v, k, ph, area) => area
+      ? `<textarea class="campo-p" data-k="${k}" placeholder="${ph}" ${soloVer ? 'disabled' : ''}>${esc(v[k])}</textarea>`
+      : `<div class="pegar"><input class="campo-p" data-k="${k}" value="${esc(v[k])}" placeholder="${ph}" inputmode="url" autocapitalize="off" ${soloVer ? 'disabled' : ''}>${puedePegar && !soloVer ? '<button class="btn btn-gray btn-sm" data-pegar>Pegar</button>' : ''}</div>`;
+    const tarjetas = d.videos.map(v => { const pub = v.estado === 'PUBLICADO', des = bajado(v);
+      const hora = PUB_DIA === 'pendientes' ? (v.dia ? `${esc(v.hora || '—')} · ${esc(diaCorto(v.dia))}` : 'Sin hora') : esc(v.hora || '—');
+      return { hora: v.hora || '99:99', hecho: pub, html: `
+      <div class="pub ${pub ? 'hecha' : ''}" data-id="${esc(v.id)}" data-hora="${esc(v.hora || '')}">
+        <button class="pub-cab" data-abrir><div class="grow"><div class="pub-h">${hora} · ${esc(v.codigo)}</div><div class="m">${esc(v.categoria.toLowerCase())}${pub ? ` · publicado ${esc((v.publicado_en || '').slice(11))}` : ''}</div></div>
+          ${pub ? '<span class="tag ok">Publicado</span>' : ''}${ICO.chev}</button>
+        <div class="pub-cuerpo"><div>
+          <div class="acc ${des ? 'd' : ''}">
+            ${v.descarga ? `<a class="btn paso-b dl ${des ? 'ok' : ''}" href="${esc(v.descarga)}" target="_blank" rel="noopener" download data-dl><span class="a">${ICO.dl}Descargar</span><span class="b">${ICO.ok}Descargado</span></a>`
+              : '<span class="tag gr wsp" title="No está en el Drive">Video en el grupo de WhatsApp</span>'}
+            <button class="btn paso-b cp" data-cp ${des ? '' : 'tabindex="-1"'}><span class="a">${ICO.cp}Copiar #</span><span class="b">${ICO.ok}Copiado</span></button>
           </div>
-        </div>
-      </div>` }));
-    (d.carruseles && PUB_DIA !== 'pendientes' ? d.carruseles : []).forEach((c, k) => tarjetas.push({ hora: c.hora, html: carr[k] }));
+          <div class="lbl-p">${pub ? 'Datos de la publicación' : '¿Ya lo publicaste? Pega los links'}</div>
+          ${campo(v, 'tiktok', 'Link de TikTok')}${campo(v, 'facebook', 'Link de Facebook')}${campo(v, 'descripcion', 'Descripción tal cual la publicaste', true)}
+          ${pub ? '' : `<button class="btn listo" data-listo disabled>Listo, publicado</button><div class="m falta" data-falta></div>`}
+        </div></div>
+      </div>` }; });
+    (d.carruseles && PUB_DIA !== 'pendientes' ? d.carruseles : []).forEach((c, k) => tarjetas.push({ hora: c.hora, hecho: !!c.hecho, carr: true, html: carr[k] }));
     if (PUB_DIA !== 'pendientes') tarjetas.sort((a, b) => a.hora.localeCompare(b.hora));   // Pendientes ya viene en su orden
+    const toca = tarjetas.findIndex(t => !t.hecho && !t.carr);
     $('#pubLista').innerHTML = tarjetas.map(t => t.html).join('') || '<div class="card"><div class="empty">Nada programado para este día.</div></div>';
+    // La que toca, abierta
+    const cards = $$('#pubLista .pub:not(.carr)');
+    const abrir = (el, si) => el && el.classList.toggle('abierta', si);
+    if (toca >= 0) abrir($$('#pubLista > .pub')[toca], true);
+    // Línea del día (solo Hoy/Mañana): ✓ lo hecho, ● lo que toca
+    $('#pubLinea').innerHTML = PUB_DIA === 'pendientes' ? '' : tarjetas.map((t, k) => `<button class="hora-l ${t.hecho ? 'ok' : k === toca ? 'ya' : ''}" data-k="${k}">${t.hecho ? '✓ ' : k === toca ? '● ' : ''}${esc(t.hora === '99:99' ? '—' : t.hora)}</button>`).join('');
+    $$('#pubLinea [data-k]').forEach(b => b.onclick = () => { const el = $$('#pubLista > .pub')[+b.dataset.k]; if (!el) return; abrir(el, true); el.scrollIntoView({ behavior: 'smooth', block: 'center' }); });
+    $$('#pubLista [data-abrir]').forEach(b => b.onclick = () => abrir(b.closest('.pub'), !b.closest('.pub').classList.contains('abierta')));
     $$('#pubLista [data-carr]').forEach(c => c.onchange = async () => {
       try { await api('/api/publicar/carrusel', { dia, hora: c.dataset.carr, hecho: c.checked }); toast(c.checked ? '✓ Carrusel hecho' : 'Carrusel pendiente'); cargarPublicar(); }
       catch (e) { toast(e.message); c.checked = !c.checked; }
     });
-    $$('#pubLista [data-k]').forEach(c => c.onchange = async () => {
-      const id = c.closest('.pub').dataset.id;
-      try { const v = await api('/api/publicar/guardar', { id, [c.dataset.k]: c.value.trim() });
-        toast(v.estado === 'PUBLICADO' ? `✓ ${v.codigo} publicado` : 'Guardado');
-        if (v.estado === 'PUBLICADO') cargarPublicar();
-      } catch (e) { toast(e.message); c.focus(); }
+    cards.forEach(el => {
+      const id = el.dataset.id, v = d.videos.find(x => x.id === id), acc = el.querySelector('.acc');
+      const dl = el.querySelector('[data-dl]'), cp = el.querySelector('[data-cp]'), listo = el.querySelector('[data-listo]'), falta = el.querySelector('[data-falta]');
+      const val = k => el.querySelector(`[data-k="${k}"]`).value.trim();
+      const lleno = () => ['tiktok', 'facebook', 'descripcion'].every(k => val(k));
+      const revisar = () => { if (!listo) return; const des = acc.classList.contains('d'), ok = des && lleno() && !soloVer;
+        listo.disabled = !ok; falta.textContent = soloVer ? 'Estás viendo como otra persona: solo lectura' : !des ? 'Primero descarga el video' : ok ? '' : 'Pega TikTok, Facebook y la descripción para terminar'; };
+      if (dl) dl.addEventListener('click', () => { guardado.set('rc_desc_' + id, '1'); dl.classList.add('ok'); acc.classList.add('d'); cp.removeAttribute('tabindex'); revisar(); });
+      cp.onclick = async () => { const tags = v.hashtags || ('#' + v.codigo);
+        try { await navigator.clipboard.writeText(tags); cp.classList.add('ok'); toast('Copiado: ' + tags); } catch (e) { toast('No se pudo copiar: ' + tags); } };
+      el.querySelectorAll('[data-pegar]').forEach(b => b.onclick = async () => { const inp = b.previousElementSibling;
+        try { const t = (await navigator.clipboard.readText()).trim(); if (!t) return toast('No hay nada copiado'); inp.value = t; inp.dispatchEvent(new Event('change')); } catch (e) { toast('Mantén el dedo en el campo y pega'); } });
+      // Guarda cada dato al salir del campo, menos cuando con ese ya estarían los 3: eso lo guarda «Listo» (si no, se publicaría solo).
+      el.querySelectorAll('[data-k]').forEach(c => { c.oninput = revisar; c.onchange = async () => {
+        revisar(); if (soloVer) return;
+        if (v.estado !== 'PUBLICADO' && lleno()) return;
+        try { const r = await api('/api/publicar/guardar', { id, [c.dataset.k]: c.value.trim() }); toast(r.estado === 'PUBLICADO' ? `✓ ${r.codigo} actualizado` : 'Guardado'); }
+        catch (e) { toast(e.message); c.focus(); } }; });
+      if (listo) listo.onclick = async () => { listo.disabled = true;
+        try { const r = await api('/api/publicar/guardar', { id, tiktok: val('tiktok'), facebook: val('facebook'), descripcion: val('descripcion') });
+          toast(r.estado === 'PUBLICADO' ? `✓ ${r.codigo} publicado` : 'Guardado'); cargarPublicar(); }
+        catch (e) { toast(e.message); revisar(); } };
+      revisar();
     });
   } catch (e) { $('#pubLista').innerHTML = `<div class="card"><div class="empty">${esc(e.message)}</div></div>`; }
 }
@@ -798,12 +844,59 @@ drop.addEventListener('drop', e => agregar([...e.dataTransfer.files]));
 $('#archivos').onchange = e => { agregar([...e.target.files]); e.target.value = ''; };
 window.addEventListener('beforeunload', e => { if (SUBIENDO) { e.preventDefault(); e.returnValue = ''; } });
 
+/* Antes de subir: «¿Quién sale?» por video (23-10-2026). Sin permiso del estudiante no se sube.
+   Se manda como `sale` en /api/subir/iniciar y /listo (el backend lo guarda cuando el chat técnico lo agregue). */
+const PROFES = ['Peter Romo', 'Kike', 'Marlont', 'Andrés', 'Wlado', 'Chaky'];
+const PREV = [];
+const iniciales = n => n.split(/\s+/).map(x => x[0]).join('').slice(0, 2).toUpperCase();
 function agregar(files){
   files = files.filter(f => /^video\//.test(f.type) || /\.(mov|mp4|m4v)$/i.test(f.name));
   if (!files.length) return toast('Eso no es un video');
-  files.forEach(f => COLA.push({ f, estado: 'cola', prog: 0 }));
-  pintarCola(); if (!SUBIENDO) subirSiguiente();
+  files.forEach(f => PREV.push({ f, sale: '', profes: [], at: '', permiso: false, url: URL.createObjectURL(f) }));
+  pintarPrev();
 }
+const prevListo = p => p.sale === 'NADIE' || (p.sale === 'PROFE' && p.profes.length > 0) || (p.sale === 'ESTUDIANTE' && p.at.replace('@', '').trim().length > 1 && p.permiso);
+function pintarPrev(){
+  $('#porSubirWrap').classList.toggle('hidden', !PREV.length);
+  $('#porSubir').innerHTML = PREV.map((p, i) => `
+    <div class="prev" data-i="${i}">
+      <div class="prev-cab"><video class="prev-img" src="${p.url}#t=0.1" muted playsinline preload="metadata"></video>
+        <div class="grow"><div class="t trunc">${esc(p.f.name)}</div><div class="m">${(p.f.size / 1048576).toFixed(0)} MB</div></div>
+        <button class="lnk-q" data-quitar>Quitar</button></div>
+      <div class="lbl-q">¿Quién sale?</div>
+      <div class="seg seg-sale" role="group">${['NADIE', 'PROFE', 'ESTUDIANTE'].map(k => `<button data-sale="${k}" aria-pressed="${p.sale === k}">${k === 'NADIE' ? 'Nadie' : k === 'PROFE' ? 'Profe' : 'Estudiante'}</button>`).join('')}</div>
+      ${p.sale === 'PROFE' ? `<div class="profes">${PROFES.map(n => `<button class="profe" data-profe="${esc(n)}" aria-pressed="${p.profes.includes(n)}"><span class="pav">${iniciales(n)}</span><b>${esc(n)}</b><span class="pck"><svg class="ico" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span></button>`).join('')}</div><div class="m nota-q">Desliza y toca a los que salen</div>` : ''}
+      ${p.sale === 'ESTUDIANTE' ? `<input class="campo-q" data-at placeholder="@ de TikTok del estudiante" value="${esc(p.at)}" autocapitalize="off" autocomplete="off">
+        <label class="permiso"><span class="grow">Tengo su permiso</span><span class="ac-sw"><input type="checkbox" role="switch" data-permiso ${p.permiso ? 'checked' : ''}><i></i></span></label>` : ''}
+    </div>`).join('');
+  $$('#porSubir .prev').forEach(el => {
+    const p = PREV[+el.dataset.i];
+    el.querySelector('[data-quitar]').onclick = () => { URL.revokeObjectURL(p.url); PREV.splice(PREV.indexOf(p), 1); pintarPrev(); };
+    el.querySelectorAll('[data-sale]').forEach(b => b.onclick = () => { p.sale = b.dataset.sale; pintarPrev(); });
+    el.querySelectorAll('[data-profe]').forEach(b => b.onclick = () => {
+      const n = b.dataset.profe; p.profes = p.profes.includes(n) ? p.profes.filter(x => x !== n) : [...p.profes, n];
+      b.setAttribute('aria-pressed', p.profes.includes(n)); revisarPrev(); });
+    const at = el.querySelector('[data-at]'); if (at) at.oninput = () => { p.at = at.value; revisarPrev(); };
+    const pm = el.querySelector('[data-permiso]'); if (pm) pm.onchange = () => { p.permiso = pm.checked; revisarPrev(); };
+  });
+  revisarPrev();
+}
+function revisarPrev(){
+  const n = PREV.length, ok = PREV.filter(prevListo).length;
+  $('#porSubirN').textContent = n ? `${ok} de ${n} listos` : '';
+  $('#bElegir').textContent = n ? 'Agregar más videos' : 'Elegir videos';
+  $('#bElegir').classList.toggle('btn-red', !n); $('#bElegir').classList.toggle('btn-gray', !!n);
+  const b = $('#bSubirTodo'); b.textContent = `Subir ${n} video${n === 1 ? '' : 's'}`; b.disabled = ok < n || !!VER;
+  const falta = PREV.find(p => !prevListo(p));
+  $('#subirFalta').textContent = VER ? 'Estás viendo como otra persona: solo lectura' : !falta ? ''
+    : falta.sale === 'ESTUDIANTE' && !falta.permiso ? `Sin permiso del estudiante no se sube (${falta.f.name})` : `Falta decir quién sale en ${falta.f.name}`;
+}
+$('#bSubirTodo').onclick = () => {
+  PREV.splice(0).forEach(p => { URL.revokeObjectURL(p.url);
+    COLA.push({ f: p.f, estado: 'cola', prog: 0, sale: { tipo: p.sale, profes: p.profes, estudiante: p.sale === 'ESTUDIANTE' ? p.at.trim() : '', permiso: p.permiso } }); });
+  pintarPrev(); pintarCola(); if (!SUBIENDO) subirSiguiente();
+};
+$('#histBtn').onclick = () => { const o = $('#histBox').classList.toggle('open'); $('#histBtn').setAttribute('aria-expanded', o); };
 function pintarCola(){
   $('#subiendoWrap').classList.toggle('hidden', !COLA.length);
   const listos = COLA.filter(c => c.estado === 'listo').length;
@@ -821,9 +914,9 @@ async function subirSiguiente(){
   if (!c) { SUBIENDO = false; cargarMias(); return; }
   SUBIENDO = true; c.estado = 'subiendo'; pintarCola();
   try {
-    const s = await api('/api/subir/iniciar', { archivo: c.f.name, tam: c.f.size, tipo: c.f.type || 'video/quicktime' });
+    const s = await api('/api/subir/iniciar', { archivo: c.f.name, tam: c.f.size, tipo: c.f.type || 'video/quicktime', sale: c.sale });
     const driveId = await subirADrive(s.url, c);
-    await api('/api/subir/listo', { id: s.id, drive_id: driveId });
+    await api('/api/subir/listo', { id: s.id, drive_id: driveId, sale: c.sale });
     c.estado = 'listo';
   } catch (e) { c.estado = 'error'; c.error = e.message; }
   pintarCola(); subirSiguiente();
