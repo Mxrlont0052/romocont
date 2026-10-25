@@ -470,3 +470,11 @@ svg.ico{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-wi
 }
 [data-t=c] .profe small{font:400 12px/14px var(--font);color:var(--l2);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 [data-t=c] .profe{width:104px}
+
+/* ── «Ver como» con personas reales (25-10-2026): menú por grupos y solo lectura ── */
+.menu-cuenta .hd3{font:600 11px/14px var(--font);color:var(--l3);padding:8px 14px 2px;letter-spacing:0}
+[data-t=c] .menu-cuenta{max-height:min(70vh,560px);overflow-y:auto;overscroll-behavior:contain}
+/* Mientras ves como otra persona, lo que escribe se ve pero no se puede tocar (el backend igual responde «solo lectura») */
+[data-ver] #bMarcar,[data-ver] #bIn,[data-ver] #bOut,[data-ver] #bRender,[data-ver] #pedirMas,[data-ver] #bQuitar,
+[data-ver] #panelM .seg button,[data-ver] #panelM select,[data-ver] [data-a=retocar],[data-ver] [data-a=descartar],[data-ver] [data-a=remarcar],
+[data-ver] #pRevisar input[type=range],[data-ver] .listo,[data-ver] #bSubirTodo,[data-ver] [data-carr],[data-ver] #regNuevaBtn{opacity:.35;pointer-events:none}

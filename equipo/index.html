@@ -239,7 +239,7 @@ select.sel{height:36px;border-radius:10px;background:var(--card-2);border:0;padd
 }
 </style>
 <!-- Piel estilo Apple, regla general de ROMO (20-10-2026) -->
-<link rel="stylesheet" href="../romo-apple.css?v=15">
+<link rel="stylesheet" href="../romo-apple.css?v=16">
 <script src="../romo-apple.js?v=5"></script>
 </head>
 <body>
@@ -274,7 +274,7 @@ select.sel{height:36px;border-radius:10px;background:var(--card-2);border:0;padd
     <div class="viendo hidden" id="viendo"><span id="viendoTxt"></span><button>Volver a tu vista</button></div>
     <div class="me" data-menu role="button" tabindex="0" aria-haspopup="menu" aria-expanded="false"><div class="av" id="meAv"></div><div class="grow"><b id="meNom"></b><small id="meRol"></small></div><button id="salir" title="Salir">Salir</button><svg class="ico chev" viewBox="0 0 24 24"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg></div>
     <div class="menu-cuenta" role="menu"><div class="hd"></div><div class="sp"></div>
-      <div id="verComo" class="hidden"><div class="hd2">Ver como</div><button role="menuitemradio" data-ver="ADMIN">Admin (tú)</button><button role="menuitemradio" data-ver="EDITOR">Editor</button><button role="menuitemradio" data-ver="PUBLICADOR">Publicador · Lizy</button><button role="menuitemradio" data-ver="SUBIDOR">Solo sube</button><div class="sp"></div></div>
+      <div id="verComo" class="hidden"><div class="hd2">Ver como</div><div id="verLista"><button role="menuitemradio" data-ver="">Tú</button></div><div class="sp"></div></div>
       <button role="menuitem" data-salir><svg class="ico" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>Salir</button></div>
   </aside>
 
@@ -463,13 +463,14 @@ let YO = (() => { try { return JSON.parse(guardado.get('rc_yo' + SUF) || 'null')
 
 function toast(t){ const e = $('#toast'); e.textContent = t; e.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => e.classList.remove('show'), 2800); }
 
-// «Ver como» de un admin: se manda X-Ver-Como con la persona de EQUIPO que tiene ese rol → se ven SUS datos (solo lectura).
+// «Ver como» de un admin (contrato en romo-central/PEDIDO-VER-COMO.md): se elige UNA PERSONA de EQUIPO y se manda
+// X-Ver-Como con su correo (o su NOMBRE si está «por emparejar") → el backend responde con SUS datos, solo lectura.
+// La sesión sigue siendo la del admin: YO no se toca; la persona elegida se guarda aparte (rc_ver).
 let EQUIPO = null;
-const personaDe = r => (EQUIPO || []).find(p => p.rol === r && p.activo);
-const verCabecera = () => { const p = VER && personaDe(VER); return p ? { 'X-Ver-Como': p.correo || p.nombre } : {}; };
-async function api(ruta, body, metodo){
+const verCabecera = () => VER ? { 'X-Ver-Como': VER.clave } : {};
+async function api(ruta, body, metodo, sinVer){   // sinVer: siempre como tú (la sesión), aunque estés en «Ver como»
   const r = await fetch(API + ruta, { method: metodo || (body ? 'POST' : 'GET'),
-    headers: Object.assign({ 'Authorization': 'Bearer ' + (TOKEN || '') }, verCabecera(), body ? { 'Content-Type': 'application/json' } : {}),
+    headers: Object.assign({ 'Authorization': 'Bearer ' + (TOKEN || '') }, sinVer ? {} : verCabecera(), body ? { 'Content-Type': 'application/json' } : {}),
     body: body ? JSON.stringify(body) : undefined });
   let d = {}; try { d = await r.json() } catch {}
   if (r.status === 401) { salir(true); throw new Error(d.detail || 'Entra de nuevo'); }
@@ -481,8 +482,10 @@ const fmt = s => { s = Math.max(0, s || 0); const m = Math.floor(s / 60), r = s 
 const fecha = iso => { const d = new Date(iso); if (isNaN(d)) return ''; const hoy = new Date(); const h = d.toLocaleTimeString('es-EC', {hour:'2-digit', minute:'2-digit'});
   return d.toDateString() === hoy.toDateString() ? 'hoy ' + h : d.toLocaleDateString('es-EC', {day:'numeric', month:'short'}) + ' ' + h; };
 /* «Ver como» (solo admin): cambia lo que se MUESTRA, no los permisos del backend. */
-let VER = null;
-const rolUI = () => VER || (YO && YO.rol);
+let VER = (() => { try { return JSON.parse(guardado.get('rc_ver' + SUF) || 'null'); } catch { return null; } })();   // {clave, nombre, rol}
+const rolUI = () => VER ? VER.rol : (YO && YO.rol);
+const bonito = n => String(n || '').toLowerCase().replace(/(^|\s)\S/g, c => c.toUpperCase());
+const nombreUI = () => bonito(VER ? VER.nombre : YO.nombre);
 const edita = () => YO && (rolUI() === 'EDITOR' || rolUI() === 'ADMIN');
 
 /* ───── entrar / salir ───── */
@@ -506,7 +509,7 @@ async function entrar(body){
 }
 $('#devEntrar').onclick = () => entrar({ dev_correo: $('#devCorreo').value.trim(), dev_nombre: $('#devCorreo').value.split('@')[0] });
 function salir(silencio){
-  guardarToken(null); YO = null;
+  guardarToken(null); YO = null; VER = null; guardado.set('rc_ver' + SUF, null); document.documentElement.removeAttribute('data-ver');
   if (!silencio) { toast('Saliste'); try { google.accounts.id.disableAutoSelect(); } catch {} }
   pantallaLogin();
 }
@@ -521,8 +524,9 @@ function arrancar(){
   $('#meNom').textContent = YO.nombre.toLowerCase().replace(/(^|\s)\S/g, c => c.toUpperCase()); $('#meRol').textContent = ROL_TXT[YO.rol] || YO.rol; $('.me').dataset.correo = YO.correo;
   $('#meAv').innerHTML = YO.foto ? `<img src="${esc(YO.foto)}" alt="">` : esc(YO.nombre.slice(0, 2));
   aplicarRol();
+  if (YO.rol !== 'ADMIN' && VER) { VER = null; guardado.set('rc_ver' + SUF, null); }   // solo un admin puede ver como otro
   $('#verComo').classList.toggle('hidden', YO.rol !== 'ADMIN');
-  if (YO.rol === 'ADMIN' && !EQUIPO) api('/api/equipo').then(l => { EQUIPO = l; aplicarRol(); }).catch(() => {});
+  if (YO.rol === 'ADMIN' && !EQUIPO) api('/api/equipo', null, 'GET', true).then(l => { EQUIPO = l; pintarVerComo(); }).catch(() => {});
   ir(YO.rol === 'ADMIN' && !VER ? 'inicio' : vistaInicial(location.hash.slice(1)));   // el admin siempre entra en Inicio
 }
 // Vista que le toca a cada rol: PUBLICADOR → Publicar; EDITOR/ADMIN → ROMO EDITS; SUBIDOR → Subir.
@@ -541,18 +545,29 @@ function aplicarRol(){
   $$('[data-rol="dash"]').forEach(e => e.classList.toggle('hidden', rolUI() !== 'ADMIN'));
   $$('[data-rol="publica"]').forEach(e => e.classList.toggle('hidden', !(rolUI() === 'ADMIN' || rolUI() === 'PUBLICADOR')));
   $$('[data-rol="sube"]').forEach(e => e.classList.toggle('hidden', rolUI() === 'PUBLICADOR'));
-  $$('#verComo [data-ver]').forEach(b => b.setAttribute('aria-checked', b.dataset.ver === (VER || 'ADMIN')));
+  $$('#verLista [data-ver]').forEach(b => b.setAttribute('aria-checked', b.dataset.ver === (VER ? VER.clave : '')));
   $('#viendo').classList.toggle('hidden', !VER);
-  const per = VER && personaDe(VER);
-  if (VER) $('#viendoTxt').innerHTML = `Viendo como<b>${esc(ROL_TXT[VER] === 'Subidor' ? 'Solo sube' : ROL_TXT[VER])}${per ? ' · ' + esc(per.nombre.charAt(0) + per.nombre.slice(1).toLowerCase()) : ''}</b>`;
+  document.documentElement.toggleAttribute('data-ver', !!VER);   // la piel apaga lo que escribe (solo lectura)
+  if (VER) $('#viendoTxt').innerHTML = `Viendo como<b>${esc(bonito(VER.nombre))} · ${esc(ROL_TXT[VER.rol] === 'Subidor' ? 'Sube' : ROL_TXT[VER.rol] || VER.rol)}</b>`;
 }
-function verComo(r){
+// Menú: tu equipo real, agrupado por rol (de /api/equipo)
+function pintarVerComo(){
+  const GR = [['PUBLICADOR', 'Publica'], ['EDITOR', 'Editores'], ['SUBIDOR', 'Suben'], ['ADMIN', 'Otros admins']];
+  const otros = (EQUIPO || []).filter(p => p.activo !== false && (p.correo || p.nombre) && (p.correo || '').toLowerCase() !== (YO.correo || '').toLowerCase());
+  $('#verLista').innerHTML = '<button role="menuitemradio" data-ver="">Tú</button>' + GR.map(([r, t]) => {
+    const g = otros.filter(p => p.rol === r); if (!g.length) return '';
+    return `<div class="hd3">${t}</div>` + g.map(p => `<button role="menuitemradio" data-ver="${esc(p.correo || p.nombre)}" data-rolp="${esc(p.rol)}" data-nom="${esc(p.nombre)}">${esc(bonito(p.nombre))}</button>`).join('');
+  }).join('');
+  $$('#verLista [data-ver]').forEach(b => b.onclick = () => verComo(b.dataset.ver ? { clave: b.dataset.ver, nombre: b.dataset.nom, rol: b.dataset.rolp } : null));
+  aplicarRol();
+}
+function verComo(per){
   if (!YO || YO.rol !== 'ADMIN') return;
-  VER = r === 'ADMIN' ? null : r; aplicarRol();
-  ir(vistaInicial(VISTA));
+  VER = per; guardado.set('rc_ver' + SUF, per ? JSON.stringify(per) : null);
+  aplicarRol(); toast(per ? `Viendo como ${bonito(per.nombre)} · solo lectura` : 'Volviste a tu vista');
+  ir(vistaInicial(per ? '' : VISTA));
 }
-$$('#verComo [data-ver]').forEach(b => b.onclick = () => verComo(b.dataset.ver));
-$('#viendo button').onclick = () => verComo('ADMIN');
+$('#viendo button').onclick = () => verComo(null);
 
 /* ───── navegación ───── */
 let VISTA = '';
@@ -964,7 +979,7 @@ function pintarBarra(c){ const i = COLA.indexOf(c), row = $('#subiendo').childre
 
 /* ───── ROMO EDITS · inicio ───── */
 async function cargarResumen(){
-  $('#hola').textContent = 'Romo Edits · Hola, ' + (YO.nombre.charAt(0) + YO.nombre.slice(1).toLowerCase());
+  $('#hola').textContent = 'Romo Edits · Hola, ' + nombreUI();
   try { const d = await api('/api/edits/resumen');
     $('#teTocan').innerHTML = `${d.te_tocan}<small>te tocan</small>`;
     $('#navN').textContent = d.te_tocan; $('#navN').classList.toggle('hidden', !d.te_tocan);
@@ -1235,7 +1250,7 @@ setInterval(async () => {
   const yaAbierta = !!YO;
   if (yaAbierta) arrancar();
   try {
-    const y = await api('/api/yo');           // un 401 manda al login (sesión vencida o cuenta apagada)
+    const y = await api('/api/yo', null, 'GET', true);   // siempre TÚ, nunca la persona de «Ver como». Un 401 manda al login (sesión vencida o cuenta apagada)
     if (y.token) guardarToken(y.token);        // la sesión se renueva 90 días en cada visita
     delete y.token;
     const cambioRol = !YO || YO.rol !== y.rol || YO.nombre !== y.nombre;
