@@ -243,20 +243,29 @@ async function leerHoja(intentos = 3){
     finally { clearTimeout(t); }
   }
 }
+// Rapidez (25-10-2026): si el Inicio ya leyó la hoja (misma página, misma copia «romocont_cache»), se pinta al instante
+// con esa copia y la hoja se vuelve a leer por detrás solo si la copia tiene más de 2 minutos.
 async function cargar(){
+  let copia = null, edad = Infinity;
+  try { copia = JSON.parse(localStorage.getItem('romocont_cache') || 'null'); edad = Date.now() - (+localStorage.getItem('romocont_cache_t') || 0); } catch {}
+  if (Array.isArray(copia) && copia.length) { try { pintarCon(copia); } catch {} if (edad < 120000) return; }
   try {
     const d = await leerHoja();
+    try { localStorage.setItem('romocont_cache', JSON.stringify((Array.isArray(d) ? d : d.videos || []).filter(v => v && v.id !== 'CONFIG_NUBE'))); localStorage.setItem('romocont_cache_t', Date.now()); } catch {}
+    pintarCon(d);
+  } catch (e) { if (!copia) throw e; }
+}
+function pintarCon(d){
+  {
     VIDEOS = (Array.isArray(d) ? d : d.videos || []).filter(v => v && v.nombre);
     const act = VIDEOS.map(v => String(v.actualizado || '').slice(0, 10)).filter(Boolean).sort().pop();
     const pubs = VIDEOS.filter(v => publico(v) === nombre(PUBLICADOR_POR_DEFECTO)).length;
     $('#sub').textContent = `Lo que se publicó y cómo le fue${act ? ` · métricas al ${dia(act)}` : ''} · publicó: ${nombre(PUBLICADOR_POR_DEFECTO)} (${fmt(pubs)})`;
     seg($('#segMet'), METRICAS, MET, k => { MET = k; pintar(); });
     pintar();
-  } catch (e) {
-    $('#sub').textContent = 'No se pudo leer la hoja. Recarga la página.';
   }
 }
-cargar();
+cargar().catch(() => { $('#sub').textContent = 'No se pudo leer la hoja. Recarga la página.'; });
 </script>
 </body>
 </html>

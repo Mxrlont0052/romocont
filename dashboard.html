@@ -485,8 +485,12 @@ const DRIVE_SINVOZ='https://drive.google.com/drive/folders/1EwH6F6YbSBHkoCqHfnp9
 const AUDIOS_URL='https://friendship-tampa-tension-frontier.trycloudflare.com/files/ROMODJ%20VAUL/Material%20Romo/';
 let NUBE_INBOX=NUBE_INBOX_DEFAULT;
 
+// La hoja a veces no contesta (Apps Script frío): se corta a los 20 s y se reintenta solo, hasta 3 veces (25-10-2026).
 async function apiGet(){
-  const r=await fetch(SCRIPT_URL,{cache:'no-store'});const d=await r.json();
+  let d;
+  for(let i=1;;i++){const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),20000);
+    try{const r=await fetch(SCRIPT_URL,{cache:'no-store',signal:ctl.signal});d=await r.json();break}
+    catch(e){if(i>=3)throw e;await new Promise(z=>setTimeout(z,1500*i))}finally{clearTimeout(t)}}
   if(d&&d.error)throw new Error(d.error);
   const cfg=d.find(v=>v.id==='CONFIG_NUBE');NUBE_INBOX=(cfg&&cfg.link)?cfg.link:NUBE_INBOX_DEFAULT;
   return d.filter(v=>v.id!=='CONFIG_NUBE');
@@ -570,16 +574,16 @@ let _hash='';
 async function load(){
   setLive('syncing');
   try{const c=localStorage.getItem('romocont_cache');if(c){videos=JSON.parse(c).filter(v=>v.id!=='CONFIG_NUBE');render()}}catch(e){}
-  try{videos=await apiGet();try{localStorage.setItem('romocont_cache',JSON.stringify(videos))}catch(e){}setLive('ok')}
+  try{videos=await apiGet();try{localStorage.setItem('romocont_cache',JSON.stringify(videos));localStorage.setItem('romocont_cache_t',Date.now())}catch(e){}setLive('ok')}
   catch(e){setLive('error');if(!videos.length){$('#main').innerHTML=`<div class="empty">No se pudo leer la hoja: ${esc(e.message)}</div>`;return}}
   _hash=hashVideos(videos);render();
   // Tiempo real: cada 60 s trae la hoja y solo repinta si algo cambió
   setInterval(async()=>{try{const d=await apiGet();const h=hashVideos(d);setLive('ok');if(h===_hash)return;_hash=h;videos=d;
-    try{localStorage.setItem('romocont_cache',JSON.stringify(d))}catch(e){}
+    try{localStorage.setItem('romocont_cache',JSON.stringify(d));localStorage.setItem('romocont_cache_t',Date.now())}catch(e){}
     const a=document.activeElement;if($('#sheet').classList.contains('show')||(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)))return; // no interrumpir a quien escribe
     render()}catch(e){setLive('error')}},60000);
 }
-async function recargar(){try{videos=await apiGet();_hash=hashVideos(videos);try{localStorage.setItem('romocont_cache',JSON.stringify(videos))}catch(e){}setLive('ok')}catch(e){setLive('error')}render()}
+async function recargar(){try{videos=await apiGet();_hash=hashVideos(videos);try{localStorage.setItem('romocont_cache',JSON.stringify(videos));localStorage.setItem('romocont_cache_t',Date.now())}catch(e){}setLive('ok')}catch(e){setLive('error')}render()}
 
 document.querySelectorAll('.tb').forEach(b=>b.onclick=()=>tabTo(b.dataset.tab));
 function tabTo(t){tab=t;document.querySelectorAll('.tb').forEach(x=>x.setAttribute('aria-selected',x.dataset.tab===t));render();scrollTo({top:0});

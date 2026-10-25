@@ -239,7 +239,7 @@ select.sel{height:36px;border-radius:10px;background:var(--card-2);border:0;padd
 }
 </style>
 <!-- Piel estilo Apple, regla general de ROMO (20-10-2026) -->
-<link rel="stylesheet" href="../romo-apple.css?v=16">
+<link rel="stylesheet" href="../romo-apple.css?v=17">
 <script src="../romo-apple.js?v=5"></script>
 </head>
 <body>
@@ -477,6 +477,22 @@ async function api(ruta, body, metodo, sinVer){   // sinVer: siempre como tú (l
   if (!r.ok) throw new Error(d.detail || ('Error ' + r.status));
   return d;
 }
+/* Rapidez (25-10-2026): las listas abren al instante con lo último que se vio (guardado en este equipo) y se
+   actualizan solas por detrás. Si el servidor tarda o falla, reintenta en silencio; el error solo se ve si no hay nada guardado. */
+const dormir = ms => new Promise(r => setTimeout(r, ms));
+async function apiRapido(ruta, pintar){
+  const k = 'rc_c' + SUF + ':' + (VER ? VER.clave : (YO && YO.correo) || '') + ':' + ruta;
+  const viejo = guardado.get(k); let pintado = false;
+  if (viejo) { try { pintar(JSON.parse(viejo), true); pintado = true; } catch {} }
+  for (let i = 0; ; i++) {
+    try { const d = await api(ruta), nuevo = JSON.stringify(d);
+      if (nuevo !== viejo) { guardado.set(k, nuevo); pintar(d, false); } return d; }
+    catch (e) { if (i >= 2) { if (pintado) return null; throw e; } await dormir(1500 * (i + 1)); }
+  }
+}
+// Después de guardar algo, se olvida la copia de esa lista (si no, por un segundo se vería lo de antes).
+const olvidar = parte => { try { Object.keys(localStorage).filter(k => k.startsWith('rc_c') && k.includes(parte)).forEach(k => localStorage.removeItem(k)); } catch {} };
+const esqueleto = n => '<div class="esq">' + Array.from({ length: n }, () => '<i></i>').join('') + '</div>';
 const media = (id, n) => `${API}/media/${id}/${n}?t=${encodeURIComponent(TOKEN)}`;
 const fmt = s => { s = Math.max(0, s || 0); const m = Math.floor(s / 60), r = s - m * 60; return m + ':' + r.toFixed(2).padStart(5, '0'); };
 const fecha = iso => { const d = new Date(iso); if (isNaN(d)) return ''; const hoy = new Date(); const h = d.toLocaleTimeString('es-EC', {hour:'2-digit', minute:'2-digit'});
@@ -585,7 +601,7 @@ function ir(v){
   if (esDash) abrirDash(v);
   $$('[data-nav]').forEach(a => a.classList.toggle('on', a.dataset.nav === (v === 'cambios' || v === 'registrar' ? 'edits' : v)));
   window.scrollTo(0, 0);
-  if (v === 'ana' && !$('#anaFrame').src) $('#anaFrame').src = '../analitica.html?v=1';
+  if (v === 'ana' && !$('#anaFrame').src) $('#anaFrame').src = '../analitica.html?v=2';
   if (v === 'subir') cargarMias();
   if (v === 'publicar') cargarPublicar();
   if (v === 'programar') cargarProgramar();
@@ -600,7 +616,7 @@ $$('[data-go]').forEach(b => b.onclick = () => ir(b.dataset.go));
 function abrirDash(t){
   const f = $('#dashFrame');
   try { if (f.contentWindow && f.contentWindow.tabTo && f.dataset.listo) { f.contentWindow.tabTo(t); return; } } catch {}
-  if (!f.src) { f.onload = () => { f.dataset.listo = '1'; pendientesDash(); }; f.src = '../dashboard.html?embed=1&tab=' + t; }
+  if (!f.src) { f.onload = () => { f.dataset.listo = '1'; pendientesDash(); }; f.src = '../dashboard.html?embed=1&v=2&tab=' + t; }
 }
 // El Dashboard avisa cuando cambia de pestaña solo (p. ej. "Ver los sin ficha →"): se marca en la barra.
 window.marcarDash = t => { if (!DASH.includes(t)) return; VISTA = t; history.replaceState(null, '', '#' + t);
@@ -623,12 +639,22 @@ const diaCorto = iso => { const [y, m, d] = (iso || '').split('-'); return d ? `
 async function cargarPublicar(){
   const dia = PUB_DIA === 'pendientes' ? 'pendientes' : diaISO(PUB_DIA === 'hoy' ? 0 : 1);
   $('#pubTitulo').textContent = PUB_DIA === 'hoy' ? 'Hoy' : PUB_DIA === 'manana' ? 'Mañana' : 'Pendientes';
+  if (!$('#pubLista .pub')) $('#pubLista').innerHTML = esqueleto(3);
+  const yaPintado = { v: false };
   try {
-    let d = await api('/api/publicar?dia=' + dia);
-    if (PUB_AUTO && PUB_DIA === 'hoy' && !d.videos.length && d.pendientes) {   // nada programado hoy → sus pendientes
-      PUB_DIA = 'pendientes'; marcarDia(); $('#pubTitulo').textContent = 'Pendientes';
-      d = await api('/api/publicar?dia=pendientes');
-    }
+    await apiRapido('/api/publicar?dia=' + dia, (d, deMemoria) => {
+      if (PUB_AUTO && PUB_DIA === 'hoy' && !d.videos.length && d.pendientes) {   // nada programado hoy → sus pendientes
+        PUB_DIA = 'pendientes'; marcarDia(); cargarPublicar(); return; }
+      // No se repinta encima de Lizy mientras escribe: lo nuevo entra en la próxima carga.
+      const a = document.activeElement;
+      if (yaPintado.v && a && $('#pubLista').contains(a) && /INPUT|TEXTAREA/.test(a.tagName)) return;
+      const abiertas = $$('#pubLista .pub.abierta').map(x => x.dataset.id);
+      pintarPublicar(d, dia, yaPintado.v ? abiertas : null); yaPintado.v = true;
+    });
+  } catch (e) { if (!yaPintado.v) $('#pubLista').innerHTML = `<div class="card"><div class="empty">${esc(e.message)}</div></div>`; }
+}
+function pintarPublicar(d, dia, abiertas){
+  {
     $('#pubN').textContent = d.pendientes ? `(${d.pendientes})` : '';
     const soloVer = !!VER;
     const hechos = d.videos.filter(v => v.estado === 'PUBLICADO').length;
@@ -674,13 +700,14 @@ async function cargarPublicar(){
     // La que toca, abierta
     const cards = $$('#pubLista .pub:not(.carr)');
     const abrir = (el, si) => el && el.classList.toggle('abierta', si);
-    if (toca >= 0) abrir($$('#pubLista > .pub')[toca], true);
+    if (abiertas && abiertas.length) $$('#pubLista > .pub').forEach(x => abrir(x, abiertas.includes(x.dataset.id)));   // al refrescar, queda abierto lo que estaba
+    else if (toca >= 0) abrir($$('#pubLista > .pub')[toca], true);
     // Línea del día (solo Hoy/Mañana): ✓ lo hecho, ● lo que toca
     $('#pubLinea').innerHTML = PUB_DIA === 'pendientes' ? '' : tarjetas.map((t, k) => `<button class="hora-l ${t.hecho ? 'ok' : k === toca ? 'ya' : ''}" data-k="${k}">${t.hecho ? '✓ ' : k === toca ? '● ' : ''}${esc(t.hora === '99:99' ? '—' : t.hora)}</button>`).join('');
     $$('#pubLinea [data-k]').forEach(b => b.onclick = () => { const el = $$('#pubLista > .pub')[+b.dataset.k]; if (!el) return; abrir(el, true); el.scrollIntoView({ behavior: 'smooth', block: 'center' }); });
     $$('#pubLista [data-abrir]').forEach(b => b.onclick = () => abrir(b.closest('.pub'), !b.closest('.pub').classList.contains('abierta')));
     $$('#pubLista [data-carr]').forEach(c => c.onchange = async () => {
-      try { await api('/api/publicar/carrusel', { dia, hora: c.dataset.carr, hecho: c.checked }); toast(c.checked ? '✓ Carrusel hecho' : 'Carrusel pendiente'); cargarPublicar(); }
+      try { await api('/api/publicar/carrusel', { dia, hora: c.dataset.carr, hecho: c.checked }); toast(c.checked ? '✓ Carrusel hecho' : 'Carrusel pendiente'); olvidar('/api/publicar'); cargarPublicar(); }
       catch (e) { toast(e.message); c.checked = !c.checked; }
     });
     cards.forEach(el => {
@@ -703,11 +730,11 @@ async function cargarPublicar(){
         catch (e) { toast(e.message); c.focus(); } }; });
       if (listo) listo.onclick = async () => { listo.disabled = true;
         try { const r = await api('/api/publicar/guardar', { id, tiktok: val('tiktok'), facebook: val('facebook'), descripcion: val('descripcion') });
-          toast(r.estado === 'PUBLICADO' ? `✓ ${r.codigo} publicado` : 'Guardado'); cargarPublicar(); }
+          toast(r.estado === 'PUBLICADO' ? `✓ ${r.codigo} publicado` : 'Guardado'); olvidar('/api/publicar'); cargarPublicar(); }
         catch (e) { toast(e.message); revisar(); } };
       revisar();
     });
-  } catch (e) { $('#pubLista').innerHTML = `<div class="card"><div class="empty">${esc(e.message)}</div></div>`; }
+  }
 }
 
 /* Ajustes del admin: horas de publicación (y cuál es el carrusel) */
@@ -842,13 +869,14 @@ $('#regSubir').onclick = async () => {
 const ESTADO_TAG = { 'PREPARANDO': ['org','Preparando'], 'PARA EDITAR': ['org','Para editar'], 'RENDERIZANDO': ['cy','Editándose'],
   'REVISAR': ['cy','Editándose'], 'LISTO': ['ok','Editado'], 'DESCARTADO': ['gr','Descartado'], 'ERROR': ['red','Error'] };
 async function cargarMias(){
-  try { const d = await api('/api/subir/mias');
+  if (!$('#mias .row')) $('#mias').innerHTML = esqueleto(3);
+  try { await apiRapido('/api/subir/mias', d => {
     $('#misCuenta').textContent = d.subidas.length ? d.subidas.length + ' videos' : '';
     $('#mias').innerHTML = d.subidas.map(s => { const [c, t] = ESTADO_TAG[s.estado] || ['gr', s.estado];
       const quien = s.codigo ? ` · editado por ${esc(s.editor)} → <b>${esc(s.codigo)}</b>` : s.editor ? ` · lo tiene ${esc(s.editor)}` : '';
       return `<div class="row"><div class="grow"><div class="t trunc">${esc(s.archivo)}</div><div class="m">Subido ${esc(fecha(s.fecha))}${quien}</div></div><span class="tag ${c}">${t}</span></div>`;
     }).join('') || '<div class="empty">Todavía no has subido nada.</div>';
-  } catch (e) { $('#mias').innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
+  }); } catch (e) { $('#mias').innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
 }
 
 const COLA = []; let SUBIENDO = false;
@@ -980,12 +1008,12 @@ function pintarBarra(c){ const i = COLA.indexOf(c), row = $('#subiendo').childre
 /* ───── ROMO EDITS · inicio ───── */
 async function cargarResumen(){
   $('#hola').textContent = 'Romo Edits · Hola, ' + nombreUI();
-  try { const d = await api('/api/edits/resumen');
+  try { await apiRapido('/api/edits/resumen', d => {
     $('#teTocan').innerHTML = `${d.te_tocan}<small>te tocan</small>`;
     $('#navN').textContent = d.te_tocan; $('#navN').classList.toggle('hidden', !d.te_tocan);
     $('#prepTxt').textContent = d.preparando ? d.preparando + ' videos' : '';
     $('#prepInfo').textContent = d.preparando ? 'Hay videos recién subidos preparándose: en 1–2 minutos salen para marcar.' : 'Nada preparándose ahora.';
-  } catch (e) { toast(e.message); }
+  }); } catch (e) { toast(e.message); }
 }
 $('#irCambios').onclick = () => ir('cambios');
 $('#irIA').onclick = () => window.open(FABRICA_URL, '_blank', 'noopener');

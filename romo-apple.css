@@ -478,3 +478,10 @@ svg.ico{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-wi
 [data-ver] #bMarcar,[data-ver] #bIn,[data-ver] #bOut,[data-ver] #bRender,[data-ver] #pedirMas,[data-ver] #bQuitar,
 [data-ver] #panelM .seg button,[data-ver] #panelM select,[data-ver] [data-a=retocar],[data-ver] [data-a=descartar],[data-ver] [data-a=remarcar],
 [data-ver] #pRevisar input[type=range],[data-ver] .listo,[data-ver] #bSubirTodo,[data-ver] [data-carr],[data-ver] #regNuevaBtn{opacity:.35;pointer-events:none}
+
+/* Silueta gris mientras llega la primera carga (en vez de «Cargando…») */
+.esq{display:flex;flex-direction:column;gap:10px}
+.esq i{display:block;height:64px;border-radius:16px;background:linear-gradient(90deg,#1c1c1e 25%,#26262a 50%,#1c1c1e 75%);background-size:200% 100%;animation:esq 1.2s linear infinite}
+.esq i:nth-child(2){opacity:.7}.esq i:nth-child(3){opacity:.45}
+@keyframes esq{to{background-position:-200% 0}}
+@media (prefers-reduced-motion:reduce){.esq i{animation:none}}
