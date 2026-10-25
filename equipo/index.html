@@ -239,7 +239,7 @@ select.sel{height:36px;border-radius:10px;background:var(--card-2);border:0;padd
 }
 </style>
 <!-- Piel estilo Apple, regla general de ROMO (20-10-2026) -->
-<link rel="stylesheet" href="../romo-apple.css?v=14">
+<link rel="stylesheet" href="../romo-apple.css?v=15">
 <script src="../romo-apple.js?v=5"></script>
 </head>
 <body>
@@ -846,7 +846,9 @@ window.addEventListener('beforeunload', e => { if (SUBIENDO) { e.preventDefault(
 
 /* Antes de subir: «¿Quién sale?» por video (23-10-2026). Sin permiso del estudiante no se sube.
    Se manda como `sale` en /api/subir/iniciar y /listo (el backend lo guarda cuando el chat técnico lo agregue). */
-const PROFES = ['Peter Romo', 'Kike', 'Marlont', 'Andrés', 'Wlado', 'Chaky'];
+// @ de TikTok de los profes (Marlon, 25-10-2026). Cuando exista GET /api/profes, sale de ahí.
+const PROFES = [['Peter Romo', 'peter.romo'], ['Kike', 'kike.djoficial'], ['Marlont', 'mxrlont'], ['Daniel', 'dxnixc'], ['Andrés', 'djraa.ec'], ['Wlado', 'wla_do'], ['Chaky', 'chaky.dj']];
+const atDe = n => (PROFES.find(p => p[0] === n) || [])[1] || '';
 const PREV = [];
 const iniciales = n => n.split(/\s+/).map(x => x[0]).join('').slice(0, 2).toUpperCase();
 function agregar(files){
@@ -865,7 +867,7 @@ function pintarPrev(){
         <button class="lnk-q" data-quitar>Quitar</button></div>
       <div class="lbl-q">¿Quién sale?</div>
       <div class="seg seg-sale" role="group">${['NADIE', 'PROFE', 'ESTUDIANTE'].map(k => `<button data-sale="${k}" aria-pressed="${p.sale === k}">${k === 'NADIE' ? 'Nadie' : k === 'PROFE' ? 'Profe' : 'Estudiante'}</button>`).join('')}</div>
-      ${p.sale === 'PROFE' ? `<div class="profes">${PROFES.map(n => `<button class="profe" data-profe="${esc(n)}" aria-pressed="${p.profes.includes(n)}"><span class="pav">${iniciales(n)}</span><b>${esc(n)}</b><span class="pck"><svg class="ico" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span></button>`).join('')}</div><div class="m nota-q">Desliza y toca a los que salen</div>` : ''}
+      ${p.sale === 'PROFE' ? `<div class="profes">${PROFES.map(([n, at]) => `<button class="profe" data-profe="${esc(n)}" aria-pressed="${p.profes.includes(n)}"><span class="pav">${iniciales(n)}</span><b>${esc(n)}</b><small>@${esc(at)}</small><span class="pck"><svg class="ico" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span></button>`).join('')}</div><div class="m nota-q">Desliza y toca a los que salen</div>` : ''}
       ${p.sale === 'ESTUDIANTE' ? `<input class="campo-q" data-at placeholder="@ de TikTok del estudiante" value="${esc(p.at)}" autocapitalize="off" autocomplete="off">
         <label class="permiso"><span class="grow">Tengo su permiso</span><span class="ac-sw"><input type="checkbox" role="switch" data-permiso ${p.permiso ? 'checked' : ''}><i></i></span></label>` : ''}
     </div>`).join('');
@@ -893,7 +895,7 @@ function revisarPrev(){
 }
 $('#bSubirTodo').onclick = () => {
   PREV.splice(0).forEach(p => { URL.revokeObjectURL(p.url);
-    COLA.push({ f: p.f, estado: 'cola', prog: 0, sale: { tipo: p.sale, profes: p.profes, estudiante: p.sale === 'ESTUDIANTE' ? p.at.trim() : '', permiso: p.permiso } }); });
+    COLA.push({ f: p.f, estado: 'cola', prog: 0, sale: { tipo: p.sale, profes: p.profes.map(n => ({ nombre: n, tiktok: '@' + atDe(n) })), estudiante: p.sale === 'ESTUDIANTE' ? p.at.trim() : '', permiso: p.permiso } }); });
   pintarPrev(); pintarCola(); if (!SUBIENDO) subirSiguiente();
 };
 $('#histBtn').onclick = () => { const o = $('#histBox').classList.toggle('open'); $('#histBtn').setAttribute('aria-expanded', o); };

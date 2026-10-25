@@ -468,3 +468,5 @@ svg.ico{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-wi
   [data-t=c] section[data-v=subir]:has(#porSubirWrap:not(.hidden)) .drop > div{margin-top:0!important}
   [data-t=c] .subir-fin .btn{min-height:44px}
 }
+[data-t=c] .profe small{font:400 12px/14px var(--font);color:var(--l2);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+[data-t=c] .profe{width:104px}
