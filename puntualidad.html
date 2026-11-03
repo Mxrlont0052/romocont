@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="es" data-t="c">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<title>ROMO · Puntualidad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&display=swap">
+<style>
+/* ROMO CENTRAL › Puntualidad (para Kike, opción A «tabla», elegida por Marlon 03-11-2026). Solo LEE la hoja «Romo cont».
+   Compara lo programado (DÍA PUBLICAR + HORA PUBLICAR) con lo que RomoOps escribe en TT/IG/FB PUBLICADO, red por red.
+   A tiempo = ±30 min. Hoy RomoOps escribe solo el DÍA: mientras no traiga la hora, se mide en días (mismo día = a tiempo). */
+:root{
+  --negro:#000; --card:#1C1C1E; --card-2:#2C2C2E; --fill:rgba(120,120,128,.36); --sep:rgba(84,84,88,.6);
+  --l1:#fff; --l2:rgba(235,235,245,.6); --l3:rgba(235,235,245,.3); --rojo:#E8001D; --verde:#30D158; --rojo-s:#FF453A; --ambar:#FF9F0A; --rojo-t:#FF4245; --cyan:#00FFFF;
+  --font:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --spring:linear(0, 0.060 4.2%, 0.186 8.3%, 0.329 12.5%, 0.464 16.7%, 0.583 20.8%, 0.681 25.0%, 0.759 29.2%, 0.820 33.3%, 0.866 37.5%, 0.902 41.7%, 0.928 45.8%, 0.948 50.0%, 0.962 54.2%, 0.973 58.3%, 0.981 62.5%, 0.986 66.7%, 0.990 70.8%, 0.993 75.0%, 0.995 79.2%, 0.996 83.3%, 0.997 87.5%, 0.998 91.7%, 0.999 95.8%, 1);
+}
+@supports not (transition-timing-function: linear(0, 1)){:root{--spring:cubic-bezier(.25,.1,.25,1)}}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--negro)}
+body{color:var(--l1);font:400 15px/20px var(--font);letter-spacing:-.016em;-webkit-font-smoothing:antialiased;font-optical-sizing:auto;padding:24px 28px 56px}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+button:focus{outline:none} button:focus-visible{outline:2px solid #FF6165;outline-offset:2px}
+a{color:inherit;text-decoration:none}
+
+.head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.kicker{font:500 15px/20px var(--font);color:var(--l2)}
+.h1{font:700 34px/41px var(--font);letter-spacing:.012em;margin-top:2px}
+.sub{font:400 13px/18px var(--font);color:var(--l2);margin-top:4px}
+.controles{display:flex;gap:10px;flex-wrap:wrap}
+
+/* Segmentado: cápsula 32, pulgar #636366 que se desliza con resorte */
+.seg{position:relative;display:inline-flex;height:32px;padding:2px;border-radius:980px;background:var(--fill)}
+.seg button{position:relative;z-index:1;height:28px;padding:0 14px;border-radius:980px;font:500 13px/28px var(--font);letter-spacing:-.006em;color:#fff;white-space:nowrap}
+.seg button .c{color:var(--l2);margin-left:5px}
+.seg button[aria-pressed=true]{font-weight:600}
+.seg i{position:absolute;z-index:0;top:2px;bottom:2px;left:0;border-radius:980px;background:#636366;box-shadow:0 3px 8px rgba(0,0,0,.12),0 3px 1px rgba(0,0,0,.04);transition:transform .5s var(--spring),width .5s var(--spring)}
+
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:20px}
+.kpi{background:var(--card);border-radius:14px;padding:14px 16px}
+.kpi .l{font:400 13px/18px var(--font);color:var(--l2)}
+.kpi .v{font:700 28px/34px var(--font);letter-spacing:.012em;margin-top:2px;font-variant-numeric:tabular-nums}
+.kpi .d{font:400 12px/16px var(--font);color:var(--l2);margin-top:2px}
+
+
+.card{background:var(--card);border-radius:14px;padding:16px;margin-top:12px}
+.card h2{font:600 17px/22px var(--font);letter-spacing:-.026em}
+.card .nota{font:400 12px/16px var(--font);color:var(--l2);margin-top:2px}
+.card .top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -16px;padding:0 16px}
+.aviso{font:400 13px/18px var(--font);color:var(--l2);background:rgba(255,159,10,.12);border-radius:10px;padding:10px 12px;margin-top:12px}
+.aviso b{color:#fff;font-weight:600}
+
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th{font:400 12px/16px var(--font);color:var(--l2);text-align:right;padding:0 8px 8px;white-space:nowrap}
+th:first-child,td:first-child,th.iz,td.iz{text-align:left}
+td{font:400 14px/18px var(--font);text-align:right;padding:9px 8px;box-shadow:inset 0 .5px 0 var(--sep);white-space:nowrap}
+td b{font-weight:600}
+td.iz{max-width:260px;overflow:hidden;text-overflow:ellipsis}
+td .m{display:block;font:400 12px/16px var(--font);color:var(--l2);overflow:hidden;text-overflow:ellipsis}
+tbody tr{cursor:pointer}
+@media (hover:hover){tbody tr:hover td{background:rgba(120,120,128,.12)}}
+tbody tr:active td{background:rgba(120,120,128,.32);transition:none}
+
+/* Estado por red: punto de color + texto */
+.est{display:inline-flex;align-items:center;gap:6px;font:500 13px/18px var(--font)}
+.est i{width:8px;height:8px;border-radius:50%;flex:none}
+.est.ok i{background:var(--verde)} .est.tarde i{background:var(--rojo-s)} .est.antes i{background:var(--ambar)}
+.est.no,.est.espera{color:var(--l3)} .est.no i{border:1.5px solid var(--l3)} .est.espera i{border:1.5px dashed var(--l3)}
+.est.tarde{color:#FF6961}
+.leyenda{display:flex;gap:14px;flex-wrap:wrap;font:400 12px/16px var(--font);color:var(--l2);margin-top:12px}
+
+.vacio{text-align:center;padding:56px 16px}
+.vacio b{display:block;font:600 17px/22px var(--font)}
+.vacio p{font:400 15px/20px var(--font);color:var(--l2);margin-top:4px}
+
+@media (max-width:900px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}body{padding:16px}}
+</style>
+</head>
+<body>
+
+<div class="head">
+  <div>
+    <div class="kicker">Contenido</div>
+    <div class="h1">Puntualidad</div>
+    <div class="sub" id="sub">Cargando la hoja…</div>
+  </div>
+  <div class="controles"><div class="seg" id="segOrden" role="group" aria-label="Orden"></div></div>
+</div>
+
+<div id="cuerpo"></div>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxXMj7tetNujWtLkvyaFQfRJlJfn_MduZP6uDt24lzjznjlY8w0PQ4St1kOqt5Yx6Tb/exec';
+const MARGEN_MIN = 30;            // ±30 min = a tiempo (Marlon, 03-11-2026)
+const ZONA = '-05:00';            // la hora programada es hora de Quito
+const REDES = [{ k: 'tt', t: 'TikTok' }, { k: 'ig', t: 'Instagram' }, { k: 'fb', t: 'Facebook' }];
+const ORDENES = [{ k: 'reciente', t: 'Más recientes' }, { k: 'atraso', t: 'Más atrasados' }, { k: 'alcance', t: 'Más alcance' }];
+
+let VIDEOS = [], ORDEN = 'reciente', ACT = '';
+const $ = s => document.querySelector(s);
+const num = x => { const n = parseFloat(String(x ?? '').replace(/,/g, '')); return isFinite(n) ? n : 0; };
+const FMT = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 0 });
+const fmt = n => FMT.format(Math.round(n));
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const MES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+const dia = iso => { const [y, m, d] = String(iso || '').slice(0, 10).split('-'); return d ? `${+d} ${MES[+m - 1]}` : ''; };
+const bonito = s => { s = String(s || '').trim().toLowerCase(); return s ? s.replace(/(^|\s)\S/g, c => c.toUpperCase()).replace(/\b(Ia|Mdt|Dm|Ea)\b/g, w => w.toUpperCase()) : ''; };
+const iso10 = s => String(s || '').trim().slice(0, 10);
+const tieneHora = s => /\d{4}-\d\d-\d\d[T ]\d\d:\d\d/.test(String(s || ''));
+
+// Diferencia de una red: {t:'ok'|'tarde'|'antes'|'no', min (si hay hora) o dias, txt}
+function red(v, p){
+  const real = String(v[p + '_publicado'] || '').trim();
+  const prog = iso10(v.dia_pub), hora = String(v.hora_pub || '').trim();
+  // Sin fecha real: si RomoOps no ha vuelto a pasar desde el día programado, todavía no se sabe (no es «no salió»).
+  if (!real) return prog >= (iso10(v.actualizado) || ACT) ? { t: 'espera', txt: 'esperando dato' } : { t: 'no', txt: 'no salió' };
+  if (tieneHora(real) && /^\d\d?:\d\d/.test(hora)) {
+    const r = /[zZ]|[+-]\d\d:?\d\d$/.test(real) ? new Date(real.replace(' ', 'T')) : new Date(real.replace(' ', 'T').slice(0, 16) + ':00' + ZONA);
+    const pr = new Date(`${prog}T${hora.padStart(5, '0')}:00${ZONA}`);
+    const min = Math.round((r - pr) / 60000);
+    if (Math.abs(min) <= MARGEN_MIN) return { t: 'ok', min, txt: 'a tiempo' };
+    return { t: min > 0 ? 'tarde' : 'antes', min, txt: (min > 0 ? '+' : '−') + dur(Math.abs(min)) };
+  }
+  const dias = Math.round((Date.parse(iso10(real)) - Date.parse(prog)) / 864e5);
+  if (!dias) return { t: 'ok', dias: 0, min: 0, txt: 'a tiempo' };
+  return { t: dias > 0 ? 'tarde' : 'antes', dias, min: dias * 1440, txt: (dias > 0 ? '+' : '−') + Math.abs(dias) + (Math.abs(dias) === 1 ? ' día' : ' días') };
+}
+function dur(min){
+  if (min < 60) return min + ' min';
+  if (min < 1440) { const h = Math.floor(min / 60), m = min % 60; return h + ' h' + (m ? ' ' + m + ' min' : ''); }
+  const d = Math.floor(min / 1440), h = Math.round((min % 1440) / 60); return d + (d === 1 ? ' día' : ' días') + (h ? ' ' + h + ' h' : '');
+}
+function alcance(v){
+  const s = { vistas: 0, likes: 0, com: 0, comp: 0 };
+  REDES.forEach(({ k }) => { s.vistas += num(v[k + '_vistas']); s.likes += num(v[k + '_likes']); s.com += num(v[k + '_comentarios']); s.comp += num(v[k + '_compartidos']); });
+  return s;
+}
+const peorAtraso = v => Math.max(0, ...REDES.map(({ k }) => v._r[k]).filter(r => r.t === 'tarde').map(r => r.min));
+const chip = r => `<span class="est ${r.t}"><i></i>${esc(r.txt)}</span>`;
+
+function seg(el, items, actual, alElegir){
+  el.innerHTML = items.map(i => `<button type="button" data-k="${i.k}" aria-pressed="${i.k === actual}">${esc(i.t)}</button>`).join('') + '<i></i>';
+  const mover = sinAnim => { const b = el.querySelector('[aria-pressed=true]'), th = el.querySelector('i');
+    if (sinAnim) th.style.transition = 'none';
+    th.style.width = b.offsetWidth + 'px'; th.style.transform = `translateX(${b.offsetLeft}px)`;
+    if (sinAnim) requestAnimationFrame(() => th.style.transition = ''); };
+  el.querySelectorAll('button').forEach(b => b.onclick = () => {
+    el.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); mover(); alElegir(b.dataset.k); });
+  requestAnimationFrame(() => mover(true));
+}
+
+function pintar(){
+  const lista = [...VIDEOS];
+  if (!lista.length) { $('#cuerpo').innerHTML = `<div class="card" style="margin-top:20px"><div class="vacio"><b>Todavía no hay videos publicados con día y hora programados</b><p>Aparecen cuando se programan en ROMO CENTRAL › Programar.</p></div></div>`; return; }
+  const salidas = lista.flatMap(v => REDES.map(({ k }) => v._r[k])).filter(r => r.t !== 'no' && r.t !== 'espera');
+  const ok = salidas.filter(r => r.t === 'ok').length, tarde = salidas.filter(r => r.t === 'tarde');
+  const prom = tarde.length ? tarde.reduce((a, r) => a + r.min, 0) / tarde.length : 0;
+  const al = lista.map(alcance), vistas = al.reduce((a, m) => a + m.vistas, 0), inter = al.reduce((a, m) => a + m.likes + m.com + m.comp, 0);
+  const porRed = REDES.map(({ k, t }) => { const s = lista.map(v => v._r[k]).filter(r => r.t !== 'no' && r.t !== 'espera'); return `${t} ${s.length ? Math.round(100 * s.filter(r => r.t === 'ok').length / s.length) + ' %' : '—'}`; }).join(' · ');
+  const conHora = salidas.some(r => r.dias === undefined);
+
+  const orden = lista.sort(ORDEN === 'atraso' ? (a, b) => peorAtraso(b) - peorAtraso(a) || b._prog.localeCompare(a._prog)
+    : ORDEN === 'alcance' ? (a, b) => alcance(b).vistas - alcance(a).vistas : (a, b) => b._prog.localeCompare(a._prog));
+
+  $('#cuerpo').innerHTML = `
+    <div class="kpis">
+      <div class="kpi"><div class="l">A tiempo</div><div class="v">${salidas.length ? Math.round(100 * ok / salidas.length) : 0} %</div><div class="d">${porRed}</div></div>
+      <div class="kpi"><div class="l">Salieron tarde</div><div class="v">${fmt(tarde.length)}</div><div class="d">de ${fmt(salidas.length)} publicaciones (una por red)</div></div>
+      <div class="kpi"><div class="l">Atraso promedio</div><div class="v">${tarde.length ? '+' + dur(Math.round(prom)) : '—'}</div><div class="d">solo de los que salieron tarde</div></div>
+      <div class="kpi"><div class="l">Alcance</div><div class="v">${fmt(vistas)}</div><div class="d">vistas · ${fmt(inter)} interacciones</div></div>
+    </div>
+    ${conHora ? '' : `<div class="aviso"><b>Por ahora se mide en días.</b> RomoOps escribe solo el día en que salió cada video, no la hora. Cuando traiga la hora, esta página pasa sola a horas y minutos (a tiempo = ±${MARGEN_MIN} min).</div>`}
+    <div class="card"><div class="top"><div><h2>Videos publicados</h2><div class="nota">Toca un video para abrirlo en TikTok</div></div></div>
+    <div class="scroll"><table><thead><tr><th class="iz">Video</th><th class="iz">Programado</th>${REDES.map(r => `<th class="iz">${r.t}</th>`).join('')}<th>Vistas</th><th>Likes</th><th>Coment.</th><th>Compart.</th></tr></thead><tbody>
+    ${orden.map(v => { const m = alcance(v), link = v.tiktok || v.link || v.instagram || v.facebook || '';
+      return `<tr data-link="${esc(link)}"><td class="iz"><b>${esc(v.nombre)}</b><span class="m">${esc(bonito(v.categoria))}${v.publico ? ' · publicó ' + esc(bonito(v.publico)) : ''}</span></td>
+      <td class="iz">${esc(dia(v.dia_pub))}<span class="m">${esc(v.hora_pub || 'sin hora')}</span></td>
+      ${REDES.map(({ k }) => `<td class="iz">${chip(v._r[k])}</td>`).join('')}
+      <td><b>${fmt(m.vistas)}</b></td><td>${fmt(m.likes)}</td><td>${fmt(m.com)}</td><td>${fmt(m.comp)}</td></tr>`; }).join('')}
+    </tbody></table></div>
+    <div class="leyenda"><span class="est ok"><i></i>a tiempo</span><span class="est tarde"><i></i>tarde</span><span class="est antes"><i></i>antes de lo programado</span><span class="est no"><i></i>no salió en esa red</span><span class="est espera"><i></i>esperando dato de RomoOps</span></div></div>`;
+  document.querySelectorAll('tbody tr').forEach(tr => tr.onclick = () => { if (tr.dataset.link) window.open(tr.dataset.link, '_blank', 'noopener'); });
+}
+
+async function leerHoja(intentos = 3){
+  for (let i = 1; ; i++) {
+    const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 20000);
+    try { const r = await fetch(SCRIPT_URL, { cache: 'no-store', signal: ctl.signal }); return await r.json(); }
+    catch (e) { if (i >= intentos) throw e; }
+    finally { clearTimeout(t); }
+  }
+}
+// Igual que Analítica: pinta al instante con la copia del Inicio y relee por detrás si tiene más de 2 minutos.
+async function cargar(){
+  let copia = null, edad = Infinity;
+  try { copia = JSON.parse(localStorage.getItem('romocont_cache') || 'null'); edad = Date.now() - (+localStorage.getItem('romocont_cache_t') || 0); } catch {}
+  if (Array.isArray(copia) && copia.length) { try { pintarCon(copia); } catch {} if (edad < 120000) return; }
+  try {
+    const d = await leerHoja();
+    try { localStorage.setItem('romocont_cache', JSON.stringify((Array.isArray(d) ? d : d.videos || []).filter(v => v && v.id !== 'CONFIG_NUBE'))); localStorage.setItem('romocont_cache_t', Date.now()); } catch {}
+    pintarCon(d);
+  } catch (e) { if (!copia) throw e; }
+}
+function pintarCon(d){
+  const todos = (Array.isArray(d) ? d : d.videos || []).filter(v => v && v.nombre && String(v.estado).toUpperCase() === 'PUBLICADO');
+  const act = ACT = todos.map(v => iso10(v.actualizado)).filter(Boolean).sort().pop() || '';
+  VIDEOS = todos.filter(v => /^\d{4}-\d\d-\d\d/.test(iso10(v.dia_pub))).map(v => ({ ...v, _prog: iso10(v.dia_pub) + ' ' + String(v.hora_pub || ''), _r: Object.fromEntries(REDES.map(({ k }) => [k, red(v, k)])) }));
+  const sin = todos.length - VIDEOS.length;
+  $('#sub').textContent = `${fmt(VIDEOS.length)} videos publicados con día programado${act ? ` · datos al ${dia(act)}` : ''}${sin ? ` · ${fmt(sin)} publicados antes de Programar no se cuentan` : ''}`;
+  seg($('#segOrden'), ORDENES, ORDEN, k => { ORDEN = k; pintar(); });
+  pintar();
+}
+cargar().catch(() => { $('#sub').textContent = 'No se pudo leer la hoja. Recarga la página.'; });
+</script>
+</body>
+</html>
