@@ -485,3 +485,28 @@ svg.ico{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-wi
 .esq i:nth-child(2){opacity:.7}.esq i:nth-child(3){opacity:.45}
 @keyframes esq{to{background-position:-200% 0}}
 @media (prefers-reduced-motion:reduce){.esq i{animation:none}}
+
+/* Visor de video (03-11-2026): hoja que sube. Historial y Pendientes del dashboard. Solo carga al tocar ▶ */
+.visor{position:fixed;inset:0;z-index:2000;display:grid;place-items:center;pointer-events:none}
+.visor::before{content:"";position:absolute;inset:0;background:rgba(0,0,0,.6);opacity:0;transition:opacity .25s}
+.visor.open{pointer-events:auto}.visor.open::before{opacity:1}
+.visor-h{position:relative;width:min(400px,calc(100vw - 32px));max-height:calc(100dvh - 48px);display:flex;flex-direction:column;border-radius:22px;background:#1C1C1E;box-shadow:0 0 0 .5px rgba(255,255,255,.1),0 24px 60px rgba(0,0,0,.5);overflow:hidden;
+  transform:translateY(40px) scale(.96);opacity:0;transition:transform .55s var(--spring,cubic-bezier(.2,.9,.2,1)),opacity .2s}
+.visor.open .visor-h{transform:none;opacity:1}
+.visor-cab{display:flex;align-items:center;gap:10px;min-height:52px;padding:0 8px 0 16px}
+.visor-cab .t{flex:1;min-width:0;font:600 17px/22px var(--font,Inter,sans-serif);letter-spacing:-.026em;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.visor-cab .m{font:400 13px/18px var(--font,Inter,sans-serif);color:rgba(235,235,245,.6)}
+.visor-x{width:34px;height:34px;flex:none;border-radius:50%;display:grid;place-items:center;background:rgba(120,120,128,.24);color:rgba(235,235,245,.6);border:0;cursor:pointer}
+.visor-x:active{opacity:.4}
+.visor-x svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.25;stroke-linecap:round}
+.visor-v{position:relative;aspect-ratio:9/16;max-height:calc(100dvh - 100px);margin:0 auto 8px;width:calc(100% - 16px);border-radius:14px;overflow:hidden;background:#000}
+.visor-v video,.visor-v iframe{position:absolute;inset:0;width:100%;height:100%;border:0;object-fit:contain;background:#000}
+.visor-v .aviso{position:absolute;inset:0;display:grid;place-items:center;padding:24px;text-align:center;font:400 15px/20px var(--font,Inter,sans-serif);color:rgba(235,235,245,.6)}
+@media (max-width:600px){.visor{place-items:end center}
+  .visor-h{width:100%;border-radius:22px 22px 0 0;max-height:94dvh;transform:translateY(100%);padding-bottom:env(safe-area-inset-bottom)}
+  .visor-v{max-height:calc(94dvh - 70px)}}
+@media (prefers-reduced-motion:reduce){.visor-h{transition:opacity .15s}}
+/* Botón ▶ en la fila del Historial */
+[data-t=c] .ver-v{width:34px;height:34px;flex:none;border-radius:50%;display:grid;place-items:center;background:rgba(120,120,128,.24);color:#fff;border:0;cursor:pointer;margin-right:10px}
+[data-t=c] .ver-v:active{opacity:.4;transition:none}
+[data-t=c] .ver-v svg{width:14px;height:14px;fill:currentColor;margin-left:2px}

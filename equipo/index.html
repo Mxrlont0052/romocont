@@ -239,8 +239,8 @@ select.sel{height:36px;border-radius:10px;background:var(--card-2);border:0;padd
 }
 </style>
 <!-- Piel estilo Apple, regla general de ROMO (20-10-2026) -->
-<link rel="stylesheet" href="../romo-apple.css?v=17">
-<script src="../romo-apple.js?v=5"></script>
+<link rel="stylesheet" href="../romo-apple.css?v=18">
+<script src="../romo-apple.js?v=6"></script>
 </head>
 <body>
 
@@ -616,7 +616,7 @@ $$('[data-go]').forEach(b => b.onclick = () => ir(b.dataset.go));
 function abrirDash(t){
   const f = $('#dashFrame');
   try { if (f.contentWindow && f.contentWindow.tabTo && f.dataset.listo) { f.contentWindow.tabTo(t); return; } } catch {}
-  if (!f.src) { f.onload = () => { f.dataset.listo = '1'; pendientesDash(); }; f.src = '../dashboard.html?embed=1&v=2&tab=' + t; }
+  if (!f.src) { f.onload = () => { f.dataset.listo = '1'; pendientesDash(); }; f.src = '../dashboard.html?embed=1&v=3&tab=' + t; }
 }
 // El Dashboard avisa cuando cambia de pestaña solo (p. ej. "Ver los sin ficha →"): se marca en la barra.
 window.marcarDash = t => { if (!DASH.includes(t)) return; VISTA = t; history.replaceState(null, '', '#' + t);
@@ -868,13 +868,22 @@ $('#regSubir').onclick = async () => {
 /* ───── SUBIR ───── */
 const ESTADO_TAG = { 'PREPARANDO': ['org','Preparando'], 'PARA EDITAR': ['org','Para editar'], 'RENDERIZANDO': ['cy','Editándose'],
   'REVISAR': ['cy','Editándose'], 'LISTO': ['ok','Editado'], 'DESCARTADO': ['gr','Descartado'], 'ERROR': ['red','Error'] };
+// Historial: ▶ abre el visor (03-11-2026). Si ya está editado sale el final con voz; si no, el original. Nada carga hasta tocar.
+let MIAS = [];
+$('#mias').addEventListener('click', e => { const b = e.target.closest('[data-vk]'); if (!b) return; const s = MIAS[b.dataset.vk]; if (!s) return;
+  const prx = media(s.id, 'proxy.mp4');
+  verVideo({ titulo: s.codigo || s.archivo.replace(/\.[^.]+$/, ''), sub: s.codigo ? 'Editado · ' + s.archivo : 'Original · ' + fecha(s.fecha),
+    src: s.estado === 'LISTO' ? media(s.id, 'con_voz.mp4') : prx, otro: s.estado === 'LISTO' ? prx : null });
+});
 async function cargarMias(){
   if (!$('#mias .row')) $('#mias').innerHTML = esqueleto(3);
   try { await apiRapido('/api/subir/mias', d => {
     $('#misCuenta').textContent = d.subidas.length ? d.subidas.length + ' videos' : '';
-    $('#mias').innerHTML = d.subidas.map(s => { const [c, t] = ESTADO_TAG[s.estado] || ['gr', s.estado];
+    MIAS = d.subidas;
+    $('#mias').innerHTML = d.subidas.map((s, k) => { const [c, t] = ESTADO_TAG[s.estado] || ['gr', s.estado];
+      const ver = s.id && !['PREPARANDO', 'ERROR'].includes(s.estado) ? `<button class="ver-v" data-vk="${k}" aria-label="Ver ${esc(s.archivo)}"><svg viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5z"/></svg></button>` : '';
       const quien = s.codigo ? ` · editado por ${esc(s.editor)} → <b>${esc(s.codigo)}</b>` : s.editor ? ` · lo tiene ${esc(s.editor)}` : '';
-      return `<div class="row"><div class="grow"><div class="t trunc">${esc(s.archivo)}</div><div class="m">Subido ${esc(fecha(s.fecha))}${quien}</div></div><span class="tag ${c}">${t}</span></div>`;
+      return `<div class="row"><div class="grow"><div class="t trunc">${esc(s.archivo)}</div><div class="m">Subido ${esc(fecha(s.fecha))}${quien}</div></div>${ver}<span class="tag ${c}">${t}</span></div>`;
     }).join('') || '<div class="empty">Todavía no has subido nada.</div>';
   }); } catch (e) { $('#mias').innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
 }

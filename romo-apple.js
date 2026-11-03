@@ -43,6 +43,41 @@
     const n = cola.children.length, ok = cola.querySelectorAll('.tag.ok').length, todos = n > 0 && ok === n;
     if (todos !== p.hasAttribute('data-todos')) p.toggleAttribute('data-todos', todos);
   }
+  // Visor de video (03-11-2026): hoja que sube. o = { titulo, sub, src, otro (si src falla), drive (link de Drive) }.
+  // El dashboard (iframe) lo abre aquí con parent.verVideo para que tape toda la pantalla.
+  const driveId = u => (String(u || '').match(/\/file\/d\/([\w-]{10,})|[?&]id=([\w-]{10,})/) || []).slice(1).find(Boolean);
+  let visor, antes;
+  function cerrarVisor() {
+    if (!visor || !visor.classList.contains('open')) return;
+    visor.classList.remove('open');
+    const v = visor.querySelector('.visor-v'); setTimeout(() => { if (!visor.classList.contains('open')) v.innerHTML = ''; }, 300);   // corta el video
+    if (antes && antes.isConnected) antes.focus();
+  }
+  window.verVideo = o => {
+    if (!visor) {
+      visor = document.createElement('div'); visor.className = 'visor';
+      visor.innerHTML = '<div class="visor-h" role="dialog" aria-modal="true"><div class="visor-cab"><div style="flex:1;min-width:0"><div class="t"></div><div class="m"></div></div>'
+        + '<button class="visor-x" aria-label="Cerrar"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div><div class="visor-v"></div></div>';
+      document.body.append(visor);
+      visor.addEventListener('click', e => { if (e.target === visor || e.target.closest('.visor-x')) cerrarVisor(); });
+      document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarVisor(); });
+    }
+    antes = document.activeElement;
+    visor.querySelector('.t').textContent = o.titulo || 'Video';
+    visor.querySelector('.m').textContent = o.sub || '';
+    const caja = visor.querySelector('.visor-v'), id = driveId(o.drive);
+    const aviso = t => { caja.innerHTML = '<div class="aviso"></div>'; caja.firstChild.textContent = t; };
+    if (o.src) {
+      caja.innerHTML = '<video controls autoplay playsinline preload="metadata"></video>';
+      const v = caja.firstChild; let otro = o.otro;
+      v.onerror = () => { if (otro) { v.src = otro; otro = null; } else aviso('Este video todavía no se puede ver.'); };
+      v.src = o.src;
+    } else if (id) caja.innerHTML = `<iframe src="https://drive.google.com/file/d/${id}/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
+    else aviso('Este video no tiene archivo en Drive.');
+    visor.offsetWidth; visor.classList.add('open');
+    visor.querySelector('.visor-x').focus({ preventScroll: true });
+  };
+
   let pend = 0; const pronto = () => { if (!pend) { pend = 1; queueMicrotask(() => { pend = 0; thumbs(); soloUno(); todosListos(); }); } };   // antes de pintar
   const go = () => {
     menuCuenta(); thumbs(); soloUno(); todosListos();

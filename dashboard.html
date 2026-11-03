@@ -674,6 +674,8 @@ function animate(){
 function rowVideo(v,opts={}){const n=fichaN(v);
   const file=esArchivo(v.link)?`<a class="btn btn-gray btn-sm" href="${esc(v.link)}" target="_blank" rel="noopener" title="Descargar de Drive" aria-label="Descargar ${esc(v.nombre)}">⬇</a>`
     :(opts.subir?`<a class="btn btn-gray btn-sm l3" href="${esc(NUBE_INBOX)}" target="_blank" rel="noopener" title="No está en Drive: súbelo a VIDEOS LISTOS PARA SUBIR">📤</a>`:'');
+  // ▶ Ver (03-11-2026): dentro de ROMO CENTRAL abre el visor de la página de arriba; suelto, abre Drive
+  const ver=esArchivo(v.link)?`<button class="btn btn-gray btn-sm" onclick="verDe('${esc(v.id)}')" title="Ver el video" aria-label="Ver ${esc(v.nombre)}">▶</button>`:'';
   const copy=esDescReal(v.descripcion)?`<button class="btn btn-gray btn-sm" onclick="copyDesc('${esc(v.id)}')" title="Copiar descripción" aria-label="Copiar descripción de ${esc(v.nombre)}">📋</button>`:'';
   const main=v.estado==='PENDIENTE'?`<button class="btn btn-red btn-sm" onclick="openEditor('${esc(v.id)}','publicar')">Publicar</button>`
     :`<button class="btn btn-gray btn-sm" onclick="openEditor('${esc(v.id)}','editar')">${n===FICHA.length?'Editar':'Ficha'}</button>`;
@@ -682,7 +684,9 @@ function rowVideo(v,opts={}){const n=fichaN(v);
     <div class="fill-dots" title="Ficha ${n}/${FICHA.length}">${FICHA.map(f=>`<i class="${fichaOk(v,f)?'on':''}"></i>`).join('')}</div></div>
     <div class="desk-col desk-desc">${esDescReal(v.descripcion)?esc(firstLine(v.descripcion)):`<span class="l3">${v.descripcion?esc(v.descripcion):'Sin descripción'}</span>`}</div>
     <div class="desk-col desk-est">${v.estado==='PUBLICADO'?'<span class="tag ok">Publicado</span>':'<span class="tag org">Pendiente</span>'}</div>
-    <div class="vid-act">${file}${copy}${main}${v.estado==='PENDIENTE'?`<button class="btn btn-gray btn-sm" onclick="openEditor('${esc(v.id)}','editar')" title="Editar" aria-label="Editar ${esc(v.nombre)}">✎</button>`:''}</div></div>`}
+    <div class="vid-act">${ver}${file}${copy}${main}${v.estado==='PENDIENTE'?`<button class="btn btn-gray btn-sm" onclick="openEditor('${esc(v.id)}','editar')" title="Editar" aria-label="Editar ${esc(v.nombre)}">✎</button>`:''}</div></div>`}
+function verDe(id){const v=videos.find(x=>x.id===id);if(!v)return;const o={titulo:v.nombre,sub:v.categoria+' · '+(who(v)||'sin creador'),drive:v.link};
+  try{if(parent!==window&&parent.verVideo)return parent.verVideo(o)}catch(e){}window.open(v.link,'_blank','noopener')}
 function copyDesc(id){const v=videos.find(x=>x.id===id);if(!v||!v.descripcion)return;
   navigator.clipboard.writeText(v.descripcion).then(()=>toast('📋 Descripción de '+v.nombre+' copiada ✓'),()=>toast('⚠ No se pudo copiar'))}
 
