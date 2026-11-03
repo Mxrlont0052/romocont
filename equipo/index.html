@@ -604,7 +604,7 @@ function ir(v){
   $$('[data-nav]').forEach(a => a.classList.toggle('on', a.dataset.nav === (v === 'cambios' || v === 'registrar' ? 'edits' : v)));
   window.scrollTo(0, 0);
   if (v === 'ana' && !$('#anaFrame').src) $('#anaFrame').src = '../analitica.html?v=2';
-  if (v === 'punt' && !$('#puntFrame').src) $('#puntFrame').src = '../puntualidad.html?v=1';
+  if (v === 'punt' && !$('#puntFrame').src) $('#puntFrame').src = '../puntualidad.html?v=2';
   if (v === 'subir') cargarMias();
   if (v === 'publicar') cargarPublicar();
   if (v === 'programar') cargarProgramar();

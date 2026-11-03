@@ -114,8 +114,14 @@ const iso10 = s => String(s || '').trim().slice(0, 10);
 const tieneHora = s => /\d{4}-\d\d-\d\d[T ]\d\d:\d\d/.test(String(s || ''));
 
 // Diferencia de una red: {t:'ok'|'tarde'|'antes'|'no', min (si hay hora) o dias, txt}
+// El ID de un video de TikTok guarda la hora exacta en que salió (los primeros 32 bits = segundos Unix).
+// IG y FB no la traen en su ID: esas redes siguen en días hasta que RomoOps escriba la hora.
+function horaTikTok(id){
+  id = String(id || '').trim(); if (!/^\d{15,}$/.test(id)) return '';
+  try { return new Date(Number(BigInt(id) >> 32n) * 1000).toISOString(); } catch { return ''; }
+}
 function red(v, p){
-  const real = String(v[p + '_publicado'] || '').trim();
+  const real = (p === 'tt' && horaTikTok(v.tt_id)) || String(v[p + '_publicado'] || '').trim();
   const prog = iso10(v.dia_pub), hora = String(v.hora_pub || '').trim();
   // Sin fecha real: si RomoOps no ha vuelto a pasar desde el día programado, todavía no se sabe (no es «no salió»).
   if (!real) return prog >= (iso10(v.actualizado) || ACT) ? { t: 'espera', txt: 'esperando dato' } : { t: 'no', txt: 'no salió' };
@@ -123,8 +129,9 @@ function red(v, p){
     const r = /[zZ]|[+-]\d\d:?\d\d$/.test(real) ? new Date(real.replace(' ', 'T')) : new Date(real.replace(' ', 'T').slice(0, 16) + ':00' + ZONA);
     const pr = new Date(`${prog}T${hora.padStart(5, '0')}:00${ZONA}`);
     const min = Math.round((r - pr) / 60000);
-    if (Math.abs(min) <= MARGEN_MIN) return { t: 'ok', min, txt: 'a tiempo' };
-    return { t: min > 0 ? 'tarde' : 'antes', min, txt: (min > 0 ? '+' : '−') + dur(Math.abs(min)) };
+    const sale = r.toLocaleString('es', { timeZone: 'America/Guayaquil', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }) + (iso10(r.toLocaleDateString('sv', { timeZone: 'America/Guayaquil' })) !== prog ? ' · ' + dia(r.toLocaleDateString('sv', { timeZone: 'America/Guayaquil' })) : '');
+    if (Math.abs(min) <= MARGEN_MIN) return { t: 'ok', min, hora: sale, txt: 'a tiempo' };
+    return { t: min > 0 ? 'tarde' : 'antes', min, hora: sale, txt: (min > 0 ? '+' : '−') + dur(Math.abs(min)) };
   }
   const dias = Math.round((Date.parse(iso10(real)) - Date.parse(prog)) / 864e5);
   if (!dias) return { t: 'ok', dias: 0, min: 0, txt: 'a tiempo' };
@@ -162,8 +169,7 @@ function pintar(){
   const prom = tarde.length ? tarde.reduce((a, r) => a + r.min, 0) / tarde.length : 0;
   const al = lista.map(alcance), vistas = al.reduce((a, m) => a + m.vistas, 0), inter = al.reduce((a, m) => a + m.likes + m.com + m.comp, 0);
   const porRed = REDES.map(({ k, t }) => { const s = lista.map(v => v._r[k]).filter(r => r.t !== 'no' && r.t !== 'espera'); return `${t} ${s.length ? Math.round(100 * s.filter(r => r.t === 'ok').length / s.length) + ' %' : '—'}`; }).join(' · ');
-  const conHora = salidas.some(r => r.dias === undefined);
-
+  
   const orden = lista.sort(ORDEN === 'atraso' ? (a, b) => peorAtraso(b) - peorAtraso(a) || b._prog.localeCompare(a._prog)
     : ORDEN === 'alcance' ? (a, b) => alcance(b).vistas - alcance(a).vistas : (a, b) => b._prog.localeCompare(a._prog));
 
@@ -174,13 +180,13 @@ function pintar(){
       <div class="kpi"><div class="l">Atraso promedio</div><div class="v">${tarde.length ? '+' + dur(Math.round(prom)) : '—'}</div><div class="d">solo de los que salieron tarde</div></div>
       <div class="kpi"><div class="l">Alcance</div><div class="v">${fmt(vistas)}</div><div class="d">vistas · ${fmt(inter)} interacciones</div></div>
     </div>
-    ${conHora ? '' : `<div class="aviso"><b>Por ahora se mide en días.</b> RomoOps escribe solo el día en que salió cada video, no la hora. Cuando traiga la hora, esta página pasa sola a horas y minutos (a tiempo = ±${MARGEN_MIN} min).</div>`}
+    <div class="aviso"><b>TikTok se mide en horas y minutos</b> (la hora sale del ID del video; a tiempo = ±${MARGEN_MIN} min). <b>Instagram y Facebook, por ahora en días:</b> RomoOps guarda solo el día en que salieron. Cuando traiga la hora, pasan solas a horas.</div>
     <div class="card"><div class="top"><div><h2>Videos publicados</h2><div class="nota">Toca un video para abrirlo en TikTok</div></div></div>
     <div class="scroll"><table><thead><tr><th class="iz">Video</th><th class="iz">Programado</th>${REDES.map(r => `<th class="iz">${r.t}</th>`).join('')}<th>Vistas</th><th>Likes</th><th>Coment.</th><th>Compart.</th></tr></thead><tbody>
     ${orden.map(v => { const m = alcance(v), link = v.tiktok || v.link || v.instagram || v.facebook || '';
       return `<tr data-link="${esc(link)}"><td class="iz"><b>${esc(v.nombre)}</b><span class="m">${esc(bonito(v.categoria))}${v.publico ? ' · publicó ' + esc(bonito(v.publico)) : ''}</span></td>
       <td class="iz">${esc(dia(v.dia_pub))}<span class="m">${esc(v.hora_pub || 'sin hora')}</span></td>
-      ${REDES.map(({ k }) => `<td class="iz">${chip(v._r[k])}</td>`).join('')}
+      ${REDES.map(({ k }) => `<td class="iz">${chip(v._r[k])}${v._r[k].hora ? `<span class="m">salió ${esc(v._r[k].hora)}</span>` : ''}</td>`).join('')}
       <td><b>${fmt(m.vistas)}</b></td><td>${fmt(m.likes)}</td><td>${fmt(m.com)}</td><td>${fmt(m.comp)}</td></tr>`; }).join('')}
     </tbody></table></div>
     <div class="leyenda"><span class="est ok"><i></i>a tiempo</span><span class="est tarde"><i></i>tarde</span><span class="est antes"><i></i>antes de lo programado</span><span class="est no"><i></i>no salió en esa red</span><span class="est espera"><i></i>esperando dato de RomoOps</span></div></div>`;
