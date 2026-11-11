@@ -640,6 +640,9 @@ $$('[data-dia]').forEach(b => b.onclick = () => { PUB_DIA = b.dataset.dia; PUB_A
 const MES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
 const diaCorto = iso => { const [y, m, d] = (iso || '').split('-'); return d ? `${+d} ${MES[+m - 1]}` : ''; };
 async function cargarPublicar(){
+  const soloHoy = rolUI() !== 'ADMIN';   // Lizy solo ve HOY (Marlon, 10-11-2026): con Pendientes/Mañana publicaba videos de otros días
+  $$('[data-dia]').forEach(b => b.classList.toggle('hidden', soloHoy && b.dataset.dia !== 'hoy'));
+  if (soloHoy) { PUB_DIA = 'hoy'; PUB_AUTO = false; marcarDia(); }
   const dia = PUB_DIA === 'pendientes' ? 'pendientes' : diaISO(PUB_DIA === 'hoy' ? 0 : 1);
   $('#pubTitulo').textContent = PUB_DIA === 'hoy' ? 'Hoy' : PUB_DIA === 'manana' ? 'Mañana' : 'Pendientes';
   if (!$('#pubLista .pub')) $('#pubLista').innerHTML = esqueleto(3);
