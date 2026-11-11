@@ -193,7 +193,18 @@ function pintar(){
   document.querySelectorAll('tbody tr').forEach(tr => tr.onclick = () => { if (tr.dataset.link) window.open(tr.dataset.link, '_blank', 'noopener'); });
 }
 
+// Camino rápido (11-11-2026): la misma respuesta de la hoja, pero desde ROMO CENTRAL: comprimida (~40 KB en vez de 465 KB)
+// y ya en memoria (0,5 s en vez de 4 s o más). En el teléfono con mala señal era lo que dejaba esto en «Sincronizando».
+// Si ROMO CENTRAL no contesta en 8 s, se lee directo de Google como siempre.
+const VIDEOS_RAPIDO = 'https://rauwkbron--romo-central-web' + (new URLSearchParams(location.search).get('api') === 'dev' ? '-dev' : '') + '.us-east.modal.run/api/videos';   // ?api=dev → servidor de prueba
+async function leerRapido(){
+  const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 8000);
+  try { const r = await fetch(VIDEOS_RAPIDO, { signal: ctl.signal }); if (!r.ok) throw new Error('rápido ' + r.status);
+    const d = await r.json(); if (!Array.isArray(d)) throw new Error('rápido: respuesta rara'); return d; }
+  finally { clearTimeout(t); }
+}
 async function leerHoja(intentos = 3){
+  try { return await leerRapido(); } catch (e) {}
   for (let i = 1; ; i++) {
     const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 20000);
     try { const r = await fetch(SCRIPT_URL, { cache: 'no-store', signal: ctl.signal }); return await r.json(); }

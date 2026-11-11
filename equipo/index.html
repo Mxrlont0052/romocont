@@ -471,9 +471,15 @@ function toast(t){ const e = $('#toast'); e.textContent = t; e.classList.add('sh
 let EQUIPO = null;
 const verCabecera = () => VER ? { 'X-Ver-Como': VER.clave } : {};
 async function api(ruta, body, metodo, sinVer){   // sinVer: siempre como tú (la sesión), aunque estés en «Ver como»
-  const r = await fetch(API + ruta, { method: metodo || (body ? 'POST' : 'GET'),
+  // Tope de tiempo (11-11-2026): con mala señal un pedido colgado dejaba la pantalla en gris para siempre.
+  // Leer: 25 s (las listas reintentan solas). Guardar: 90 s (no se repite solo, para no hacer nada dos veces).
+  const met = metodo || (body ? 'POST' : 'GET'), ctl = new AbortController(), tope = setTimeout(() => ctl.abort(), met === 'GET' ? 25000 : 90000);
+  let r;
+  try { r = await fetch(API + ruta, { method: met, signal: ctl.signal,
     headers: Object.assign({ 'Authorization': 'Bearer ' + (TOKEN || '') }, sinVer ? {} : verCabecera(), body ? { 'Content-Type': 'application/json' } : {}),
-    body: body ? JSON.stringify(body) : undefined });
+    body: body ? JSON.stringify(body) : undefined }); }
+  catch (e) { throw new Error(ctl.signal.aborted ? 'El servidor tardó demasiado. Prueba otra vez.' : (e && e.message) || 'Sin conexión'); }
+  finally { clearTimeout(tope); }
   let d = {}; try { d = await r.json() } catch {}
   if (r.status === 401) { salir(true); throw new Error(d.detail || 'Entra de nuevo'); }
   if (!r.ok) throw new Error(d.detail || ('Error ' + r.status));
@@ -496,6 +502,24 @@ async function apiRapido(ruta, pintar){
 const olvidar = parte => { try { Object.keys(localStorage).filter(k => k.startsWith('rc_c') && k.includes(parte)).forEach(k => localStorage.removeItem(k)); } catch {} };
 const esqueleto = n => '<div class="esq">' + Array.from({ length: n }, () => '<i></i>').join('') + '</div>';
 const media = (id, n) => `${API}/media/${id}/${n}?t=${encodeURIComponent(TOKEN)}`;
+/* Miniaturas de las colas (11-11-2026): antes se pedían TODAS de golpe (85 pedidos) cada vez que se pintaba la lista.
+   Ahora solo las que están en pantalla (y un poco más); las que ya se vieron salen al instante, sin parpadeo. */
+const MINI_VISTAS = new Set(), OJOS_MINI = {};
+const miniatura = id => { const u = media(id, 'poster.jpg'); return MINI_VISTAS.has(u) ? `style="background-image:url('${u}')"` : `data-bg="${u}"`; };
+function miniaturas(sel){
+  const poner = d => { if (!d.dataset.bg) return; d.style.backgroundImage = `url('${d.dataset.bg}')`; MINI_VISTAS.add(d.dataset.bg); d.removeAttribute('data-bg'); };
+  const caja = $(sel), faltan = () => $$(sel + ' .thumb[data-bg]');
+  if (!caja || !('IntersectionObserver' in window)) return faltan().forEach(poner);
+  if (OJOS_MINI[sel]) OJOS_MINI[sel].disconnect();
+  // Lo que ya está a la vista se pide YA (sin esperar al observador); el resto, cuando se acerque al hacer scroll.
+  const c = caja.getBoundingClientRect();
+  faltan().forEach(d => { const r = d.getBoundingClientRect(); if (r.height && r.bottom > c.top - 500 && r.top < c.bottom + 500) poner(d); });
+  let avisa = false;
+  const ojo = OJOS_MINI[sel] = new IntersectionObserver(es => { avisa = true; es.forEach(e => { if (e.isIntersecting) { ojo.unobserve(e.target); poner(e.target); } }); }, { root: caja, rootMargin: '500px' });
+  faltan().forEach(d => ojo.observe(d));
+  // Navegador que no avisa (pestaña en segundo plano, etc.): a los 2,5 s se piden todas, como antes.
+  setTimeout(() => { if (!avisa && OJOS_MINI[sel] === ojo) { ojo.disconnect(); faltan().forEach(poner); } }, 2500);
+}
 const fmt = s => { s = Math.max(0, s || 0); const m = Math.floor(s / 60), r = s - m * 60; return m + ':' + r.toFixed(2).padStart(5, '0'); };
 const fecha = iso => { const d = new Date(iso); if (isNaN(d)) return ''; const hoy = new Date(); const h = d.toLocaleTimeString('es-EC', {hour:'2-digit', minute:'2-digit'});
   return d.toDateString() === hoy.toDateString() ? 'hoy ' + h : d.toLocaleDateString('es-EC', {day:'numeric', month:'short'}) + ' ' + h; };
@@ -916,11 +940,24 @@ function agregar(files){
   pintarPrev();
 }
 const prevListo = p => p.sale === 'NADIE' || (p.sale === 'PROFE' && p.profes.length > 0) || (p.sale === 'ESTUDIANTE' && p.at.replace('@', '').trim().length > 1 && p.permiso);
+/* Solo se carga el video que está en pantalla (11-11-2026): con 93 archivos elegidos, abrir los 93 a la vez dejaba al
+   teléfono (y a la compu) sin memoria. Al salir de pantalla se suelta. Se ve igual. */
+const ojoPrev = 'IntersectionObserver' in window ? new IntersectionObserver(es => es.forEach(e => { const v = e.target;
+  if (e.isIntersecting) { if (!v.getAttribute('src')) v.src = v.dataset.src; }
+  else if (v.getAttribute('src')) { v.removeAttribute('src'); v.load(); } }), { rootMargin: '400px' }) : null;
+function prevPerezosa(){
+  const alto = innerHeight + 400;
+  $$('#porSubir video[data-src]').forEach(v => {
+    if (!ojoPrev) return v.src = v.dataset.src;
+    const r = v.getBoundingClientRect(); if (r.bottom > -400 && r.top < alto) v.src = v.dataset.src;   // lo visible, ya (sin parpadeo)
+    ojoPrev.observe(v); });
+}
 function pintarPrev(){
+  if (ojoPrev) ojoPrev.disconnect();
   $('#porSubirWrap').classList.toggle('hidden', !PREV.length);
   $('#porSubir').innerHTML = PREV.map((p, i) => `
     <div class="prev" data-i="${i}">
-      <div class="prev-cab"><video class="prev-img" src="${p.url}#t=0.1" muted playsinline preload="metadata"></video>
+      <div class="prev-cab"><video class="prev-img" data-src="${p.url}#t=0.1" muted playsinline preload="metadata"></video>
         <div class="grow"><div class="t trunc">${esc(p.f.name)}</div><div class="m">${(p.f.size / 1048576).toFixed(0)} MB</div></div>
         <button class="lnk-q" data-quitar>Quitar</button></div>
       <div class="lbl-q">¿Quién sale?</div>
@@ -939,6 +976,7 @@ function pintarPrev(){
     const at = el.querySelector('[data-at]'); if (at) at.oninput = () => { p.at = at.value; revisarPrev(); };
     const pm = el.querySelector('[data-permiso]'); if (pm) pm.onchange = () => { p.permiso = pm.checked; revisarPrev(); };
   });
+  prevPerezosa();
   revisarPrev();
 }
 function revisarPrev(){
@@ -963,28 +1001,53 @@ function pintarCola(){
   $('#subiendoCuenta').textContent = `${listos} de ${COLA.length} listos`;
   $('#subiendo').innerHTML = COLA.map(c => {
     const mb = (c.f.size / 1048576).toFixed(0) + ' MB';
-    const txt = c.estado === 'listo' ? 'listo' : c.estado === 'error' ? esc(c.error || 'falló') : c.estado === 'subiendo' ? `${Math.round(c.prog * 100)} %` : 'en cola';
+    const txt = c.estado === 'listo' ? 'listo' : c.estado === 'error' ? esc(c.error || 'falló') : c.estado === 'subiendo' ? (c.registrando ? 'ya está en el Drive, registrando…' : `${Math.round(c.prog * 100)} %`) : 'en cola';
     const tag = { listo: ['ok','En EDITS'], error: ['red','Error'], subiendo: ['org','Subiendo'], cola: ['gr','En cola'] }[c.estado];
     return `<div class="row"><div class="grow"><div class="t trunc">${esc(c.f.name)}</div><div class="m">${mb} · ${txt}</div><div class="pbar"><i class="${c.estado === 'listo' ? 'ok' : ''}" style="width:${c.estado === 'listo' ? 100 : Math.round(c.prog * 100)}%"></i></div></div><span class="tag ${tag[0]}">${tag[1]}</span>${c.estado === 'error' ? '<button class="btn btn-gray btn-sm" data-reint>Reintentar</button>' : ''}</div>`;
   }).join('');
   $$('#subiendo [data-reint]').forEach((b, i) => b.onclick = () => { COLA.filter(c => c.estado === 'error').forEach(c => { c.estado = 'cola'; c.prog = 0; }); pintarCola(); if (!SUBIENDO) subirSiguiente(); });
 }
+/* 11-11-2026 · que subir muchos no se rompa:
+   · cada video recuerda su `sid`, su dirección de subida y su `driveId`: «Reintentar» sigue donde quedó (si el archivo ya
+     está en el Drive solo falta registrarlo; si quedó a medias, sigue desde ese byte). Antes lo subía ENTERO otra vez.
+   · el registro en la hoja se reintenta solo (la hoja a veces está ocupada) y el servidor no duplica la fila.
+   · mientras un video se registra, el siguiente ya va subiendo. */
+async function registrarSubida(c){
+  for (let i = 0; ; i++) {
+    try { await api('/api/subir/listo', { id: c.sid, drive_id: c.driveId, sale: c.sale, reintento: !!c.regFallo }); return; }
+    catch (e) { c.regFallo = true; if (i >= 3) throw e; await dormir(2500 * (i + 1)); }
+  }
+}
+const colaViva = () => COLA.some(c => c.estado === 'cola' || c.estado === 'subiendo');
 async function subirSiguiente(){
   const c = COLA.find(c => c.estado === 'cola');
-  if (!c) { SUBIENDO = false; cargarMias(); return; }
+  if (!c) { if (!colaViva()) { SUBIENDO = false; cargarMias(); } return; }
   SUBIENDO = true; c.estado = 'subiendo'; pintarCola();
   try {
-    const s = await api('/api/subir/iniciar', { archivo: c.f.name, tam: c.f.size, tipo: c.f.type || 'video/quicktime', sale: c.sale });
-    const driveId = await subirADrive(s.url, c);
-    await api('/api/subir/listo', { id: s.id, drive_id: driveId, sale: c.sale });
-    c.estado = 'listo';
-  } catch (e) { c.estado = 'error'; c.error = e.message; }
-  pintarCola(); subirSiguiente();
+    if (!c.driveId) {
+      if (!c.url) { const s = await api('/api/subir/iniciar', { archivo: c.f.name, tam: c.f.size, tipo: c.f.type || 'video/quicktime', sale: c.sale }); c.sid = s.id; c.url = s.url; c.empezado = false; }
+      const seguir = c.empezado; c.empezado = true;
+      try { c.driveId = await subirADrive(c.url, c, seguir); }
+      catch (e) { if (e.vencida) { c.url = null; c.empezado = false; } throw e; }
+    }
+  } catch (e) { c.estado = 'error'; c.error = e.message; pintarCola(); return subirSiguiente(); }
+  c.prog = 1; c.registrando = true; pintarCola();
+  registrarSubida(c).then(() => { c.estado = 'listo'; }, e => { c.estado = 'error'; c.error = 'Ya está en el Drive; falta registrarlo (' + e.message + '). Dale Reintentar: no se vuelve a subir.'; })
+    .finally(() => { c.registrando = false; pintarCola(); if (!colaViva()) { SUBIENDO = false; cargarMias(); } });
+  subirSiguiente();   // el siguiente empieza a subir mientras este se registra
 }
 // Subida reanudable directa a Google Drive, en pedazos de 16 MB (múltiplos de 256 KB).
-async function subirADrive(url, c){
+async function subirADrive(url, c, seguir){
   const PED = 64 * 256 * 1024, total = c.f.size;
   let ini = 0, intentos = 0;
+  if (seguir) {   // reintento: preguntarle a Drive hasta dónde llegó y seguir desde ahí
+    const q = await new Promise(ok => { const x = new XMLHttpRequest(); x.open('PUT', url); x.setRequestHeader('Content-Range', `bytes */${total}`);
+      x.onload = () => ok(x); x.onerror = () => ok(null); x.send(); });
+    if (!q) throw new Error('Se cortó el internet');
+    if (q.status === 200 || q.status === 201) { const j = JSON.parse(q.responseText || '{}'); if (j.id) return j.id; }
+    if (q.status === 308) { const rg = q.getResponseHeader('Range'); ini = rg ? +rg.split('-')[1] + 1 : 0; c.prog = ini / total; (c.onprog || pintarBarra)(c); }
+    else if (q.status === 404 || q.status === 410) { const e = new Error('La subida venció. Dale Reintentar y empieza de nuevo.'); e.vencida = true; throw e; }
+  }
   while (true) {
     const fin = Math.min(ini + PED, total);
     let r;
@@ -1073,7 +1136,8 @@ function pintarMarcar(){
   $('#sinVideos').classList.toggle('hidden', lista.length > 0);
   ['#cola', '#vcol', '#panelM'].forEach(x => $(x).classList.toggle('hidden', !lista.length));
   $('#cKicker').textContent = 'Romo Cambios'; $('#cCuenta').textContent = lista.length ? `${I + 1} de ${lista.length}` : '';
-  $('#cola').innerHTML = lista.map((it, k) => `<button class="${k === I ? 'on' : ''}" data-k="${k}"><div class="thumb" style="background-image:url('${media(it.id, 'poster.jpg')}')"></div><div style="min-width:0"><div class="t trunc">${esc(it.archivo.replace(/\.[^.]+$/, ''))}</div><div class="m">${listoParaRender(it) ? '<span class="tag ok">Listo</span>' : it.marca.marker != null ? '<span class="tag org">Falta tipo</span>' : 'Sin marcar'}</div></div></button>`).join('');
+  $('#cola').innerHTML = lista.map((it, k) => `<button class="${k === I ? 'on' : ''}" data-k="${k}"><div class="thumb" ${miniatura(it.id)}></div><div style="min-width:0"><div class="t trunc">${esc(it.archivo.replace(/\.[^.]+$/, ''))}</div><div class="m">${listoParaRender(it) ? '<span class="tag ok">Listo</span>' : it.marca.marker != null ? '<span class="tag org">Falta tipo</span>' : 'Sin marcar'}</div></div></button>`).join('');
+  miniaturas('#cola');
   $$('#cola [data-k]').forEach(b => b.onclick = () => { I = +b.dataset.k; pintarMarcar(); });
   const n = lista.filter(listoParaRender).length;
   $('#bRender').disabled = !n; $('#bRender').textContent = n ? `Renderizar y guardar ${n}` : 'Renderizar y guardar';
@@ -1234,7 +1298,8 @@ function pintarRevisar(){
   enlazarPanel(it);
 }
 function pintarColaRev(){
-  $('#rcola').innerHTML = enRevisar().map((it, k) => `<button class="${k === J ? 'on' : ''}" data-j="${k}"><div class="thumb" style="background-image:url('${media(it.id, 'poster.jpg')}')"></div><div style="min-width:0"><div class="t trunc">${esc(it.archivo.replace(/\.[^.]+$/, ''))}</div><div class="m">${tagDe(it)}</div></div></button>`).join('');
+  $('#rcola').innerHTML = enRevisar().map((it, k) => `<button class="${k === J ? 'on' : ''}" data-j="${k}"><div class="thumb" ${miniatura(it.id)}></div><div style="min-width:0"><div class="t trunc">${esc(it.archivo.replace(/\.[^.]+$/, ''))}</div><div class="m">${tagDe(it)}</div></div></button>`).join('');
+  miniaturas('#rcola');
   $$('#rcola [data-j]').forEach(b => b.onclick = () => { J = +b.dataset.j; pintarRevisar(); });
 }
 function enlazarPanel(it){

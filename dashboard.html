@@ -485,10 +485,22 @@ const DRIVE_SINVOZ='https://drive.google.com/drive/folders/1EwH6F6YbSBHkoCqHfnp9
 const AUDIOS_URL='https://friendship-tampa-tension-frontier.trycloudflare.com/files/ROMODJ%20VAUL/Material%20Romo/';
 let NUBE_INBOX=NUBE_INBOX_DEFAULT;
 
+// Camino rápido (11-11-2026): la misma respuesta de la hoja, pero desde ROMO CENTRAL: comprimida (~40 KB en vez de 465 KB)
+// y ya en memoria (0,5 s en vez de 4 s o más). En el teléfono con mala señal era lo que dejaba esto en «Sincronizando».
+// Si ROMO CENTRAL no contesta en 8 s, se lee directo de Google como siempre.
+const VIDEOS_RAPIDO = 'https://rauwkbron--romo-central-web' + (new URLSearchParams(location.search).get('api') === 'dev' ? '-dev' : '') + '.us-east.modal.run/api/videos';   // ?api=dev → servidor de prueba
+async function leerRapido(){
+  const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 8000);
+  try { const r = await fetch(VIDEOS_RAPIDO, { signal: ctl.signal }); if (!r.ok) throw new Error('rápido ' + r.status);
+    const d = await r.json(); if (!Array.isArray(d)) throw new Error('rápido: respuesta rara'); return d; }
+  finally { clearTimeout(t); }
+}
 // La hoja a veces no contesta (Apps Script frío): se corta a los 20 s y se reintenta solo, hasta 3 veces (25-10-2026).
-async function apiGet(){
+// `directo` = recién guardé algo: leer de Google para ver mi cambio seguro.
+async function apiGet(directo){
   let d;
-  for(let i=1;;i++){const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),20000);
+  if(!directo){try{d=await leerRapido()}catch(e){d=null}}
+  if(!d)for(let i=1;;i++){const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),20000);
     try{const r=await fetch(SCRIPT_URL,{cache:'no-store',signal:ctl.signal});d=await r.json();break}
     catch(e){if(i>=3)throw e;await new Promise(z=>setTimeout(z,1500*i))}finally{clearTimeout(t)}}
   if(d&&d.error)throw new Error(d.error);
@@ -498,7 +510,9 @@ async function apiGet(){
 // text/plain evita el preflight CORS que Apps Script no soporta
 async function apiPost(action,payload){
   const r=await fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action,...payload})});
-  if(!r.ok)throw new Error('HTTP '+r.status);const d=await r.json();if(d.error)throw new Error(d.error);return d;
+  if(!r.ok)throw new Error('HTTP '+r.status);const d=await r.json();if(d.error)throw new Error(d.error);
+  fetch(VIDEOS_RAPIDO+'/cambio',{method:'POST'}).catch(()=>{});   // aviso a ROMO CENTRAL: «la hoja cambió», para que los demás lo vean ya
+  return d;
 }
 async function saveVideo(v){try{await apiPost('update',{video:v});return true}catch(e){toast('⚠ Error guardando: '+e.message);return false}}
 async function insertVideo(v){try{await apiPost('insert',{video:v});return true}catch(e){toast('⚠ Error guardando '+v.nombre+': '+e.message);return false}}
@@ -583,7 +597,7 @@ async function load(){
     const a=document.activeElement;if($('#sheet').classList.contains('show')||(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)))return; // no interrumpir a quien escribe
     render()}catch(e){setLive('error')}},60000);
 }
-async function recargar(){try{videos=await apiGet();_hash=hashVideos(videos);try{localStorage.setItem('romocont_cache',JSON.stringify(videos));localStorage.setItem('romocont_cache_t',Date.now())}catch(e){}setLive('ok')}catch(e){setLive('error')}render()}
+async function recargar(){try{videos=await apiGet(true);_hash=hashVideos(videos);try{localStorage.setItem('romocont_cache',JSON.stringify(videos));localStorage.setItem('romocont_cache_t',Date.now())}catch(e){}setLive('ok')}catch(e){setLive('error')}render()}
 
 document.querySelectorAll('.tb').forEach(b=>b.onclick=()=>tabTo(b.dataset.tab));
 function tabTo(t){tab=t;document.querySelectorAll('.tb').forEach(x=>x.setAttribute('aria-selected',x.dataset.tab===t));render();scrollTo({top:0});
