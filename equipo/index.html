@@ -119,6 +119,28 @@ button:focus{outline:none} button:focus-visible{outline:2px solid var(--cyan);ou
 .alerta-links b{display:block;font:600 15px/20px var(--font)}
 .alerta-links .m{color:var(--l2);margin-top:2px}
 .avisos-p{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+/* EN VIVO (17-11-2026) */
+.vivo-dia{margin-top:18px}.vivo-dia .sel{width:auto;min-width:160px}
+.viv{border-radius:20px;background:var(--card);margin-bottom:10px;overflow:hidden}
+.viv-cab{display:flex;align-items:center;gap:12px;width:100%;padding:14px 16px;text-align:left;color:#fff}
+.viv-cab:disabled{cursor:default;opacity:.6}
+.viv-cab .grow{min-width:0}
+.viv-n{font:600 17px/22px var(--font)}
+.viv-cab .m b{color:#fff;font-weight:600}
+.viv-t{font:600 14px/1 var(--font);color:var(--l2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.pto{flex:none;width:10px;height:10px;border-radius:50%;background:var(--l3)}
+.pto.en_linea{background:var(--verde);box-shadow:0 0 0 4px rgba(48,209,88,.18)}
+.pto.inactivo{background:var(--naranja)}
+.pto.nunca{background:transparent;box-shadow:inset 0 0 0 1.5px var(--l3)}
+.viv .chev-p{transition:transform .25s}.viv.abierta .chev-p{transform:rotate(90deg)}
+.viv-cuerpo{display:none;padding:0 16px 14px 38px}.viv.abierta .viv-cuerpo{display:block}
+.viv-ses{padding:10px 0;border-top:1px solid var(--borde)}
+.viv-sh{font:600 14px/20px var(--font);font-variant-numeric:tabular-nums;margin-bottom:6px}
+.viv-tr{display:grid;grid-template-columns:52px 1fr auto;gap:8px;font:400 13px/20px var(--font);font-variant-numeric:tabular-nums}
+.viv-tr.in{color:var(--l2)}
+.aviso-vivo{position:fixed;left:16px;right:16px;bottom:96px;z-index:60;max-width:520px;margin:0 auto;display:flex;gap:12px;align-items:center;
+  padding:14px 16px;border-radius:18px;background:#2c2c2e;box-shadow:0 10px 40px rgba(0,0,0,.5)}
+.aviso-vivo b{font:600 15px/20px var(--font)}.aviso-vivo .m{margin-top:2px}.aviso-vivo button{flex:none}
 .pub .hora small{display:block;margin-top:8px;font:600 12px/16px var(--font);color:var(--l2)}
 .pub .campos{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .pub textarea,.pub input{width:100%;border:0;outline:none;border-radius:12px;background:var(--card-2);color:var(--blanco);font:500 14px/20px var(--font);padding:10px 12px}
@@ -277,6 +299,7 @@ select.sel{height:36px;border-radius:10px;background:var(--card-2);border:0;padd
     <a data-nav="rep" data-rol="dash"><svg class="ico" viewBox="0 0 24 24"><path d="M4 20V11M10 20V5M16 20v-6M21 20H3"/></svg>Reportes</a>
     <div class="grp">Equipo</div>
     <a data-nav="programar" data-rol="dash"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Programar</a>
+    <a data-nav="vivo" data-rol="dash"><svg class="ico" viewBox="0 0 24 24"><path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"/><path d="M19.1 4.9C23 8.8 23 15.1 19.1 19"/></svg>En vivo<span class="n hidden" id="navVivo"></span></a>
     <a data-nav="publicar" data-rol="publica"><svg class="ico" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>Publicar</a>
     <a data-nav="subir" data-rol="sube"><svg class="ico" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>Subir videos</a>
     <a data-nav="edits" data-rol="edita"><svg class="ico" viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><path d="M8.12 8.12 12 12"/><path d="M20 4 8.12 15.88"/><circle cx="6" cy="18" r="3"/><path d="M14.8 14.8 20 20"/></svg>Romo Edits <span class="n hidden" id="navN"></span></a>
@@ -333,6 +356,15 @@ select.sel{height:36px;border-radius:10px;background:var(--card-2);border:0;padd
       <div class="prog-barra hidden" id="progBarra"><span class="grow" id="progBarraTxt"></span><button class="btn btn-gray btn-sm" id="propNo">Cancelar</button><button class="btn btn-red btn-sm" id="propSi">Aprobar</button></div>
       <div class="semana" id="semana"><div class="m">Cargando…</div></div>
       <div class="m" style="margin-top:12px">Cada noche a las 22:00 se llena solo el día siguiente. Lo que pongas tú aquí se respeta. «WhatsApp» = no está en el Drive: Lizy lo saca del grupo.</div>
+    </section>
+
+    <!-- EN VIVO · solo admin (17-11-2026): quién está conectado, en qué pestaña, y a qué hora entró y salió -->
+    <section data-v="vivo" class="hidden">
+      <div class="kicker">Equipo</div>
+      <div class="h1">En vivo</div>
+      <div class="sub" id="vivoSub">Quién está conectado y en qué pestaña. Se actualiza solo.</div>
+      <div class="vivo-dia"><select class="sel" id="vivoDia" aria-label="Día"></select></div>
+      <div id="vivoLista" style="margin-top:16px"><div class="card"><div class="empty">Cargando…</div></div></div>
     </section>
 
     <!-- PUBLICAR · Lizy (20-10-2026): solo lo que los admins le eligieron para el día -->
@@ -560,6 +592,7 @@ async function entrar(body){
 }
 $('#devEntrar').onclick = () => entrar({ dev_correo: $('#devCorreo').value.trim(), dev_nombre: $('#devCorreo').value.split('@')[0] });
 function salir(silencio){
+  latido(true);
   guardarToken(null); YO = null; VER = null; guardado.set('rc_ver' + SUF, null); document.documentElement.removeAttribute('data-ver');
   if (!silencio) { toast('Saliste'); try { google.accounts.id.disableAutoSelect(); } catch {} }
   pantallaLogin();
@@ -574,7 +607,7 @@ function arrancar(){
   $('#vLogin').classList.add('hidden'); $('#vApp').classList.remove('hidden');
   $('#meNom').textContent = YO.nombre.toLowerCase().replace(/(^|\s)\S/g, c => c.toUpperCase()); $('#meRol').textContent = ROL_TXT[YO.rol] || YO.rol; $('.me').dataset.correo = YO.correo;
   $('#meAv').innerHTML = YO.foto ? `<img src="${esc(YO.foto)}" alt="">` : esc(YO.nombre.slice(0, 2));
-  aplicarRol();
+  aplicarRol(); avisoVivo();
   if (YO.rol !== 'ADMIN' && VER) { VER = null; guardado.set('rc_ver' + SUF, null); }   // solo un admin puede ver como otro
   $('#verComo').classList.toggle('hidden', YO.rol !== 'ADMIN');
   if (YO.rol === 'ADMIN' && !EQUIPO) api('/api/equipo', null, 'GET', true).then(l => { EQUIPO = l; pintarVerComo(); }).catch(() => {});
@@ -584,7 +617,7 @@ function arrancar(){
 function vistaInicial(v){
   const r = rolUI();
   if (r === 'PUBLICADOR') return 'publicar';
-  if (r === 'ADMIN' && (v === 'publicar' || v === 'programar' || v === 'ana' || v === 'punt' || DASH.includes(v))) return v;
+  if (r === 'ADMIN' && (v === 'publicar' || v === 'programar' || v === 'vivo' || v === 'ana' || v === 'punt' || DASH.includes(v))) return v;
   if (r === 'ADMIN' && !v) return 'inicio';
   if (edita() && ['edits', 'cambios', 'subir', 'registrar'].includes(v)) return v;
   return edita() ? 'edits' : 'subir';
@@ -624,7 +657,7 @@ $('#viendo button').onclick = () => verComo(null);
 let VISTA = '';
 const DASH = ['inicio', 'pend', 'videos', 'rep'];
 function ir(v){
-  if ((DASH.includes(v) || v === 'programar' || v === 'ana' || v === 'punt') && rolUI() !== 'ADMIN') v = vistaInicial('');
+  if ((DASH.includes(v) || v === 'programar' || v === 'vivo' || v === 'ana' || v === 'punt') && rolUI() !== 'ADMIN') v = vistaInicial('');
   if ((v === 'cambios' || v === 'registrar') && !edita()) v = 'subir';
   if (rolUI() === 'PUBLICADOR') v = 'publicar';
   if (v === 'publicar' && !(rolUI() === 'ADMIN' || rolUI() === 'PUBLICADOR')) v = vistaInicial('');
@@ -641,12 +674,80 @@ function ir(v){
   if (v === 'subir') cargarMias();
   if (v === 'publicar') cargarPublicar();
   if (v === 'programar') cargarProgramar();
+  clearInterval(VIVO_T); if (v === 'vivo') { cargarVivo(); VIVO_T = setInterval(() => VISTA === 'vivo' && !document.hidden && cargarVivo(), 10000); }
+  latido();   // cada cambio de pestaña se anota ya
   if (v === 'registrar') abrirRegistrar();
   if (v === 'edits') cargarResumen();
   if (v === 'cambios') empezar(false);
 }
 $$('[data-nav]').forEach(a => a.onclick = () => ir(a.dataset.nav));
 $$('[data-go]').forEach(b => b.onclick = () => ir(b.dataset.go));
+
+/* ───── EN VIVO (17-11-2026) ─────
+   Cada página abierta avisa cada 30 s «soy yo, estoy en tal pestaña» (siempre como TÚ, aunque estés en «Ver como»).
+   Activo = la página está a la vista y la tocaste en los últimos 3 min. Sin aviso en 2 min = salió. */
+var VIVO_T = 0, ULT_TOQUE = Date.now();   // var: ir() puede correr antes de esta línea
+['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(e => addEventListener(e, () => { const antes = ULT_TOQUE; ULT_TOQUE = Date.now();
+  if (Date.now() - antes > 3 * 60e3) latido(); }, { passive: true }));
+const activoAhora = () => document.visibilityState === 'visible' && Date.now() - ULT_TOQUE < 3 * 60e3;
+function latido(salirYa){
+  if (!TOKEN || !YO || !VISTA) return;
+  try { fetch(API + '/api/presencia', { method: 'POST', keepalive: true,
+    headers: { 'Authorization': 'Bearer ' + TOKEN, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ vista: VISTA, activo: activoAhora(), salir: !!salirYa }) }).catch(() => {}); } catch {}
+}
+setInterval(() => latido(), 30000);
+document.addEventListener('visibilitychange', () => latido());
+addEventListener('pagehide', () => latido(true));
+
+const VISTA_TXT = { inicio: 'Inicio', ana: 'Analítica', punt: 'Puntualidad', pend: 'Pendientes', videos: 'Videos', rep: 'Reportes',
+  programar: 'Programar', vivo: 'En vivo', publicar: 'Publicar', subir: 'Subir videos', edits: 'Romo Edits', cambios: 'Romo Cambios', registrar: 'Registrar videos' };
+const vistaTxt = v => VISTA_TXT[v] || v || '—';
+const horaEc = ts => ts ? new Date(ts * 1000).toLocaleTimeString('es-EC', { timeZone: 'America/Guayaquil', hour: '2-digit', minute: '2-digit', hour12: false }) : '';
+const dura = seg => { seg = Math.max(0, Math.round(seg / 60)); const h = Math.floor(seg / 60), m = seg % 60; return h ? `${h} h ${m} min` : `${m} min`; };
+const diaLargo = (iso, hoy) => { if (iso === hoy) return 'Hoy'; const ay = new Date(Date.parse(hoy + 'T12:00:00Z') - 86400e3).toISOString().slice(0, 10);
+  if (iso === ay) return 'Ayer'; const [y, m, d] = iso.split('-'); return `${+d} ${MES[+m - 1]} ${y}`; };
+var VIVO_DIA = '';
+$('#vivoDia').onchange = () => { VIVO_DIA = $('#vivoDia').value; cargarVivo(); };
+async function cargarVivo(){
+  let d;
+  try { d = await api('/api/presencia' + (VIVO_DIA ? '?dia=' + VIVO_DIA : ''), null, 'GET', true); }
+  catch (e) { if (!$('#vivoLista .viv')) $('#vivoLista').innerHTML = `<div class="card"><div class="empty">${esc(e.message)}</div></div>`; return; }
+  const esHoy = d.dia === d.hoy, ahora = d.ahora;
+  $('#vivoDia').innerHTML = d.dias.map(x => `<option value="${x}" ${x === d.dia ? 'selected' : ''}>${esc(diaLargo(x, d.hoy))}</option>`).join('');
+  const conectados = d.gente.filter(g => g.estado === 'en_linea' || g.estado === 'inactivo').length;
+  $('#navVivo').textContent = esHoy ? conectados : $('#navVivo').textContent; $('#navVivo').classList.toggle('hidden', esHoy ? !conectados : $('#navVivo').classList.contains('hidden'));
+  const entraron = d.gente.filter(g => g.sesiones.length).length;
+  $('#vivoSub').textContent = esHoy ? `${conectados} conectados ahora · ${entraron} entraron hoy · se actualiza solo.` : `${entraron} entraron ese día.`;
+  const abiertas = $$('#vivoLista .viv.abierta').map(x => x.dataset.c);
+  const total = g => g.sesiones.reduce((a, s) => a + ((s.sale || ahora) - s.entra), 0);
+  $('#vivoLista').innerHTML = d.gente.map(g => {
+    const est = esHoy ? g.estado : g.sesiones.length ? 'desconectado' : 'nunca';
+    const linea = est === 'en_linea' ? `En <b>${esc(vistaTxt(g.vista))}</b> · desde ${horaEc(g.desde)}`
+      : est === 'inactivo' ? `Inactivo en ${esc(vistaTxt(g.vista))} · desde ${horaEc(g.desde)}`
+      : est === 'desconectado' ? `${esHoy ? 'Salió' : 'Última salida'} ${horaEc(g.sale)} · entró ${horaEc(g.sesiones[0].entra)}`
+      : esHoy ? 'No ha entrado hoy' : 'No entró';
+    const ses = g.sesiones.slice().reverse().map(s => `
+      <div class="viv-ses"><div class="viv-sh">${horaEc(s.entra)} – ${s.sale ? horaEc(s.sale) : 'ahora'} <span class="m">· ${dura((s.sale || ahora) - s.entra)}</span></div>
+        ${s.tramos.map(t => `<div class="viv-tr ${t.activo ? '' : 'in'}"><span>${horaEc(t.desde)}</span><span>${esc(vistaTxt(t.vista))}${t.activo ? '' : ' · inactivo'}</span><span class="m">${dura((t.hasta || ahora) - t.desde)}</span></div>`).join('')}
+      </div>`).join('');
+    return `<div class="viv ${abiertas.includes(g.correo) ? 'abierta' : ''}" data-c="${esc(g.correo)}">
+      <button class="viv-cab" ${g.sesiones.length ? '' : 'disabled'}><i class="pto ${est}"></i>
+        <div class="grow"><div class="viv-n">${esc(bonito(g.nombre))} <span class="m">· ${esc((ROL_TXT[g.rol] || g.rol).toLowerCase())}</span></div><div class="m">${linea}</div></div>
+        ${g.sesiones.length ? `<span class="viv-t">${dura(total(g))}</span><svg class="ico chev-p" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>` : ''}</button>
+      <div class="viv-cuerpo">${ses}</div></div>`;
+  }).join('') || '<div class="card"><div class="empty">No hay nadie en EQUIPO.</div></div>';
+  $$('#vivoLista .viv-cab').forEach(b => b.onclick = () => b.closest('.viv').classList.toggle('abierta'));
+}
+
+// Aviso al equipo (Marlon, 17-11-2026): una sola vez, que sepan que se registra.
+function avisoVivo(){
+  if (guardado.get('rc_aviso_vivo') === '1' || $('#avisoVivo')) return;
+  const e = document.createElement('div'); e.id = 'avisoVivo'; e.className = 'aviso-vivo';
+  e.innerHTML = '<div><b>Aviso</b><div class="m">Desde hoy ROMO CENTRAL anota a qué hora entras, a qué hora sales y en qué pestaña estás.</div></div><button class="btn btn-gray btn-sm">Entendido</button>';
+  e.querySelector('button').onclick = () => { guardado.set('rc_aviso_vivo', '1'); e.remove(); };
+  document.body.appendChild(e);
+}
 
 /* ───── CONTENIDO (el Dashboard dentro de la app) ───── */
 function abrirDash(t){
