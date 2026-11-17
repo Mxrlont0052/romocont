@@ -813,7 +813,8 @@ function pintarPublicar(d, dia, abiertas){
       cp: '<svg class="ico" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>',
       ok: '<svg class="ico" viewBox="0 0 24 24" style="stroke-width:2.4"><path d="M20 6 9 17l-5-5"/></svg>', chev: '<svg class="ico chev-p" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>' };
     const puedePegar = !!(navigator.clipboard && navigator.clipboard.readText);
-    const bajado = v => !v.descarga || !!(v.descripcion || v.facebook || v.tiktok) || guardado.get('rc_desc_' + v.id) === '1';
+    // 17-11-2026: la descripción NO cuenta como descargado (venía puesta y el botón salía «✓ Descargado» sin que Lizy lo tocara, así ES207 nunca se marcó).
+    const bajado = v => !v.descarga || !!(v.facebook || v.tiktok) || guardado.get('rc_desc_' + v.id) === '1';
     const campo = (v, k, ph, area) => area
       ? `<textarea class="campo-p" data-k="${k}" placeholder="${ph}" ${soloVer ? 'disabled' : ''}>${esc(v[k])}</textarea>`
       : `<div class="pegar"><input class="campo-p" data-k="${k}" value="${esc(v[k])}" placeholder="${ph}" inputmode="url" autocapitalize="off" ${soloVer ? 'disabled' : ''}>${puedePegar && !soloVer ? '<button class="btn btn-gray btn-sm" data-pegar>Pegar</button>' : ''}</div>`;
@@ -892,9 +893,15 @@ function pintarPublicar(d, dia, abiertas){
           toast(r.estado === 'PUBLICADO' ? `✓ ${r.codigo} publicado` : 'Guardado'); olvidar('/api/publicar'); cargarPublicar(); }
         catch (e) { toast(e.message); revisar(); } };
       revisar();
+      // Lo que ya bajó en este teléfono (antes de esta regla) y sigue sin publicar: se marca publicado solo.
+      if (dl && v.estado !== 'PUBLICADO' && !soloVer && guardado.get('rc_desc_' + id) === '1' && !AUTO_PUB.has(id)) { AUTO_PUB.add(id);
+        api('/api/publicar/guardar', { id, ya_publicado: true })
+          .then(r => { toast(`✓ ${r.codigo} marcado publicado · pega los links`); olvidar('/api/publicar'); cargarPublicar(); })
+          .catch(e => { AUTO_PUB.delete(id); toast(e.message); }); }
     });
   }
 }
+var AUTO_PUB = new Set();
 
 /* Ajustes del admin: horas de publicación (y cuál es el carrusel) */
 $('#bHoras').onclick = async () => {
