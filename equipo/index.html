@@ -75,6 +75,7 @@ button:focus{outline:none} button:focus-visible{outline:2px solid var(--cyan);ou
 .prog-top .grow{flex:1}
 .prog-horas{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:14px}
 .prog-horas .hchip{height:28px;padding:0 10px;border-radius:8px;background:var(--card-2);font:700 13px/28px var(--font)}
+.prog-horas .sep{width:1px;height:20px;background:var(--card-2);margin:0 4px}
 .prog-horas .hchip i{font-style:normal;color:var(--l2);font-weight:600;margin-left:4px}
 .prog-barra{display:flex;align-items:center;gap:8px;margin-top:12px;padding:10px 12px;border-radius:12px;background:rgba(0,255,255,.08);box-shadow:inset 0 0 0 1px rgba(0,255,255,.25);font:700 13px/18px var(--font)}
 .semana{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;margin-top:14px}
@@ -350,7 +351,7 @@ select.sel{height:36px;border-radius:10px;background:var(--card-2);border:0;padd
         <div class="grow"><div class="kicker">Programar</div><div class="h1">Lo que publica Lizy</div></div>
         <button class="btn btn-red" id="bLlenar">Llenar la semana sola</button>
       </div>
-      <div class="prog-horas"><span class="m">Horas:</span><span id="progHoras"></span><button class="btn btn-gray btn-sm" id="bHoras">Cambiar horas</button></div>
+      <div class="prog-horas"><label class="m" for="progN">Videos al día:</label><select class="sel" id="progN" aria-label="Videos al día"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option></select><span class="m">+ carrusel siempre</span><span class="sep"></span><span class="m">Horas:</span><span id="progHoras"></span><button class="btn btn-gray btn-sm" id="bHoras">Cambiar horas</button></div>
       <div class="card hidden" id="pubHoras" style="margin-top:12px;padding:16px"></div>
       <div class="aviso hidden" id="progAviso" style="margin-top:12px"></div>
       <div class="prog-barra hidden" id="progBarra"><span class="grow" id="progBarraTxt"></span><button class="btn btn-gray btn-sm" id="propNo">Cancelar</button><button class="btn btn-red btn-sm" id="propSi">Aprobar</button></div>
@@ -913,6 +914,19 @@ $('#bHoras').onclick = async () => {
     try { await api('/api/publicar/config', { horas }); toast('Horas guardadas'); box.classList.add('hidden'); cargarProgramar(); } catch (e) { toast(e.message); }
   };
 };
+/* Videos al día (17-11-2026): 0–6 + el carrusel, que siempre queda. Lo programado en horas que se quitan vuelve a pendientes. */
+$('#progN').onchange = async () => {
+  const sel = $('#progN'), n = Number(sel.value), antes = PROG ? PROG.horas.filter(h => h.tipo === 'video').length : n;
+  if (n < antes && !confirm(`Pasar a ${n} video${n === 1 ? '' : 's'} al día. Los videos ya programados en las horas que se quitan vuelven a pendientes. ¿Seguir?`)) { sel.value = String(antes); return; }
+  sel.disabled = true;
+  try {
+    const r = await api('/api/publicar/videos_dia', { n });
+    toast(n > antes ? `✓ ${n} videos al día · toca «Llenar la semana sola» para las horas nuevas`
+      : r.liberados ? `✓ ${n} videos al día · ${r.liberados} volvieron a pendientes` : `✓ ${n} videos al día`);
+    olvidar('/api/publicar'); PROPUESTA = []; await cargarProgramar();
+  } catch (e) { toast(e.message); sel.value = String(antes); }
+  sel.disabled = false;
+};
 /* ───── PROGRAMAR (admin): la semana de Lizy, hora por hora ───── */
 const COLOR_GRUPO = { Cambios: 'var(--rojo)', IA: 'var(--cyan)', '360': 'var(--naranja)', Otros: 'var(--verde)' };
 const DIA_SEM = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
@@ -923,6 +937,7 @@ function nombreDia(iso, k){
 }
 async function cargarProgramar(){
   try { PROG = await api('/api/programar'); } catch (e) { $('#semana').innerHTML = `<div class="m">${esc(e.message)}</div>`; return; }
+  $('#progN').value = String(PROG.videos_dia ?? PROG.horas.filter(h => h.tipo === 'video').length);
   $('#progHoras').innerHTML = PROG.horas.map(h => `<span class="hchip">${esc(h.hora)}<i>${h.tipo === 'carrusel' ? 'carrusel' : 'video'}</i></span>`).join(' ');
   $('#progAviso').classList.add('hidden');   // desde el 21-10 entran todos: los que no están en el Drive van con «WhatsApp»
   pintarSemana();
