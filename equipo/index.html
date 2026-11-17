@@ -111,6 +111,14 @@ button:focus{outline:none} button:focus-visible{outline:2px solid var(--cyan);ou
 .pub-dias button[aria-pressed=true]{background:#fff;color:#000}
 .pub{border-radius:20px;background:var(--card);box-shadow:inset 0 0 0 1px var(--borde);padding:16px;display:grid;grid-template-columns:96px 1fr;gap:16px;margin-bottom:12px}
 .pub .hora{font:800 26px/1 var(--font);font-variant-numeric:tabular-nums}
+/* 17-11-2026: descargar = publicado; alerta naranja mientras falten los links */
+#pubFaltan:empty{display:none}
+#pubFaltan{margin:16px 0 28px}
+.alerta-links{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border-radius:16px;margin-bottom:12px;background:rgba(255,146,48,.14);color:var(--naranja)}
+.alerta-links .ico{flex:none;width:22px;height:22px;margin-top:1px}
+.alerta-links b{display:block;font:600 15px/20px var(--font)}
+.alerta-links .m{color:var(--l2);margin-top:2px}
+.avisos-p{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .pub .hora small{display:block;margin-top:8px;font:600 12px/16px var(--font);color:var(--l2)}
 .pub .campos{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .pub textarea,.pub input{width:100%;border:0;outline:none;border-radius:12px;background:var(--card-2);color:var(--blanco);font:500 14px/20px var(--font);padding:10px 12px}
@@ -334,6 +342,7 @@ select.sel{height:36px;border-radius:10px;background:var(--card-2);border:0;padd
       <div class="sub" id="pubSub">Descarga cada video a su hora y pega la descripción, el link de Facebook y el de TikTok.</div>
       <div class="pub-dias" role="group"><button data-dia="hoy" aria-pressed="true"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Hoy</span></button><button data-dia="manana" aria-pressed="false"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span>Mañana</span></button><button data-dia="pendientes" aria-pressed="false"><svg class="ico" viewBox="0 0 24 24"><path d="M12 2v4"/><path d="m16.2 7.8 2.9-2.9"/><path d="M18 12h4"/><path d="m16.2 16.2 2.9 2.9"/><path d="M12 18v4"/><path d="m4.9 19.1 2.9-2.9"/><path d="M2 12h4"/><path d="m4.9 4.9 2.9 2.9"/></svg><span>Pendientes <span id="pubN"></span></span></button></div>
       <div class="pub-linea" id="pubLinea"></div>
+      <div id="pubFaltan"></div>
       <div id="pubLista" style="margin-top:16px"><div class="card"><div class="empty">Cargando…</div></div></div>
     </section>
 
@@ -677,8 +686,8 @@ async function cargarPublicar(){
         PUB_DIA = 'pendientes'; marcarDia(); cargarPublicar(); return; }
       // No se repinta encima de Lizy mientras escribe: lo nuevo entra en la próxima carga.
       const a = document.activeElement;
-      if (yaPintado.v && a && $('#pubLista').contains(a) && /INPUT|TEXTAREA/.test(a.tagName)) return;
-      const abiertas = $$('#pubLista .pub.abierta').map(x => x.dataset.id);
+      if (yaPintado.v && a && ($('#pubLista').contains(a) || $('#pubFaltan').contains(a)) && /INPUT|TEXTAREA/.test(a.tagName)) return;
+      const abiertas = $$('#pubLista .pub.abierta, #pubFaltan .pub.abierta').map(x => x.dataset.id);
       pintarPublicar(d, dia, yaPintado.v ? abiertas : null); yaPintado.v = true;
     });
   } catch (e) { if (!yaPintado.v) $('#pubLista').innerHTML = `<div class="card"><div class="empty">${esc(e.message)}</div></div>`; }
@@ -706,48 +715,65 @@ function pintarPublicar(d, dia, abiertas){
     const campo = (v, k, ph, area) => area
       ? `<textarea class="campo-p" data-k="${k}" placeholder="${ph}" ${soloVer ? 'disabled' : ''}>${esc(v[k])}</textarea>`
       : `<div class="pegar"><input class="campo-p" data-k="${k}" value="${esc(v[k])}" placeholder="${ph}" inputmode="url" autocapitalize="off" ${soloVer ? 'disabled' : ''}>${puedePegar && !soloVer ? '<button class="btn btn-gray btn-sm" data-pegar>Pegar</button>' : ''}</div>`;
-    const tarjetas = d.videos.map(v => { const pub = v.estado === 'PUBLICADO', des = bajado(v);
-      const hora = PUB_DIA === 'pendientes' ? (v.dia ? `${esc(v.hora || '—')} · ${esc(diaCorto(v.dia))}` : 'Sin hora') : esc(v.hora || '—');
+    // 17-11-2026: descargar = publicado; si faltan TikTok/Facebook → «Te faltan links», si falta la descripción → «Falta descripción»
+    const sinLinks = v => !(v.tiktok && v.facebook), sinDesc = v => !v.descripcion, incompleto = v => sinLinks(v) || sinDesc(v);
+    const avisos = v => [sinLinks(v) && 'Te faltan links', sinDesc(v) && 'Falta descripción'].filter(Boolean);
+    const otrosDias = (d.faltan || []).filter(f => !d.videos.some(v => v.id === f.id));
+    const tarjeta = (v, deOtroDia) => { const pub = v.estado === 'PUBLICADO', des = bajado(v), falta = pub && incompleto(v);
+      const hora = deOtroDia ? `${esc(diaCorto((v.publicado_en || '').slice(0, 10)))}` : PUB_DIA === 'pendientes' ? (v.dia ? `${esc(v.hora || '—')} · ${esc(diaCorto(v.dia))}` : 'Sin hora') : esc(v.hora || '—');
       return { hora: v.hora || '99:99', hecho: pub, html: `
-      <div class="pub ${pub ? 'hecha' : ''}" data-id="${esc(v.id)}" data-hora="${esc(v.hora || '')}">
-        <button class="pub-cab" data-abrir><div class="grow"><div class="pub-h">${hora} · ${esc(v.codigo)}</div><div class="m">${esc(v.categoria.toLowerCase())}${pub ? ` · publicado ${esc((v.publicado_en || '').slice(11))}` : ''}</div></div>
-          ${pub ? '<span class="tag ok">Publicado</span>' : ''}${ICO.chev}</button>
+      <div class="pub ${pub && !falta ? 'hecha' : ''}" data-id="${esc(v.id)}" data-hora="${esc(v.hora || '')}">
+        <button class="pub-cab" data-abrir><div class="grow"><div class="pub-h">${hora} · ${esc(v.codigo)}</div><div class="m">${esc(v.categoria.toLowerCase())}${pub ? ` · publicado ${esc((v.publicado_en || '').slice(11))}` : ''}</div>
+          ${falta ? `<div class="avisos-p">${avisos(v).map(t => `<span class="tag org">${t}</span>`).join('')}</div>` : ''}</div>
+          ${!falta && pub ? '<span class="tag ok">Publicado</span>' : ''}${ICO.chev}</button>
         <div class="pub-cuerpo"><div>
           <div class="acc ${des ? 'd' : ''}">
             ${v.descarga ? `<a class="btn paso-b dl ${des ? 'ok' : ''}" href="${esc(v.descarga)}" target="_blank" rel="noopener" download data-dl><span class="a">${ICO.dl}Descargar</span><span class="b">${ICO.ok}Descargado</span></a>`
               : '<span class="tag gr wsp" title="No está en el Drive">Video en el grupo de WhatsApp</span>'}
             <button class="btn paso-b cp" data-cp ${des ? '' : 'tabindex="-1"'}><span class="a">${ICO.cp}Copiar #</span><span class="b">${ICO.ok}Copiado</span></button>
           </div>
-          <div class="lbl-p">${pub ? 'Datos de la publicación' : '¿Ya lo publicaste? Pega los links'}</div>
+          <div class="lbl-p">${falta ? `Ya está publicado · ${avisos(v).join(' · ').toLowerCase()}` : pub ? 'Datos de la publicación' : '¿Ya lo publicaste? Pega los links'}</div>
           ${campo(v, 'tiktok', 'Link de TikTok')}${campo(v, 'facebook', 'Link de Facebook')}${campo(v, 'descripcion', 'Descripción tal cual la publicaste', true)}
           ${pub ? '' : `<button class="btn listo" data-listo disabled>Listo, publicado</button><div class="m falta" data-falta></div>`}
         </div></div>
-      </div>` }; });
+      </div>` }; };
+    const tarjetas = d.videos.map(v => tarjeta(v, false));
+    const malos = [...otrosDias, ...d.videos.filter(v => v.estado === 'PUBLICADO' && incompleto(v))];
+    const codigos = f => malos.filter(f).map(v => esc(v.codigo)).join(', ');
+    const lineas = [codigos(sinLinks) && `<b>Te faltan links</b><div class="m">${codigos(sinLinks)}</div>`,
+                    codigos(sinDesc) && `<b>Falta descripción</b><div class="m">${codigos(sinDesc)}</div>`].filter(Boolean);
+    $('#pubFaltan').innerHTML = malos.length ? `<div class="alerta-links"><svg class="ico" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+        <div>${lineas.join('<div style="height:8px"></div>')}</div></div>`
+      + otrosDias.map(v => tarjeta(v, true).html).join('') : '';
     (d.carruseles && PUB_DIA !== 'pendientes' ? d.carruseles : []).forEach((c, k) => tarjetas.push({ hora: c.hora, hecho: !!c.hecho, carr: true, html: carr[k] }));
     if (PUB_DIA !== 'pendientes') tarjetas.sort((a, b) => a.hora.localeCompare(b.hora));   // Pendientes ya viene en su orden
     const toca = tarjetas.findIndex(t => !t.hecho && !t.carr);
     $('#pubLista').innerHTML = tarjetas.map(t => t.html).join('') || '<div class="card"><div class="empty">Nada programado para este día.</div></div>';
     // La que toca, abierta
-    const cards = $$('#pubLista .pub:not(.carr)');
+    const cards = $$('#pubLista .pub:not(.carr), #pubFaltan .pub');
     const abrir = (el, si) => el && el.classList.toggle('abierta', si);
-    if (abiertas && abiertas.length) $$('#pubLista > .pub').forEach(x => abrir(x, abiertas.includes(x.dataset.id)));   // al refrescar, queda abierto lo que estaba
+    if (abiertas && abiertas.length) $$('#pubLista > .pub, #pubFaltan > .pub').forEach(x => abrir(x, abiertas.includes(x.dataset.id)));   // al refrescar, queda abierto lo que estaba
     else if (toca >= 0) abrir($$('#pubLista > .pub')[toca], true);
     // Línea del día (solo Hoy/Mañana): ✓ lo hecho, ● lo que toca
     $('#pubLinea').innerHTML = PUB_DIA === 'pendientes' ? '' : tarjetas.map((t, k) => `<button class="hora-l ${t.hecho ? 'ok' : k === toca ? 'ya' : ''}" data-k="${k}">${t.hecho ? '✓ ' : k === toca ? '● ' : ''}${esc(t.hora === '99:99' ? '—' : t.hora)}</button>`).join('');
     $$('#pubLinea [data-k]').forEach(b => b.onclick = () => { const el = $$('#pubLista > .pub')[+b.dataset.k]; if (!el) return; abrir(el, true); el.scrollIntoView({ behavior: 'smooth', block: 'center' }); });
-    $$('#pubLista [data-abrir]').forEach(b => b.onclick = () => abrir(b.closest('.pub'), !b.closest('.pub').classList.contains('abierta')));
+    $$('#pubLista [data-abrir], #pubFaltan [data-abrir]').forEach(b => b.onclick = () => abrir(b.closest('.pub'), !b.closest('.pub').classList.contains('abierta')));
     $$('#pubLista [data-carr]').forEach(c => c.onchange = async () => {
       try { await api('/api/publicar/carrusel', { dia, hora: c.dataset.carr, hecho: c.checked }); toast(c.checked ? '✓ Carrusel hecho' : 'Carrusel pendiente'); olvidar('/api/publicar'); cargarPublicar(); }
       catch (e) { toast(e.message); c.checked = !c.checked; }
     });
     cards.forEach(el => {
-      const id = el.dataset.id, v = d.videos.find(x => x.id === id), acc = el.querySelector('.acc');
+      const id = el.dataset.id, v = [...d.videos, ...otrosDias].find(x => x.id === id), acc = el.querySelector('.acc');
       const dl = el.querySelector('[data-dl]'), cp = el.querySelector('[data-cp]'), listo = el.querySelector('[data-listo]'), falta = el.querySelector('[data-falta]');
       const val = k => el.querySelector(`[data-k="${k}"]`).value.trim();
       const lleno = () => ['tiktok', 'facebook', 'descripcion'].every(k => val(k));
       const revisar = () => { if (!listo) return; const des = acc.classList.contains('d'), ok = des && lleno() && !soloVer;
         listo.disabled = !ok; falta.textContent = soloVer ? 'Estás viendo como otra persona: solo lectura' : !des ? 'Primero descarga el video' : ok ? '' : 'Pega TikTok, Facebook y la descripción para terminar'; };
-      if (dl) dl.addEventListener('click', () => { guardado.set('rc_desc_' + id, '1'); dl.classList.add('ok'); acc.classList.add('d'); cp.removeAttribute('tabindex'); revisar(); });
+      if (dl) dl.addEventListener('click', () => { guardado.set('rc_desc_' + id, '1'); dl.classList.add('ok'); acc.classList.add('d'); cp.removeAttribute('tabindex'); revisar();
+        // Marlon, 17-11-2026: descargar = publicado (con la hora de la descarga). Sin botón de «después»: queda con alerta hasta que pegue los links.
+        if (v.estado !== 'PUBLICADO' && !soloVer) api('/api/publicar/guardar', { id, ya_publicado: true })
+          .then(r => { toast(`✓ ${r.codigo} marcado publicado · pega los links`); olvidar('/api/publicar'); cargarPublicar(); })
+          .catch(e => toast(e.message)); });
       cp.onclick = async () => { const tags = v.hashtags || ('#' + v.codigo);
         try { await navigator.clipboard.writeText(tags); cp.classList.add('ok'); toast('Copiado: ' + tags); } catch (e) { toast('No se pudo copiar: ' + tags); } };
       el.querySelectorAll('[data-pegar]').forEach(b => b.onclick = async () => { const inp = b.previousElementSibling;
@@ -756,7 +782,8 @@ function pintarPublicar(d, dia, abiertas){
       el.querySelectorAll('[data-k]').forEach(c => { c.oninput = revisar; c.onchange = async () => {
         revisar(); if (soloVer) return;
         if (v.estado !== 'PUBLICADO' && lleno()) return;
-        try { const r = await api('/api/publicar/guardar', { id, [c.dataset.k]: c.value.trim() }); toast(r.estado === 'PUBLICADO' ? `✓ ${r.codigo} actualizado` : 'Guardado'); }
+        try { const r = await api('/api/publicar/guardar', { id, [c.dataset.k]: c.value.trim() }); toast(r.estado === 'PUBLICADO' ? `✓ ${r.codigo} actualizado` : 'Guardado');
+          if (r.estado === 'PUBLICADO' && incompleto(v) && avisos(r).join() !== avisos(v).join()) { olvidar('/api/publicar'); cargarPublicar(); } }   // cambió lo que falta: se actualiza la alerta
         catch (e) { toast(e.message); c.focus(); } }; });
       if (listo) listo.onclick = async () => { listo.disabled = true;
         try { const r = await api('/api/publicar/guardar', { id, tiktok: val('tiktok'), facebook: val('facebook'), descripcion: val('descripcion') });
