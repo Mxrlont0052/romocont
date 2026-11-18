@@ -215,6 +215,13 @@ select.sel{height:36px;border-radius:10px;background:var(--card-2);border:0;padd
 .cola button:hover{background:var(--card)}
 .cola button.on{background:var(--card-2);box-shadow:inset 0 0 0 1.5px var(--rojo)}
 .cola .thumb{width:34px;height:60px;border-radius:6px}
+/* ✕ «No sirve» en cada video de Marcar (Marlon, 17-11, opción C): aparece al pasar el mouse; en el teléfono, siempre */
+.cola .ci{position:relative;display:flex;flex-direction:column}
+.cola .ci > button[data-k]{padding-right:38px}
+.cola .quitar{position:absolute;top:6px;right:6px;width:30px;height:30px;padding:0;justify-content:center;border-radius:999px;background:var(--card-2);color:var(--l2);font-size:13px;opacity:0;transition:opacity .2s,background-color .2s,color .2s}
+.cola .ci:hover .quitar,.cola .quitar:focus-visible{opacity:1}
+.cola .quitar:hover{background:var(--rojo);color:var(--blanco)}
+@media (hover:none){.cola .quitar{opacity:1}}
 .vcol{display:flex;flex-direction:column;gap:8px;min-height:0;width:calc((100vh - 250px) * 9 / 16);min-width:260px}
 .vcol video{display:block;width:100%;flex:1;min-height:0;border-radius:16px;background:#050505;object-fit:contain;cursor:pointer}
 .track{position:relative;height:40px;flex:none;border-radius:10px;background:var(--card-2);cursor:pointer;overflow:hidden;touch-action:none}
@@ -1286,9 +1293,22 @@ function pintarMarcar(){
   $('#sinVideos').classList.toggle('hidden', lista.length > 0);
   ['#cola', '#vcol', '#panelM'].forEach(x => $(x).classList.toggle('hidden', !lista.length));
   $('#cKicker').textContent = 'Romo Cambios'; $('#cCuenta').textContent = lista.length ? `${I + 1} de ${lista.length}` : '';
-  $('#cola').innerHTML = lista.map((it, k) => `<button class="${k === I ? 'on' : ''}" data-k="${k}"><div class="thumb" ${miniatura(it.id)}></div><div style="min-width:0"><div class="t trunc">${esc(it.archivo.replace(/\.[^.]+$/, ''))}</div><div class="m">${listoParaRender(it) ? '<span class="tag ok">Listo</span>' : it.marca.marker != null ? '<span class="tag org">Falta tipo</span>' : 'Sin marcar'}</div></div></button>`).join('');
+  const nombre = it => it.archivo.replace(/\.[^.]+$/, '');
+  $('#cola').innerHTML = lista.map((it, k) => `<div class="ci"><button class="${k === I ? 'on' : ''}" data-k="${k}"><div class="thumb" ${miniatura(it.id)}></div><div style="min-width:0"><div class="t trunc">${esc(nombre(it))}</div><div class="m">${listoParaRender(it) ? '<span class="tag ok">Listo</span>' : it.marca.marker != null ? '<span class="tag org">Falta tipo</span>' : 'Sin marcar'}</div></div></button><button class="quitar" data-q="${k}" title="No sirve: descartar" aria-label="No sirve: descartar ${esc(nombre(it))}">✕</button></div>`).join('');
   miniaturas('#cola');
   $$('#cola [data-k]').forEach(b => b.onclick = () => { I = +b.dataset.k; pintarMarcar(); });
+  // Descartar sin renderizar: si el cambio salió mal se ve aquí y no hace falta gastar un render (Marlon, 17-11).
+  $$('#cola [data-q]').forEach(b => b.onclick = async () => {
+    const k = +b.dataset.q, it = lista[k];
+    const motivo = prompt(`¿Por qué no sirve «${nombre(it)}»? Se descarta y nadie lo edita (el video original queda en el Drive).`); if (motivo == null) return;
+    clearTimeout(guardaT[it.id]);
+    try {
+      await api('/api/edits/soltar', { id: it.id, descartar: true, motivo });
+      ITEMS = ITEMS.filter(x => x !== it);
+      if (k < I || I >= porMarcar().length) I = Math.max(0, I - 1);
+      pintarMarcar(); pintarReparto(); toast('Descartado');
+    } catch (e) { toast(e.message); }
+  });
   const n = lista.filter(listoParaRender).length;
   $('#bRender').disabled = !n; $('#bRender').textContent = n ? `Renderizar y guardar ${n}` : 'Renderizar y guardar';
   if (!lista.length) return;
